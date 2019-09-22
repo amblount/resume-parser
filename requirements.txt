@@ -1,0 +1,5 @@
+Faker>=2.0.0
+ftfy>=5.6
+ipython>=7.0.0
+requests>=2.20.0
+toolz>=0.10.0
