@@ -5,8 +5,10 @@ __pycache__/
 # Distribution / packaging
 build/
 dist/
+*.egg-info/
 
 # Unit test / coverage reports
+.cache
 .coverage
 .coverage.*
 .pytest_cache/
@@ -19,3 +21,10 @@ docs/_build/
 
 # pyenv
 .python-version
+
+# dev env
+.DS_Store
+.vscode/
+
+# data stuff
+data/resumes/*.txt
