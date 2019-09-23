@@ -3,3 +3,4 @@ ftfy>=5.6
 ipython>=7.0.0
 requests>=2.20.0
 toolz>=0.10.0
+watermark>=1.8.0
