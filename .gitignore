@@ -27,4 +27,5 @@ docs/_build/
 .vscode/
 
 # data stuff
-data/resumes/*.txt
+data/resumes/*
+data/postings/*
