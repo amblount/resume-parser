@@ -1,6 +1,10 @@
 ## DATA
 
-Getting started:
+Put datasets here!
+
+Note: These files won't be version-controlled, so be sure there's code and/or instructions for regenerating or re-fetching them later, as needed.
+
+### Getting started:
 
 1. Make two directories: `postings` and `resumes`
 2. Go to the project OneDrive folder, and download the files therein
@@ -10,7 +14,7 @@ Getting started:
 
 If you create derivative datasets, add them to a `processed` sub-directory with descriptive filenames. If you have to bring in data from third-party sources, add them to an `external` sub-directory. Be sure to document their contents below!
 
-Contents:
+### Contents:
 
 - résumés
     - `resumes/fellows_resumes.zip`: ~125 text files in a zip archive containing résumé texts extracted from PDFs created by Bloc Fellows

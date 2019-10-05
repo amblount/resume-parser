@@ -15,8 +15,8 @@ Microsoft + DataKind AI in Cities Virtual Accelerator - DataDive
 1. Create a virtual environment to isolate our project's dependencies from your other projects'. Use whichever tool you prefer (e.g. `virtualenv`, `pyenv`, `pipenv`). Here's an example using `pyenv`:
 
     ```
-    $ pyenv virtualenv 3.7.4 datakind-bloc
-    $ pyenv shell datakind-bloc
+    msvdd_Bloc(master)$ pyenv virtualenv 3.7.4 datakind-bloc
+    msvdd_Bloc(master)$ pyenv shell datakind-bloc
     ```
 
 1. Install project dependencies:

@@ -29,3 +29,5 @@ docs/_build/
 # data stuff
 data/resumes/*
 data/postings/*
+data/external/*
+data/processed/*
