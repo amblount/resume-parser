@@ -44,6 +44,7 @@ SO_TAGS_REMOVE = [
     "ENVIRONMENT",
     "SCHEDULE",
     "NEXT",
+    "DEVISE",
     "SEND",
     "DATE",
     "SELECT",
