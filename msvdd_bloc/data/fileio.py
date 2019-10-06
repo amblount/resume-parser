@@ -56,4 +56,5 @@ def load_text_files_from_zip(filepath):
     with zipfile.ZipFile(filepath, mode="r") as zf:
         for member in zf.infolist():
             with zf.open(member, mode="r") as f:
-                yield (member.filename, f.read())
+                text = f.read().decode("utf-8")
+                yield (member.filename, text)
