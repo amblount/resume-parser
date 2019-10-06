@@ -143,7 +143,9 @@ SO_TAGS_REMOVE = [
     "LOGGING",
     "AUTHENTICATION",
     "CLASS",
-    "ACCESSIBILITY"
+    "ACCESSIBILITY",
+    "LOGIN",
+    "LOAD"
 ]
 
 SO_TAGS_AGG = [
