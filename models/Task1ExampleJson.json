@@ -1,0 +1,56 @@
+{
+    "basics": {
+        "name": "Stacey Miller",
+        "label": "",
+        "picture": "",
+        "email": "",
+        "phone": "",
+        "website": "",
+        "summary": "",
+        "location": {},
+        "profiles": []
+    },
+    "work": [],
+    "education": [
+        {
+            "institution": "Columbia University, The Fu Foundation of Engineering and Applied Science ",
+            "area": " Computer Science",
+            "studyType": "Bachelor",
+            "startDate": "",
+            "endDate": "May 2019",
+            "gpa": "",
+            "courses": [
+                "Artificial Intelligence",
+                "Advanced Programming",
+                "Data Structures in Java",
+                "Python",
+                "Computer",
+                "Relevant Coursework: Artificial Intelligence",
+                "Advanced Programming",
+                "Data Structures in Java",
+                "Python",
+                "Computer",
+                "Science Theory",
+                "Linear Algebra"
+            ]
+        },
+        {
+            "institution": "Riverside High School, Durham, NC ",
+            "area": "",
+            "studyType": "",
+            "startDate": "",
+            "endDate": "June 2015",
+            "gpa": "",
+            "courses": []
+        }
+    ],
+    "skills": [
+        "Programming Languages: Advanced in Java",
+        "Python",
+        "and C/C++",
+        "Basic in JavaScript and HTML/CSS",
+        "Web Frameworks/Tools: Node.js",
+        "Flask",
+        "Git"
+    ]
+}

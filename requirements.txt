@@ -10,4 +10,3 @@ spacy>=2.1,<2.2
 textacy>=0.9.0
 toolz>=0.10.0
 watermark>=1.8.0
-glom>=19.0.0
