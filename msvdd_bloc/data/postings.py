@@ -30,7 +30,7 @@ _THEMUSE_CATEGORIES = (
 )
 
 
-def fetch_github_jobs(*, query, location=None, limit=None):
+def fetch_from_github(*, query, location=None, limit=None):
     """
     Args:
         query (str): A search term, such as "ruby" or "java".
@@ -68,7 +68,7 @@ def fetch_github_jobs(*, query, location=None, limit=None):
         return results
 
 
-def fetch_indeed_jobs(publisher_id, user_ip, *, query, location=None, limit=None):
+def fetch_from_indeed(publisher_id, user_ip, *, query, location=None, limit=None):
     """
     Args:
         publisher_id (str)
@@ -138,7 +138,7 @@ def fetch_indeed_jobs(publisher_id, user_ip, *, query, location=None, limit=None
     return detailed_results
 
 
-def fetch_themuse_jobs(*, category, location=None, limit=None):
+def fetch_from_themuse(*, category, location=None, limit=None):
     """
     Args:
         category (str): Job category for which to search.
