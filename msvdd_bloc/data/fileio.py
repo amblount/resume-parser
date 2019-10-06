@@ -34,6 +34,21 @@ def save_json(filepath, data):
         json.dump(data, f, ensure_ascii=False, indent=4)
 
 
+def load_json(filepath):
+    """
+    Load JSON data stored to disk at ``filepath`.
+
+    Args:
+        filepath (str)
+
+    Returns:
+        List[dict]
+    """
+    with io.open(filepath, mode="rt", encoding="utf-8") as f:
+        data = json.load(f)
+    return data
+
+
 def save_text_files_to_zip(filepath, text_files):
     """
     Args:
