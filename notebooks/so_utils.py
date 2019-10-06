@@ -145,7 +145,10 @@ SO_TAGS_REMOVE = [
     "CLASS",
     "ACCESSIBILITY",
     "LOGIN",
-    "LOAD"
+    "LOAD",
+    "PACKAGE",
+    "VALIDATION",
+    "FETCH"
 ]
 
 SO_TAGS_AGG = [
