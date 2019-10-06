@@ -1,7 +1,3 @@
-import io
-import json
-
-
 def dedupe_results(results, dupe_key):
     """
     Filter out items in ``results`` with the same ``dupe_key`` value, keeping only
@@ -38,15 +34,3 @@ def chunk_items(items, chunk_size):
     """
     for i in range(0, len(items), chunk_size):
         yield items[i : min(i + chunk_size, len(items))]
-
-
-def save_data_to_disk(data, filepath):
-    """
-    Save ``data`` to disk at ``filepath`` as a JSON file.
-
-    Args:
-        data (List[dict])
-        filepath (str)
-    """
-    with io.open(filepath, mode="wt", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
