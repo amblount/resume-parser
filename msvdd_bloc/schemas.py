@@ -1,7 +1,5 @@
 import marshmallow as ma
 
-from .data.resumes import RE_PHONE_NUMBER
-
 
 class ResumeBasicsLocationSchema(ma.Schema):
     address = ma.fields.String()
@@ -22,7 +20,7 @@ class ResumeBasicsSchema(ma.Schema):
     label = ma.fields.String()
     # picture = ma.fields.Raw()
     email = ma.fields.String(validate=ma.validate.Email())
-    phone = ma.fields.String(validate=ma.validate.Regexp(RE_PHONE_NUMBER))
+    phone = ma.fields.String()
     website = ma.fields.String(validate=ma.validate.URL())
     summary = ma.fields.String()
     location = ma.fields.Nested(ResumeBasicsLocationSchema)
