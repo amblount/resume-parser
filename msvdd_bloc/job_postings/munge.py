@@ -1,8 +1,9 @@
 import logging
 import re
+import unicodedata
 
 import bs4
-import dateutil
+import dateutil.parser
 import ftfy
 
 LOGGER = logging.getLogger(__name__)
@@ -108,6 +109,7 @@ def munge_description(value, *, html=False):
     else:
         if html is True:
             value = bs4.BeautifulSoup(value, "html.parser").get_text()
+            value = unicodedata.normalize("NFKD", value)
         value = ftfy.fix_text(value).strip()
         return value
 
