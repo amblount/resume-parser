@@ -2,7 +2,7 @@ import logging
 
 import requests
 
-from . import utils
+from .. import utils
 
 LOGGER = logging.getLogger(__name__)
 
