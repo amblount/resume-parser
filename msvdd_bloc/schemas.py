@@ -113,6 +113,10 @@ class ResumeSchema(ma.Schema):
     interests = ma.fields.Nested(ResumeInterestSchema, many=True)
     references = ma.fields.Nested(ResumeReferenceSchema, many=True)
 
+    class Meta:
+        # ignore any unknown keys
+        unknown = ma.EXCLUDE
+
 
 class JobPostingSchema(ma.Schema):
     """
@@ -144,3 +148,7 @@ class JobPostingSchema(ma.Schema):
     base_salary = ma.fields.Number()
     expected_salary = ma.fields.Number()
     salary_currency = ma.fields.String()
+
+    class Meta:
+        # ignore any unknown keys
+        unknown = ma.EXCLUDE
