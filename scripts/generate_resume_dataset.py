@@ -1,3 +1,15 @@
+#!/usr/bin/env python
+"""
+Script for generating a résumés dataset. From a directory of résumé .pdf, extract and
+clean up texts, then save the collection of .txt files in a compressed .zip archive.
+
+To reproduce the two datasets used in the Microsoft Virtual Data Dive (2019-10-06):
+
+.. code-block::
+
+    $ python scripts/generate_resume_dataset.py --in_dirpath /path/to/data/resumes/fellows --out_filepath ./data/resumes/fellows_resumes.zip --fname_prefix fellows --min_text_len 150 --locale en_US --remove_pii
+    $ python scripts/generate_resume_dataset.py --in_dirpath /path/to/data/resumes/bonus --out_filepath ./data/resumes/bonus_resumes.zip --fname_prefix bonus --min_text_len 150 --locale en_US --remove_pii
+"""
 import argparse
 import logging
 import pathlib
@@ -14,15 +26,15 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
     level=logging.INFO,
 )
-LOGGER = logging.getLogger("generate_resume_dataset")
+LOGGER = logging.getLogger("generate_resumes_dataset")
 logging.getLogger("pdfminer").setLevel(logging.WARNING)  # shush, pdfminer
 
 
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "From a directory of résumé PDF files, extract and clean up texts, "
-            "then save in a standard JSON format."
+            "From a directory of résumé .pdf files, extract and clean up texts, "
+            "then save the collection of .txt files in a compressed .zip archive."
         ),
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
