@@ -7,8 +7,8 @@ To reproduce the two datasets used in the Microsoft Virtual Data Dive (2019-10-0
 
 .. code-block::
 
-    $ python scripts/generate_resume_dataset.py --in_dirpath /path/to/data/resumes/fellows --out_filepath ./data/resumes/fellows_resumes.zip --fname_prefix fellows --min_text_len 150 --locale en_US --remove_pii
-    $ python scripts/generate_resume_dataset.py --in_dirpath /path/to/data/resumes/bonus --out_filepath ./data/resumes/bonus_resumes.zip --fname_prefix bonus --min_text_len 150 --locale en_US --remove_pii
+    $ python scripts/generate_resumes_dataset.py --in_dirpath /path/to/data/resumes/fellows --out_filepath ./data/resumes/fellows_resumes.zip --fname_prefix fellows --min_text_len 150 --locale en_US --remove_pii
+    $ python scripts/generate_resumes_dataset.py --in_dirpath /path/to/data/resumes/bonus --out_filepath ./data/resumes/bonus_resumes.zip --fname_prefix bonus --min_text_len 150 --locale en_US --remove_pii
 """
 import argparse
 import logging
