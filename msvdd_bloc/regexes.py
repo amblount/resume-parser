@@ -1,6 +1,15 @@
 import re
 
 
+RE_BULLETS = re.compile(
+    r"[\u2022\u2023\u2043\u204C\u204D\u2219\u25CF\u25E6\u29BE\u29BF]",
+    flags=re.UNICODE,
+)
+
+RE_BREAKING_SPACE = re.compile(r"(\r\n|[\n\v]){2,}", flags=re.UNICODE)
+
+RE_NONBREAKING_SPACE = re.compile(r"[^\S\n\v]+", flags=re.UNICODE)
+
 RE_NAME = re.compile(
     r"^(([(\"][A-Z]\w+[)\"]|[A-Z]\w+|[A-Z])[.,]?[ -]?){2,5}$",
     flags=re.UNICODE,
@@ -76,3 +85,5 @@ RE_STREET_ADDRESS = re.compile(
     r"(\d+ ((?! \d+ ).)*?) [A-Za-z]{2} \d{5}(-\d{4})?",
     flags=re.UNICODE,
 )
+
+RE_ZIP_CODE = re.compile(r"\d{5}(\-\d{4})?")

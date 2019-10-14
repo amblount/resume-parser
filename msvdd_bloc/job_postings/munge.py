@@ -6,9 +6,9 @@ import bs4
 import dateutil.parser
 import ftfy
 
-LOGGER = logging.getLogger(__name__)
+from .. import regexes
 
-RE_ZIP_CODE = re.compile(r"\d{5}(\-\d{4})?")  # TODO: put this somewhere better?
+LOGGER = logging.getLogger(__name__)
 
 
 def munge_job_posting_github(data):
@@ -126,7 +126,7 @@ def munge_location_github(value):
         return None
     else:
         # no zip codes, thanks!
-        value = RE_ZIP_CODE.sub("", value).strip()
+        value = regexes.RE_ZIP_CODE.sub("", value).strip()
         # split multiple locations on common delimiters
         # punct-based delimiters
         if ";" in value:
