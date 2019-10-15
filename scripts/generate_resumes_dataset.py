@@ -13,6 +13,7 @@ To reproduce the two datasets used in the Microsoft Virtual Data Dive (2019-10-0
 import argparse
 import logging
 import pathlib
+import re
 import sys
 
 from faker import Faker
@@ -53,7 +54,9 @@ def main():
             LOGGER.warning("unable to extract text from %s", filepath)
             continue
 
-        text = msvdd_bloc.resumes.clean_fellows_text(text)
+        # HACK: resumes from amina's "bonus" dataset consistently ended with junk lines
+        # this regex gets rid of them -- usually :)
+        text = re.sub(r"([\w]+ ?){1,3}resumes( in ([\w,]+ ?){1,3})?\n", "", text)
         if args.remove_pii is True:
             text = replace_pii(text, faker=faker)
         if args.fname_prefix:
