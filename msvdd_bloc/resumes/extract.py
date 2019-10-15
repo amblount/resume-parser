@@ -34,6 +34,7 @@ def extract_text_textract(filepath):
         str
     """
     # hiding the import so folks don't have to worry about installing it
+    # https://textract.readthedocs.io/en/stable/installation.html
     import textract
 
     return textract.process(
@@ -51,13 +52,22 @@ def extract_text_pdfminer(filepath):
     Returns:
         str
     """
-    # hiding the import so folks don't have to worry about installing it
+    # hiding the yapdfminer import so folks don't have to worry about installing it
+    # note: this is a fork of pdfminer3, which is a fork of pdfminer.six, which is a fork of pdfminer
+    # pip install yapdfminer
     import pdfminer.converter
     import pdfminer.layout
     import pdfminer.pdfinterp
     import pdfminer.pdfpage
 
-    laparams = pdfminer.layout.LAParams(boxes_flow=0.5)
+    laparams = pdfminer.layout.LAParams(
+        line_overlap=0.5,
+        char_margin=2.0,
+        word_margin=0.1,
+        line_margin=0.5,
+        boxes_flow=0.5,
+        all_texts=False,
+    )
     retstr = io.StringIO()
     rsrcmgr = pdfminer.pdfinterp.PDFResourceManager()
     device = pdfminer.converter.TextConverter(
@@ -84,6 +94,7 @@ def extract_text_tika(filepath):
         str
     """
     # hiding the import so folks don't have to worry about installing it
+    # pip install tika
     from tika import parser
 
     result = parser.from_file(filepath)
