@@ -129,7 +129,7 @@ def replace_pii(text, *, faker=None):
     first_chunk = regexes.RE_PHONE_NUMBER.sub(faker.phone_number(), first_chunk)
     first_chunk = regexes.RE_EMAIL.sub(faker.email(), first_chunk)
     first_chunk = regexes.RE_URL.sub(faker.url(), first_chunk)
-    first_chunk = regexes.RE_STREET_ADDRESS.sub(faker.address().replace("\n", " "), first_chunk)
+    first_chunk = regexes.RE_FULL_ADDRESS.sub(faker.address().replace("\n", " "), first_chunk)
     text = first_chunk + the_rest
     return text
 
