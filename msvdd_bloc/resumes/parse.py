@@ -161,7 +161,7 @@ def get_section_lines(lines):
                 # if header is the start of a line with more content
                 # append only the post-header content
                 if match.group("end").endswith(": "):
-                    section_lines[curr_section].append(line[match.end:])
+                    section_lines[curr_section].append(line[match.end():])
                 # if header is a whole line on its own, skip to the next line
                 else:
                     pass
@@ -247,6 +247,15 @@ def parse_basics_section(lines):
     return basics
 
 
+RE_SKILL_NAME_DELIM = re.compile(r"(?:: +| +[-–] +)")
+RE_SKILL_KEYWORD_DELIM = re.compile(r"[,;] +(?:(?:and|&) +)?")
+RE_SKILL_LEVEL = re.compile(
+    r"\(?(?P<level>advanced|intermediate|beginner|basic|proficient|exposed)\)? ?(in )?",
+    flags=re.UNICODE | re.IGNORECASE,
+)
+RE_SKILL_CLEAN = re.compile(r"[.,;]$")
+
+
 def parse_skills_section(lines):
     """
     Args:
@@ -259,16 +268,40 @@ def parse_skills_section(lines):
 
         [{
             "name": "Web Development",
-            "level": "Master",
+            "level": "advanced",
             "keywords": ["HTML", "CSS", "Javascript"]
         }]
     """
-    # TODO: parse out level, e.g. "Python (proficient)"
-    skills = [
-        {"name": skill.lstrip("- ")}
-        for line in lines
-        for skill in re.split(r"[,;] +", line)
-        if skill.strip() and
-        skill.strip().lower() not in SECTION_HEADERS["skills"]
-    ]
-    return skills
+    all_skills = []
+    for line in lines:
+        if not line:
+            continue
+        line = line.lstrip("- ")
+        split_line = RE_SKILL_NAME_DELIM.split(line)
+        if len(split_line) == 1:
+            names = RE_SKILL_KEYWORD_DELIM.split(line)
+            if len(names) == 1:
+                names = line.split()
+            skills = []
+            for name in names:
+                match = RE_SKILL_LEVEL.search(name)
+                if match:
+                    skill = {
+                        "name": RE_SKILL_CLEAN.sub("", RE_SKILL_LEVEL.sub("", name).strip()),
+                        "level": match.group("level"),
+                    }
+                else:
+                    skill = {"name": RE_SKILL_CLEAN.sub("", name.strip())}
+                skills.append(skill)
+            all_skills.extend(skills)
+        elif len(split_line) == 2:
+            name, keywords = split_line
+            keywords_split = RE_SKILL_KEYWORD_DELIM.split(keywords)
+            if len(keywords_split) == 1:
+                keywords_split = keywords.split()
+            skill = {
+                "name": RE_SKILL_CLEAN.sub("", name.strip()),
+                "keywords": [RE_SKILL_CLEAN.sub("", kw) for kw in keywords_split]
+            }
+            all_skills.append(skill)
+    return all_skills
