@@ -2,7 +2,7 @@ import re
 
 
 RE_BULLETS = re.compile(
-    r"[\u2022\u2023\u2043\u204C\u204D\u2219\u25CF\u25E6\u29BE\u29BF\u30fb]",
+    r"[\u00a7\u2022\u2023\u2043\u204C\u204D\u2219\u25CF\u25E6\u29BE\u29BF\u30fb]",
     flags=re.UNICODE,
 )
 
