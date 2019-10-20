@@ -12,67 +12,104 @@ from .. import regexes
 LOGGER = logging.getLogger(__name__)
 
 SECTION_HEADERS = {
-    "summary": {
-        "career summary",
-        "objective",
-        "summary",
-    },
-    "work": {
-        "additional experience",
-        "experience",
-        "experiences",
-        "leadership",
-        "leadership experience",
-        "leadership and service",
-        "professional experience",
-        "relevant experience",
-        "work experience",
-        "work & research experience",
-    },
-    "volunteer": {
-        "volunteering",
-    },
-    "education": {
-        "academic qualifications",
-        "education",
-    },
-    "awards": {
-        "achievements",
-        "awards",
-        "awards and certifications",
-        "fellowships & awards",
-        "honors",
-        "honors & awards",
-        "honors, awards, and memberships",
-    },
-    "publications": {
-        "publications",
-    },
-    "skills": {
-        "languages and technologies",
-        "language and technologies",
-        "programming languages",
-        "skills",
-        "skills & expertise",
-        "technical skills",
-        "technical skillset",
-        "technological skills",
-        "tools",
-    },
-    "languages": {
-        "languages",
-    },
-    "interests": {
-        "activities",
-        "activities and student groups",
-        "github projects",
-        "interests",
-        "other projects",
-        "programming projects",
-        "projects",
-        "side projects",
-        "technical projects",
-    },
+    "summary": re.compile(
+        r"^(?P<text>"
+        "career summary|"
+        "objective|"
+        "summary"
+        ")(?P<end>: |:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "work": re.compile(
+        r"^(?P<text>"
+        "additional experiences?|"
+        "experiences?|"
+        "leadership|"
+        "leadership (and|&) service|"
+        "leadership experiences?|"
+        "professional experiences?|"
+        "relevant experiences?|"
+        "work experiences?|"
+        "work (and|&) research experiences?"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "volunteer": re.compile(
+        r"^(?P<text>"
+        "volunteering"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "education": re.compile(
+        r"^(?P<text>"
+        "academic qualifications|"
+        "education"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "awards": re.compile(
+        r"^(?P<text>"
+        "achievements|"
+        "awards|"
+        "awards (and|&) certifications|"
+        "fellowships (and|&) awards|"
+        "honors|"
+        "honors (and|&) awards|"
+        "honors, awards, (and|&) memberships"
+        ")(?P<end>: |:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "publications": re.compile(
+        r"^(?P<text>"
+        "publications"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "skills": re.compile(
+        r"^(?P<text>"
+        "languages? (and|&) technologies|"
+        "programming languages|"
+        "skills|"
+        "skills (and|&) expertise|"
+        "technical skills(et)?|"
+        "technological skills(et)?|"
+        "tools"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "languages": re.compile(
+        r"^(?P<text>"
+        "languages"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "interests": re.compile(
+        r"^(?P<text>"
+        "activities|"
+        "activities (and|&) student groups|"
+        "extracurricular activities|"
+        "github projects|"
+        "interests|"
+        "other projects|"
+        "programming projects|"
+        "projects|"
+        "side projects|"
+        "technical projects"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "ambiguous": re.compile(
+        r"^(?P<text>"
+        "activities (and|&) honors"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    # this catches too many non-header lines, sorry
+    # "other": re.compile(
+    #     r"^(?P<text>"
+    #     r"(\w+( |-| & )?){1,3})"
+    #     r":?(?P<end>$)",
+    # )
 }
 
 
@@ -106,39 +143,34 @@ LOCATION_TAG_MAPPING = {
 }
 
 
-def get_section_idxs(lines):
+def get_section_lines(lines):
     """
     Args:
-        lines (List[str])
-
-    Returns:
-        List[Tuple[str, int]]
-    """
-    section_idxs = [("START", 0)]
-    for idx, line in enumerate(lines):
-        for section, headers in SECTION_HEADERS.items():
-            if (
-                any(line.lower() == header for header in headers) or
-                any(line.lower().startswith(header + ":") for header in headers)
-            ):
-                section_idxs.append((section, idx))
-    section_idxs.append(("END", len(lines)))
-    return section_idxs
-
-
-def get_section_lines(lines, section_idxs):
-    """
-    Args:
-        lines (List[str])
-        section_idxs (List[Tuple[str, int]])
+        List[str]
 
     Returns:
         Dict[str, List[str]]
     """
     section_lines = collections.defaultdict(list)
-    for (section, idx1), (_, idx2) in itertoolz.sliding_window(2, section_idxs):
-        section_lines[section].extend(lines[idx1 : idx2])
-    return dict(section_lines)
+    curr_section = "START"
+    for line in lines:
+        for section, pattern in SECTION_HEADERS.items():
+            match = pattern.match(line)
+            if match:
+                curr_section = section
+                # if header is the start of a line with more content
+                # append only the post-header content
+                if match.group("end").endswith(": "):
+                    section_lines[curr_section].append(line[match.end:])
+                # if header is a whole line on its own, skip to the next line
+                else:
+                    pass
+                # only one section header match permitted per line
+                break
+        # no new match, so add line to current section
+        else:
+            section_lines[curr_section].append(line)
+    return section_lines
 
 
 def parse_basics_section(lines):
