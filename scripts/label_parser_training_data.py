@@ -28,20 +28,27 @@ def main():
     LOGGER.setLevel(args.loglevel)
 
     parser_module = msvdd_bloc.resumes.parse.utils.load_module_from_path(
-        name="parser_module", fpath=args.module_filepath)
-    if args.out_filepath.is_file():
-        labeled_lines = list(msvdd_bloc.fileio.load_json(args.out_filepath, lines=True))
+        name="parser_module", fpath=args.module_filepath.resolve())
+    training_data_fpath = parser_module.TRAINING_DATA_FPATH
+    if training_data_fpath.is_file():
+        labeled_lines = list(msvdd_bloc.fileio.load_json(
+            training_data_fpath, lines=True))
         seen_tokenized_lines = {
             tuple(tok_text for tok_text, _ in line)
             for line in labeled_lines
         }
+        LOGGER.info(
+            "loaded %s labeled lines from %s", len(labeled_lines), training_data_fpath,
+        )
     else:
+        labeled_lines = []
         seen_tokenized_lines = {}
 
     labels = args.labels or parser_module.LABELS
     print_help(labels)
 
-    unlabeled_lines = list(msvdd_bloc.fileio.load_text(args.in_filepath, lines=True))
+    unlabeled_lines = list(msvdd_bloc.fileio.load_text(
+        args.unlabeled_data.resolve(), lines=True))
     n = len(unlabeled_lines)
     for i, line in enumerate(unlabeled_lines):
         tokens = tuple(
@@ -64,7 +71,7 @@ def main():
         seen_tokenized_lines.add(tokens)
         labeled_lines.append(labeled_line)
 
-    msvdd_bloc.fileio.save_json(args.out_filepath, labeled_lines, lines=True)
+    msvdd_bloc.fileio.save_json(training_data_fpath, labeled_lines, lines=True)
 
 
 def add_arguments(parser):
@@ -75,19 +82,13 @@ def add_arguments(parser):
         parser (:class:`argparse.ArgumentParser`)
     """
     parser.add_argument(
-        "--in_filepath", type=pathlib.Path, required=True,
+        "--unlabeled_data", type=pathlib.Path, required=True,
         help="path to .txt file on disk in which unlabeled items are saved as text, "
         "where each line corresponds to a separate item",
     )
     parser.add_argument(
-        "--out_filepath", type=pathlib.Path, required=True,
-        help="path to .jsonl file on disk into which labeled items are saved as JSON, "
-        "where each line corresponds to a separate item",
-    )
-    parser.add_argument(
         "--module_filepath", type=pathlib.Path, required=True,
-        help="path to .py file on disk with functionality for labeling and tokenizing "
-        "example lines",
+        help="path to .py file on disk with functionality for tokenizing lines"
     )
     parser.add_argument(
         "--labels", type=str, nargs="+", default=None,
