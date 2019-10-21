@@ -84,7 +84,7 @@ except IOError:
     TAGGER = None
 
 LABELS = (
-    "bullet"
+    "bullet",
     "name",
     "keyword",
     "level",
@@ -95,10 +95,11 @@ LABELS = (
 
 LEVEL_WORDS = {
     "advanced", "intermediate", "beginner",
-    "experienced", "proficient", "exposed",
+    "experienced", "proficient", "exposed", "exposure",
     "basic", "familiar",
 }
 GROUP_SEP_CHARS = {":", "-", "–"}
+ITEM_SEP_CHARS = {",", ";", "/", "&"}
 
 
 def parse_skills_section_crf(lines):
@@ -110,7 +111,10 @@ def parse_skills_section_crf(lines):
         List[List[Tuple[str, str]]]
     """
     if TAGGER is None:
-        raise IOError("model file {} is missing".format(MODEL_FPATH))
+        raise IOError(
+            "model file '{}' is missing; have you trained one yet? "
+            "if not, use the `label_parser_training_data.py` script.".format(MODEL_FPATH)
+        )
 
     parsed_lines = []
     for line in lines:
@@ -209,6 +213,7 @@ def featurize_token(token):
         "is_stop": token.is_stop,
         "is_level_word": token.lower_ in LEVEL_WORDS,
         "is_group_sep_char": token.text in GROUP_SEP_CHARS,
+        "is_item_sep_char": token.text in ITEM_SEP_CHARS,
     }
 
 
