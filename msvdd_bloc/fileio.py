@@ -91,7 +91,7 @@ def load_text(filepath, *, lines=False):
             yield f.read()
         else:
             for line in f:
-                yield line.strip()
+                yield line.rstrip("\n")
 
 
 def save_text_files_to_zip(filepath, text_files):
