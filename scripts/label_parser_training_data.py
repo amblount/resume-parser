@@ -37,12 +37,12 @@ def main():
             tuple(tok_text for tok_text, _ in line)
             for line in labeled_lines
         }
-        LOGGER.info(
-            "loaded %s labeled lines from %s", len(labeled_lines), training_data_fpath,
-        )
     else:
         labeled_lines = []
         seen_tokenized_lines = {}
+
+    n_labeled_lines = len(labeled_lines)
+    LOGGER.info("loaded %s labeled lines from %s", n_labeled_lines, training_data_fpath)
 
     labels = args.labels or parser_module.LABELS
     print_help(labels)
@@ -71,7 +71,14 @@ def main():
         seen_tokenized_lines.add(tokens)
         labeled_lines.append(labeled_line)
 
-    msvdd_bloc.fileio.save_json(training_data_fpath, labeled_lines, lines=True)
+    if len(labeled_lines) > n_labeled_lines:
+        msvdd_bloc.fileio.save_json(training_data_fpath, labeled_lines, lines=True)
+        LOGGER.info(
+            "saved %s labeled lines to %s",
+            len(labeled_lines), training_data_fpath,
+        )
+    else:
+        LOGGER.info("no additional lines labeled")
 
 
 def add_arguments(parser):
