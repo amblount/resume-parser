@@ -67,13 +67,21 @@ def parse_skills_section(lines):
 ## CRF-BASED PARSING ##
 #######################
 
+# NOTE: required objects are as follows
+# - TRAINING_DATA_FPATH (:class:`pathlib.Path`)
+# - MODEL_FPATH (:class:`pathlib.Path`)
+# - TAGGER (:class:`pycrfsuite.Tagger`)
+# - LABELS (List[str])
+# - tokenize (func)
+# - featurize (func)
+
 import pycrfsuite
 import spacy
 from toolz import itertoolz
 
 import msvdd_bloc
 
-DATA_FPATH = msvdd_bloc.DATA_DIR.joinpath("resumes", "resume-skills-training-data.jsonl")
+TRAINING_DATA_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-skills-training-data.jsonl")
 MODEL_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-skills.crfsuite")
 
 TOKENIZER = spacy.blank("en")
@@ -123,7 +131,7 @@ def parse_skills_section_crf(lines):
             parsed_lines.append([])
             continue
         else:
-            features = featurize_tokens(tokens)
+            features = featurize(tokens)
             tok_tags = tag(tokens, features)
             # TODO: Apply logic to sequence of (token, tag) pairs!
             parsed_lines.append(tok_tags)
@@ -150,7 +158,7 @@ def tokenize(line):
     return [tok for tok in TOKENIZER(line_str)]
 
 
-def featurize_tokens(tokens):
+def featurize(tokens):
     """
     Extract features from individual tokens as well as those that are dependent on
     the sequence thereof.
@@ -161,7 +169,7 @@ def featurize_tokens(tokens):
     Returns:
         List[Dict[str, obj]]
     """
-    tokens_features = [featurize_token(token) for token in tokens]
+    tokens_features = [get_token_features(token) for token in tokens]
     if len(tokens_features) == 1:
         tokens_features[0]["_singleton"] = True
         return tokens_features
@@ -182,7 +190,7 @@ def featurize_tokens(tokens):
         return feature_sequence
 
 
-def featurize_token(token):
+def get_token_features(token):
     """
     Get per-token features, independent of other tokens within its sequence.
 
@@ -223,7 +231,7 @@ def tag(tokens, features):
 
     Args:
         tokens (List[:class:`spacy.tokens.Token`]): As output by :func:`tokenize()`
-        features (List[Dict[str, obj]]): As output by :func:`featurize_tokens()`
+        features (List[Dict[str, obj]]): As output by :func:`featurize()`
 
     Returns:
         List[Tuple[str, str]]: Ordered sequence of (token, tag) pairs.
