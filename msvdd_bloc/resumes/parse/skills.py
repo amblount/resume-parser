@@ -4,6 +4,10 @@ import re
 
 LOGGER = logging.getLogger(__name__)
 
+#########################
+## RULES-BASED PARSING ##
+#########################
+
 RE_SKILL_NAME_DELIM = re.compile(r"(?:: +| +[-–] +)")
 RE_SKILL_KEYWORD_DELIM = re.compile(r"[,;] +(?:(?:and|&) +)?")
 RE_SKILL_LEVEL = re.compile(
@@ -57,3 +61,167 @@ def parse_skills_section(lines):
             }
             all_skills.append(skill)
     return all_skills
+
+
+#######################
+## CRF-BASED PARSING ##
+#######################
+
+import pycrfsuite
+import spacy
+from toolz import itertoolz
+
+import msvdd_bloc
+
+DATA_FPATH = msvdd_bloc.DATA_DIR.joinpath("resumes", "resume-skills-training-data.jsonl")
+MODEL_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-skills.crfsuite")
+
+TOKENIZER = spacy.blank("en")
+try:
+    TAGGER = pycrfsuite.Tagger()
+    TAGGER.open(str(MODEL_FPATH))
+except IOError:
+    TAGGER = None
+
+LABELS = (
+    "bullet"
+    "name",
+    "keyword",
+    "level",
+    "group_sep",
+    "item_sep",
+    "other",
+)
+
+LEVEL_WORDS = {
+    "advanced", "intermediate", "beginner",
+    "experienced", "proficient", "exposed",
+    "basic", "familiar",
+}
+GROUP_SEP_CHARS = {":", "-", "–"}
+
+
+def parse_skills_section_crf(lines):
+    """
+    Args:
+        lines (List[str])
+
+    Returns:
+        List[List[Tuple[str, str]]]
+    """
+    if TAGGER is None:
+        raise IOError("model file {} is missing".format(MODEL_FPATH))
+
+    parsed_lines = []
+    for line in lines:
+        tokens = tokenize(line)
+        if not tokens:
+            parsed_lines.append([])
+            continue
+        else:
+            features = featurize_tokens(tokens)
+            tok_tags = tag(tokens, features)
+            # TODO: Apply logic to sequence of (token, tag) pairs!
+            parsed_lines.append(tok_tags)
+    return parsed_lines
+
+
+def tokenize(line):
+    """
+    Split ``line`` into a sequence of spaCy tokens to be featurized.
+
+    Args:
+        line (List[str] or str)
+
+    Returns:
+        List[:class:`spacy.tokens.Token`]
+    """
+    if isinstance(line, str):
+        line_str = line
+    elif isinstance(line, (list, tuple)):
+        line_str = " ".join(line)
+    else:
+        raise TypeError("`line` must be a str or List[str], not {}".format(type(line)))
+
+    return [tok for tok in TOKENIZER(line_str)]
+
+
+def featurize_tokens(tokens):
+    """
+    Extract features from individual tokens as well as those that are dependent on
+    the sequence thereof.
+
+    Args:
+        tokens (List[:class:`spacy.tokens.Token`])
+
+    Returns:
+        List[Dict[str, obj]]
+    """
+    tokens_features = [featurize_token(token) for token in tokens]
+    if len(tokens_features) == 1:
+        tokens_features[0]["_singleton"] = True
+        return tokens_features
+    else:
+        feature_sequence = []
+        tokens_features = [{"_start": True}] + tokens_features + [{"_end": True}]
+        for prev_tf, curr_tf, next_tf in itertoolz.sliding_window(3, tokens_features):
+            tf = curr_tf.copy()
+            tf["prev"] = prev_tf
+            tf["next"] = next_tf
+            # NOTE: add features here that depend upon tokens elsewhere in the sequence
+            # e.g. whether or not a particular word appeared earlier in the sequence
+            if any(_tf.get("prefix") in GROUP_SEP_CHARS for _tf in feature_sequence):
+                tf["after_group_sep"] = True
+            else:
+                tf["after_group_sep"] = False
+            feature_sequence.append(tf)
+        return feature_sequence
+
+
+def featurize_token(token):
+    """
+    Get per-token features, independent of other tokens within its sequence.
+
+    Args:
+        token (:class:`spacy.tokens.Token`)
+
+    Returns:
+        Dict[str, obj]
+    """
+    return {
+        "i": token.i,
+        "len": len(token),
+        "shape": token.shape_,
+        "prefix": token.prefix_,
+        "suffix": token.suffix_,
+        "is_alpha": token.is_alpha,
+        "is_digit": token.is_digit,
+        "is_lower": token.is_lower,
+        "is_upper": token.is_upper,
+        "is_title": token.is_title,
+        "is_punct": token.is_punct,
+        "is_left_punct": token.is_left_punct,
+        "is_right_punct": token.is_right_punct,
+        "is_space": token.is_space,
+        "like_num": token.like_num,
+        "like_url": token.like_url,
+        "like_email": token.like_email,
+        "is_stop": token.is_stop,
+        "is_level_word": token.lower_ in LEVEL_WORDS,
+        "is_group_sep_char": token.text in GROUP_SEP_CHARS,
+    }
+
+
+def tag(tokens, features):
+    """
+    Tag each token in ``tokens`` with a label from ``LABELS`` based on its features.
+
+    Args:
+        tokens (List[:class:`spacy.tokens.Token`]): As output by :func:`tokenize()`
+        features (List[Dict[str, obj]]): As output by :func:`featurize_tokens()`
+
+    Returns:
+        List[Tuple[str, str]]: Ordered sequence of (token, tag) pairs.
+    """
+    tags = TAGGER.tag(features)
+    return list(zip(tokens, tags))
