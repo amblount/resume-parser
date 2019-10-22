@@ -106,7 +106,7 @@ LEVEL_WORDS = {
     "experienced", "proficient", "exposed", "exposure",
     "basic", "familiar",
 }
-GROUP_SEP_CHARS = {":", "-", "–"}
+FIELD_SEP_CHARS = {":", "-", "–", "(", ")"}
 ITEM_SEP_CHARS = {",", ";", "/", "&"}
 
 
@@ -182,10 +182,10 @@ def featurize(tokens):
             tf["next"] = next_tf
             # NOTE: add features here that depend upon tokens elsewhere in the sequence
             # e.g. whether or not a particular word appeared earlier in the sequence
-            if any(_tf.get("prefix") in GROUP_SEP_CHARS for _tf in feature_sequence):
-                tf["after_group_sep"] = True
+            if any(_tf.get("prefix") in FIELD_SEP_CHARS for _tf in feature_sequence):
+                tf["after_field_sep"] = True
             else:
-                tf["after_group_sep"] = False
+                tf["after_field_sep"] = False
             feature_sequence.append(tf)
         return feature_sequence
 
@@ -220,7 +220,7 @@ def get_token_features(token):
         "like_email": token.like_email,
         "is_stop": token.is_stop,
         "is_level_word": token.lower_ in LEVEL_WORDS,
-        "is_group_sep_char": token.text in GROUP_SEP_CHARS,
+        "is_field_sep_char": token.text in FIELD_SEP_CHARS,
         "is_item_sep_char": token.text in ITEM_SEP_CHARS,
     }
 
