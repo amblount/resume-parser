@@ -96,7 +96,7 @@ LABELS = (
     "name",
     "keyword",
     "level",
-    "group_sep",
+    "field_sep",
     "item_sep",
     "other",
 )
