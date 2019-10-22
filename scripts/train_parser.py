@@ -77,14 +77,14 @@ def add_arguments(parser):
         "and featurizing items",
     )
     parser.add_argument(
-        "--algorithm", type=str,
-        choices=("lbfgs", "l2sgd", "ap", "pa", "arow"), default="lbfgs",
-        help="name of the training algorithm to use when training the CRF model",
-    )
-    parser.add_argument(
         "--test_size", type=float, default=0.0,
         help="fraction of the available training data to use as a test set, i.e. "
         "hold out from training for model evaluation purposes",
+    )
+    parser.add_argument(
+        "--algorithm", type=str,
+        choices=("lbfgs", "l2sgd", "ap", "pa", "arow"), default="lbfgs",
+        help="name of the training algorithm to use when training the CRF model",
     )
     parser.add_argument(
         "--params_filepath", type=pathlib.Path, default=None,
