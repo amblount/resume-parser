@@ -1,4 +1,6 @@
+import itertools
 import logging
+import operator
 import re
 
 
@@ -116,7 +118,7 @@ def parse_skills_section_crf(lines):
         lines (List[str])
 
     Returns:
-        List[List[Tuple[str, str]]]
+        List[Dict[str, obj]]
     """
     if TAGGER is None:
         raise IOError(
@@ -124,18 +126,126 @@ def parse_skills_section_crf(lines):
             "if not, use the `label_parser_training_data.py` script.".format(MODEL_FPATH)
         )
 
-    parsed_lines = []
+    skills = []
     for line in lines:
         tokens = tokenize(line)
         if not tokens:
-            parsed_lines.append([])
             continue
         else:
             features = featurize(tokens)
-            tok_tags = tag(tokens, features)
-            # TODO: Apply logic to sequence of (token, tag) pairs!
-            parsed_lines.append(tok_tags)
-    return parsed_lines
+            tok_labels = tag(tokens, features)
+            skills.extend(_parse_skills_from_labeled_tokens(tok_labels))
+    return skills
+
+
+def _parse_skills_from_labeled_tokens(tok_labels):
+    """
+    Args:
+        tok_labels (List[Tuple[:class:`spacy.tokens.Token`, str]])
+
+    Returns:
+        List[Dict[str, obj]]
+    """
+    skills = []
+
+    # get rid of leading bullet tokens
+    if tok_labels[0][1] == "bullet":
+        tok_labels = tok_labels[1:]
+    # and all other tokens
+    tok_labels = [(tok, label) for tok, label in tok_labels if label != "other"]
+    if not tok_labels:
+        return []
+
+    labels_str = "".join(label for _, label in tok_labels)
+
+    # a junk line, with key content probably split onto the next line
+    # nbd, that line's skills will likely get parsed as names instead of keywords
+    if re.search(r"^(name|level)+field_sep$", labels_str):
+        pass
+    # space-delimited list of skill names (or keywords)
+    # note: this is a parser error -- they shouldn't be keywords -- but we can correct it
+    # note: this is an ambiguous way to list skills; we assume each token is separate
+    elif re.search(r"^(name|keyword)+$", labels_str):
+        skills.extend({"name": tok.text} for tok, _ in tok_labels)
+    # a name separated by a level
+    elif re.search(r"^(name)+field_sep(level)+$", labels_str):
+        skills.append({
+            "name": "".join(tok.text_with_ws for tok, label in tok_labels if label == "name"),
+            "level": "".join(tok.text_with_ws for tok, label in tok_labels if label == "level"),
+        })
+    # char-delimited list of skill names
+    elif re.search(r"^(name)+((item_sep)+(name)+)+$", labels_str):
+        skills.extend([
+            {"name": "".join(tok.text_with_ws for tok, label in tls)}
+            for label, tls in itertools.groupby(tok_labels, key=operator.itemgetter(1))
+            if label != "item_sep"
+        ])
+    # char-delimited list of skill names (or keywords)
+    # note: this is a parser error -- they shouldn't be keywords -- but we can correct it
+    elif re.search(r"^(name)+((item_sep)+(name|keyword)+)+$", labels_str):
+        skills.extend([
+            {"name": "".join(tok.text_with_ws for tok, label in tls)}
+            for label, tls in itertools.groupby(tok_labels, key=operator.itemgetter(1))
+            if label != "item_sep"
+        ])
+    # char-delimited list of skill names with levels
+    elif re.search(r"^((name)+((field_sep)+(level)+(field_sep)+)?(item_sep)*?)+$", labels_str):
+        for is_item_sep, tls in itertools.groupby(tok_labels, key=lambda tl: tl[1] == "item_sep"):
+            if not is_item_sep:
+                tls = list(tls)
+                skills.append({
+                    "name": "".join(tok.text_with_ws for tok, label in tls if label == "name"),
+                    "level": "".join(tok.text_with_ws for tok, label in tls if label == "level"),
+                })
+    # skill name explicitly separated from one or more keywords,
+    # either by a leading separator (e.g. ":") or bracketed separators (e.g. "(...)")
+    elif re.search(r"^(name)+field_sep(keyword)+((item_sep)+(keyword)+)*?field_sep?$", labels_str):
+        field_sep_idx = [label for _, label in tok_labels].index("field_sep")
+        skills.append({
+            "name": "".join(tok.text_with_ws for tok, _ in tok_labels[:field_sep_idx]),
+            "keywords": [
+                "".join(tok.text_with_ws for tok, label in tls)
+                for label, tls in itertools.groupby(tok_labels[field_sep_idx + 1:], key=operator.itemgetter(1))
+                if label != "item_sep"
+            ],
+        })
+    # level explicitly separated from one or more names/keywords
+    # note: the parser assigning all items as keywords after level + field_sep is an error
+    # but we can catch it and fix it post-parse
+    elif re.search(r"^(level)+(other)?field_sep(name|keyword)+((item_sep)+(name|keyword)+)*?$", labels_str):
+        field_sep_idx = [label for _, label in tok_labels].index("field_sep")
+        level = "".join(tok.text_with_ws for tok, label in tok_labels[:field_sep_idx] if label == "level")
+        skills.extend([
+            {"level": level, "name": "".join(tok.text_with_ws for tok, label in tls)}
+            for label, tls in itertools.groupby(tok_labels[field_sep_idx + 1:], key=operator.itemgetter(1))
+            if label != "item_sep"
+        ])
+    # level implicitly separated from one or more names/keywords
+    # note: the parser assigning all items as keywords after level + field_sep is an error
+    # but we can catch it and fix it post-parse
+    elif re.search(r"^(level)+(other)?(name)+((item_sep)+(name|keyword)+)*?$", labels_str):
+        name_idx = [label for _, label in tok_labels].index("name")
+        level = "".join(tok.text_with_ws for tok, label in tok_labels[:name_idx] if label == "level")
+        skills.extend([
+            {"level": level, "name": "".join(tok.text_with_ws for tok, label in tls)}
+            for label, tls in itertools.groupby(tok_labels[name_idx + 1:], key=operator.itemgetter(1))
+            if label != "item_sep"
+        ])
+    # skill name explicitly separated from one or more names/keywords with levels
+    # note: this isn't permitted by our resume schema, so we'll drop the leading name
+    # and convert the keywords into their own names
+    elif re.search(r"^(name)+field_sep((name|keyword)+((field_sep)+(level)+(field_sep)+)?(item_sep)*?)+$", labels_str):
+        field_sep_idx = [label for _, label in tok_labels].index("field_sep")
+        for is_item_sep, tls in itertools.groupby(tok_labels[field_sep_idx + 1:], key=lambda tl: tl[1] == "item_sep"):
+            if not is_item_sep:
+                tls = list(tls)
+                skills.append({
+                    "name": "".join(tok.text_with_ws for tok, label in tls if label in {"name", "keyword"}),
+                    "level": "".join(tok.text_with_ws for tok, label in tls if label == "level"),
+                })
+    else:
+        LOGGER.warning("unable to parse skills from labeled tokens: {}".format(tok_labels))
+    return skills
 
 
 def tokenize(line):
