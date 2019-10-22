@@ -15,19 +15,18 @@ LOGGER = logging.getLogger(__name__)
 # - MODEL_FPATH (:class:`pathlib.Path`)
 # - TAGGER (:class:`pycrfsuite.Tagger`)
 # - LABELS (List[str])
-# - tokenize (func)
 # - featurize (func)
 
 import pycrfsuite
-import spacy
 from toolz import itertoolz
 
 import msvdd_bloc
+from . import utils
 
 TRAINING_DATA_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-skills-training-data.jsonl")
 MODEL_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-skills.crfsuite")
 
-TOKENIZER = spacy.blank("en")
+
 try:
     TAGGER = pycrfsuite.Tagger()
     TAGGER.open(str(MODEL_FPATH))
@@ -73,7 +72,7 @@ def parse_skills_section(lines):
 
     skills = []
     for line in lines:
-        tokens = tokenize(line)
+        tokens = utils.tokenize(line)
         if not tokens:
             continue
         else:
@@ -198,26 +197,6 @@ def _parse_skills_from_labeled_tokens(tok_labels):
     return skills
 
 
-def tokenize(line):
-    """
-    Split ``line`` into a sequence of spaCy tokens to be featurized.
-
-    Args:
-        line (List[str] or str)
-
-    Returns:
-        List[:class:`spacy.tokens.Token`]
-    """
-    if isinstance(line, str):
-        line_str = line
-    elif isinstance(line, (list, tuple)):
-        line_str = " ".join(line)
-    else:
-        raise TypeError("`line` must be a str or List[str], not {}".format(type(line)))
-
-    return [tok for tok in TOKENIZER(line_str)]
-
-
 def featurize(tokens):
     """
     Extract features from individual tokens as well as those that are dependent on
@@ -290,7 +269,7 @@ def tag(tokens, features):
     Tag each token in ``tokens`` with a label from ``LABELS`` based on its features.
 
     Args:
-        tokens (List[:class:`spacy.tokens.Token`]): As output by :func:`tokenize()`
+        tokens (List[:class:`spacy.tokens.Token`]): As output by :func:`utils.tokenize()`
         features (List[Dict[str, obj]]): As output by :func:`featurize()`
 
     Returns:
