@@ -3,6 +3,11 @@ import logging
 import operator
 import re
 
+import pycrfsuite
+from toolz import itertoolz
+
+import msvdd_bloc
+from msvdd_bloc.resumes.parse import utils
 
 LOGGER = logging.getLogger(__name__)
 
@@ -17,15 +22,8 @@ LOGGER = logging.getLogger(__name__)
 # - LABELS (List[str])
 # - featurize (func)
 
-import pycrfsuite
-from toolz import itertoolz
-
-import msvdd_bloc
-from . import utils
-
 TRAINING_DATA_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-skills-training-data.jsonl")
 MODEL_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-skills.crfsuite")
-
 
 try:
     TAGGER = pycrfsuite.Tagger()

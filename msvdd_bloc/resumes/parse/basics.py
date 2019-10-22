@@ -1,12 +1,48 @@
 import logging
 
 import probablepeople
+import pycrfsuite
 import usaddress
+from toolz import itertoolz
 
+import msvdd_bloc
 from msvdd_bloc import regexes
+from msvdd_bloc.resumes.parse import utils
 
 
 LOGGER = logging.getLogger(__name__)
+
+LOCATION_TAG_MAPPING = {
+   'Recipient': 'recipient',
+   'AddressNumber': 'address',
+   'AddressNumberPrefix': 'address',
+   'AddressNumberSuffix': 'address',
+   'StreetName': 'address',
+   'StreetNamePreDirectional': 'address',
+   'StreetNamePreModifier': 'address',
+   'StreetNamePreType': 'address',
+   'StreetNamePostDirectional': 'address',
+   'StreetNamePostModifier': 'address',
+   'StreetNamePostType': 'address',
+   'CornerOf': 'address',
+   'IntersectionSeparator': 'address',
+   'LandmarkName': 'address',
+   'USPSBoxGroupID': 'address',
+   'USPSBoxGroupType': 'address',
+   'USPSBoxID': 'address',
+   'USPSBoxType': 'address',
+   'BuildingName': 'address',
+   'OccupancyType': 'address',
+   'OccupancyIdentifier': 'address',
+   'SubaddressIdentifier': 'address',
+   'SubaddressType': 'address',
+   'PlaceName': 'city',
+   'StateName': 'region',
+   'ZipCode': 'postal_code',
+}
+"""
+Dict[str, str]: Mapping of ``usaddress` location tag to corresponding résumé schema field.
+"""
 
 #######################
 ## CRF-BASED PARSING ##
@@ -19,15 +55,8 @@ LOGGER = logging.getLogger(__name__)
 # - LABELS (List[str])
 # - featurize (func)
 
-import pycrfsuite
-from toolz import itertoolz
-
-import msvdd_bloc
-from msvdd_bloc.resumes.parse import utils
-
 TRAINING_DATA_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-basics-training-data.jsonl")
 MODEL_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-basics.crfsuite")
-
 
 try:
     TAGGER = pycrfsuite.Tagger()
@@ -174,39 +203,6 @@ def tag(tokens, features):
 #########################
 ## RULES-BASED PARSING ##
 #########################
-
-LOCATION_TAG_MAPPING = {
-   'Recipient': 'recipient',
-   'AddressNumber': 'address',
-   'AddressNumberPrefix': 'address',
-   'AddressNumberSuffix': 'address',
-   'StreetName': 'address',
-   'StreetNamePreDirectional': 'address',
-   'StreetNamePreModifier': 'address',
-   'StreetNamePreType': 'address',
-   'StreetNamePostDirectional': 'address',
-   'StreetNamePostModifier': 'address',
-   'StreetNamePostType': 'address',
-   'CornerOf': 'address',
-   'IntersectionSeparator': 'address',
-   'LandmarkName': 'address',
-   'USPSBoxGroupID': 'address',
-   'USPSBoxGroupType': 'address',
-   'USPSBoxID': 'address',
-   'USPSBoxType': 'address',
-   'BuildingName': 'address',
-   'OccupancyType': 'address',
-   'OccupancyIdentifier': 'address',
-   'SubaddressIdentifier': 'address',
-   'SubaddressType': 'address',
-   'PlaceName': 'city',
-   'StateName': 'region',
-   'ZipCode': 'postal_code',
-}
-"""
-Dict[str, str]: Mapping of ``usaddress` location tag to corresponding résumé schema field.
-"""
-
 
 def parse_basics_section_alt(lines):
     """
