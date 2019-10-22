@@ -40,7 +40,7 @@ def main():
         }
     else:
         labeled_lines = []
-        seen_tokenized_lines = {}
+        seen_tokenized_lines = set()
 
     n_labeled_lines = len(labeled_lines)
     LOGGER.info("loaded %s labeled lines from %s", n_labeled_lines, training_data_fpath)
