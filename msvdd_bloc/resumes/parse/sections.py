@@ -3,10 +3,22 @@ import re
 
 
 SECTION_HEADERS = {
+    "basics": re.compile(
+        r"^(?P<text>"
+        "about|"
+        "contacts?|"
+        "contact info|"
+        "personal info"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    # "summary" section becomes a field in "basics" section
     "summary": re.compile(
         r"^(?P<text>"
+        "career objective|"
         "career summary|"
         "objective|"
+        "professional summary|"
         "summary"
         ")(?P<end>: |:?$)",
         flags=re.IGNORECASE,
@@ -14,10 +26,12 @@ SECTION_HEADERS = {
     "work": re.compile(
         r"^(?P<text>"
         "additional experiences?|"
+        "employment|"
         "experiences?|"
         "leadership|"
         "leadership (and|&) service|"
         "leadership experiences?|"
+        "professional development|"
         "professional experiences?|"
         "relevant experiences?|"
         "work experiences?|"
@@ -27,6 +41,8 @@ SECTION_HEADERS = {
     ),
     "volunteer": re.compile(
         r"^(?P<text>"
+        "community service|"
+        "volunteer experiences?|"
         "volunteering"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
@@ -35,6 +51,17 @@ SECTION_HEADERS = {
         r"^(?P<text>"
         "academic qualifications|"
         "education"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    # "courses" section becomes a field in "education" section
+    "courses": re.compile(
+        r"^(?P<text>"
+        "coursework|"
+        "courses completed|"
+        "(recent|related|relevant) courses|"
+        "(recent|related|relevant) coursework|"
+        "undergraduate courses"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
@@ -62,7 +89,10 @@ SECTION_HEADERS = {
         "programming languages|"
         "skills|"
         "skills (and|&) expertise|"
+        "soft skills|"
+        "special skills|"
         "technical skills(et)?|"
+        "technical strengths|"
         "technological skills(et)?|"
         "tools"
         ")(?P<end>:?$)",
@@ -78,6 +108,7 @@ SECTION_HEADERS = {
         r"^(?P<text>"
         "activities|"
         "activities (and|&) student groups|"
+        "extracurriculars|"
         "extracurricular activities|"
         "fellowships (and|&) clubs|"
         "github projects|"
@@ -93,8 +124,19 @@ SECTION_HEADERS = {
     "ambiguous": re.compile(
         r"^(?P<text>"
         "activities (and|&) honors|"
+        "affiliations|"
+        "awards, activities,? (and|&) additional skills|"
+        "campus involvement|"
+        "certifications|"
+        "involvement|"
+        "involvement (and|&) achievements|"
         "leadership (and|&) activities|"
+        "leadership (and|&) affiliations|"
+        "miscellaneous|"
         "organizations (and|&) awards|"
+        "skills (and|&) activities|"
+        "skills (and|&) interests|"
+        "skills, activities,? (and|&) interests|"
         "unique qualities"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
