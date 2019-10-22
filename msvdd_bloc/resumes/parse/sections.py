@@ -21,7 +21,7 @@ SECTION_HEADERS = {
         "professional experiences?|"
         "relevant experiences?|"
         "work experiences?|"
-        "work (and|&) research experiences?"
+        "work (and|&) (research|technical) experiences?"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
@@ -79,6 +79,7 @@ SECTION_HEADERS = {
         "activities|"
         "activities (and|&) student groups|"
         "extracurricular activities|"
+        "fellowships (and|&) clubs|"
         "github projects|"
         "interests|"
         "other projects|"
@@ -91,7 +92,10 @@ SECTION_HEADERS = {
     ),
     "ambiguous": re.compile(
         r"^(?P<text>"
-        "activities (and|&) honors"
+        "activities (and|&) honors|"
+        "leadership (and|&) activities|"
+        "organizations (and|&) awards|"
+        "unique qualities"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
