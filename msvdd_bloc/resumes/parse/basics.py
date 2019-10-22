@@ -3,10 +3,177 @@ import logging
 import probablepeople
 import usaddress
 
-from ... import regexes
+from msvdd_bloc import regexes
 
 
 LOGGER = logging.getLogger(__name__)
+
+#######################
+## CRF-BASED PARSING ##
+#######################
+
+# NOTE: required objects are as follows
+# - TRAINING_DATA_FPATH (:class:`pathlib.Path`)
+# - MODEL_FPATH (:class:`pathlib.Path`)
+# - TAGGER (:class:`pycrfsuite.Tagger`)
+# - LABELS (List[str])
+# - featurize (func)
+
+import pycrfsuite
+from toolz import itertoolz
+
+import msvdd_bloc
+from msvdd_bloc.resumes.parse import utils
+
+TRAINING_DATA_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-basics-training-data.jsonl")
+MODEL_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-basics.crfsuite")
+
+
+try:
+    TAGGER = pycrfsuite.Tagger()
+    TAGGER.open(str(MODEL_FPATH))
+except IOError:
+    TAGGER = None
+
+LABELS = (
+    "other",
+    "name",
+    "label",
+    "email",
+    "phone",
+    "website",
+    "location",
+    "profile",
+    "field_sep",
+    "item_sep",
+    "field_label",
+)
+
+FIELD_SEP_CHARS = {"|", "-", "–", "®", "⇧", "\ufffd", "\u0178"}
+
+
+def parse_basics_section(lines):
+    """
+    Parse a sequence of text lines belonging to the "basics" section of a résumé
+    to produce structured data in the form of :class:`schemas.ResumeBasicsSchema`
+    using trained Conditional Random Field (CRF) taggers.
+
+    Args:
+        lines (List[str])
+
+    Returns:
+        List[Dict[str, obj]]
+    """
+    if TAGGER is None:
+        raise IOError(
+            "model file '{}' is missing; have you trained one yet? "
+            "if not, use the `label_parser_training_data.py` script.".format(MODEL_FPATH)
+        )
+
+    basics = {}
+    for line in lines:
+        tokens = utils.tokenize(line)
+        if not tokens:
+            continue
+        else:
+            features = featurize(tokens)
+            tok_labels = tag(tokens, features)
+            basics.update(_parse_basics_from_labeled_tokens(tok_labels))
+    return basics
+
+
+def _parse_basics_from_labeled_tokens(tok_labels):
+    """
+    Args:
+        tok_labels (List[Tuple[:class:`spacy.tokens.Token`, str]])
+
+    Returns:
+        Dict[str, obj]
+    """
+    basics = {}
+    return basics
+
+
+def featurize(tokens):
+    """
+    Extract features from individual tokens as well as those that are dependent on
+    the sequence thereof.
+
+    Args:
+        tokens (List[:class:`spacy.tokens.Token`])
+
+    Returns:
+        List[Dict[str, obj]]
+    """
+    tokens_features = [get_token_features(token) for token in tokens]
+    if len(tokens_features) == 1:
+        tokens_features[0]["_singleton"] = True
+        return tokens_features
+    else:
+        feature_sequence = []
+        tokens_features = [{"_start": True}] + tokens_features + [{"_end": True}]
+        for prev_tf, curr_tf, next_tf in itertoolz.sliding_window(3, tokens_features):
+            tf = curr_tf.copy()
+            tf["prev"] = prev_tf
+            tf["next"] = next_tf
+            # NOTE: add features here that depend upon tokens elsewhere in the sequence
+            # e.g. whether or not a particular word appeared earlier in the sequence
+            feature_sequence.append(tf)
+        return feature_sequence
+
+
+def get_token_features(token):
+    """
+    Get per-token features, independent of other tokens within its sequence.
+
+    Args:
+        token (:class:`spacy.tokens.Token`)
+
+    Returns:
+        Dict[str, obj]
+    """
+    return {
+        "i": token.i,
+        "len": len(token),
+        "shape": token.shape_,
+        "prefix": token.prefix_,
+        "suffix": token.suffix_,
+        "is_alpha": token.is_alpha,
+        "is_digit": token.is_digit,
+        "is_lower": token.is_lower,
+        "is_upper": token.is_upper,
+        "is_title": token.is_title,
+        "is_punct": token.is_punct,
+        "is_left_punct": token.is_left_punct,
+        "is_right_punct": token.is_right_punct,
+        "is_space": token.is_space,
+        "like_num": token.like_num,
+        "like_url": token.like_url,
+        "like_email": token.like_email,
+        "is_stop": token.is_stop,
+        "is_field_sep_char": token.text in FIELD_SEP_CHARS,
+        "like_profile_username": regexes.RE_USER_HANDLE.match(token.text) is not None,
+    }
+
+
+def tag(tokens, features):
+    """
+    Tag each token in ``tokens`` with a label from ``LABELS`` based on its features.
+
+    Args:
+        tokens (List[:class:`spacy.tokens.Token`]): As output by :func:`utils.tokenize()`
+        features (List[Dict[str, obj]]): As output by :func:`featurize()`
+
+    Returns:
+        List[Tuple[str, str]]: Ordered sequence of (token, tag) pairs.
+    """
+    tags = TAGGER.tag(features)
+    return list(zip(tokens, tags))
+
+
+#########################
+## RULES-BASED PARSING ##
+#########################
 
 LOCATION_TAG_MAPPING = {
    'Recipient': 'recipient',
@@ -41,10 +208,12 @@ Dict[str, str]: Mapping of ``usaddress` location tag to corresponding résumé s
 """
 
 
-def parse_basics_section(lines):
+def parse_basics_section_alt(lines):
     """
     Parse a sequence of text lines belonging to the "basics" section of a résumé
-    to produce structured data in the form of :class:`schemas.ResumeBasicsSchema`.
+    to produce structured data in the form of :class:`schemas.ResumeBasicsSchema`
+    using logical rules based on regular expressions,
+    *PLUS* some pre-trained CRF parsers.
 
     Args:
         lines (List[str])
