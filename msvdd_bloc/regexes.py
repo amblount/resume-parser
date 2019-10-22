@@ -2,18 +2,27 @@ import re
 
 
 RE_BULLETS = re.compile(
-    r"[\u2022\u2023\u2043\u204C\u204D\u2219\u25CF\u25E6\u29BE\u29BF]",
+    r"[\u00a7\u2022\u2023\u2043\u204C\u204D\u2219\u25CF\u25E6\u29BE\u29BF\u30fb]",
     flags=re.UNICODE,
 )
 
-RE_BREAKING_SPACE = re.compile(r"(\r\n|[\n\v]){2,}", flags=re.UNICODE)
+RE_BREAKING_SPACE = re.compile(r"(\r\n|[\n\v])", flags=re.UNICODE)
 
-RE_NONBREAKING_SPACE = re.compile(r"[^\S\n\v]+", flags=re.UNICODE)
+RE_NONBREAKING_SPACE = re.compile(r"[^\S\n\v]", flags=re.UNICODE)
+
+RE_LINE_DELIM = re.compile(r"(\s+[\u30fb|-]\s+)|( {3,})")
 
 RE_NAME = re.compile(
     r"^(([(\"][A-Z]\w+[)\"]|[A-Z]\w+|[A-Z])[.,]?[ -]?){2,5}$",
     flags=re.UNICODE,
 )
+
+RE_MONTH = re.compile(
+    r"(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)\.?|(january|february|march|april|may|june|july|august|september|october|november|december)",
+    flags=re.IGNORECASE
+)
+
+RE_YEAR = re.compile(r"((19|20)\d{2})")
 
 RE_URL = re.compile(
     r"(?:^|(?<![\w/.]))"
@@ -80,10 +89,15 @@ RE_PHONE_NUMBER = re.compile(
     flags=re.UNICODE | re.IGNORECASE,
 )
 
-RE_STREET_ADDRESS = re.compile(
+RE_USER_HANDLE = re.compile(
+    r"(?:^|(?<![\w@.]))@\w+",
+    flags=re.UNICODE | re.IGNORECASE,
+)
+
+RE_FULL_ADDRESS = re.compile(
     # r"[ \w]{3,}([A-Za-z]\.)?([ \w]*\#\d+)?,?[ \w]{3,}, [A-Za-z]{2} \d{5}(-\d{4})?",
     r"(\d+ ((?! \d+ ).)*?) [A-Za-z]{2} \d{5}(-\d{4})?",
     flags=re.UNICODE,
 )
 
-RE_ZIP_CODE = re.compile(r"\d{5}(\-\d{4})?")
+RE_POSTAL_CODE = re.compile(r"\d{5}(\-\d{4})?")

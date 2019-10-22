@@ -22,31 +22,76 @@ def get_filepaths(dirpath, suffix):
     )
 
 
-def save_json(filepath, data):
+def save_json(filepath, data, *, lines=False):
     """
     Save ``data`` to disk at ``filepath`` as a JSON file.
 
     Args:
         filepath (str)
         data (List[dict])
+        lines (bool)
     """
     with io.open(filepath, mode="wt", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+        if lines is False:
+            json.dump(data, f, ensure_ascii=False, indent=4)
+        else:
+            for item in data:
+                f.write(json.dumps(item) + "\n")
 
 
-def load_json(filepath):
+def load_json(filepath, *, lines=False):
     """
     Load JSON data stored to disk at ``filepath`.
 
     Args:
         filepath (str)
+        lines (bool)
 
-    Returns:
-        List[dict]
+    Yields:
+        object: Next JSON item
     """
     with io.open(filepath, mode="rt", encoding="utf-8") as f:
-        data = json.load(f)
-    return data
+        if lines is False:
+            yield json.load(f)
+        else:
+            for line in f:
+                yield json.loads(line)
+
+
+def save_text(filepath, data, *, lines=False):
+    """
+    Save ``data`` to disk at ``filepath`` as a JSON file.
+
+    Args:
+        filepath (str)
+        data (List[dict])
+        lines (bool)
+    """
+    with io.open(filepath, mode="wt", encoding="utf-8") as f:
+        if lines is False:
+            f.write(data)
+        else:
+            for item in data:
+                f.write(item + "\n")
+
+
+def load_text(filepath, *, lines=False):
+    """
+    Load text data stored to disk at ``filepath`.
+
+    Args:
+        filepath (str)
+        lines (bool)
+
+    Yields:
+        str: Next (line of) text to read in.
+    """
+    with io.open(filepath, mode="rt", encoding="utf-8") as f:
+        if lines is False:
+            yield f.read()
+        else:
+            for line in f:
+                yield line.rstrip("\n")
 
 
 def save_text_files_to_zip(filepath, text_files):

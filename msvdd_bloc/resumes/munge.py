@@ -25,8 +25,8 @@ def normalize_text(text):
     norm_text = regexes.RE_BULLETS.sub("-", norm_text)
     # normalize whitespace
     norm_text = norm_text.replace("\u200b", "")
-    # norm_text = regexes.RE_NONBREAKING_SPACE.sub(" ", norm_text).strip()
-    # norm_text = regexes.RE_BREAKING_SPACE.sub(r"\n\n", norm_text)
+    norm_text = regexes.RE_NONBREAKING_SPACE.sub(" ", norm_text).strip()
+    norm_text = regexes.RE_BREAKING_SPACE.sub(r"\n", norm_text)
     return norm_text
 
 
@@ -45,7 +45,6 @@ def get_filtered_text_lines(text, *, delim=r" ?\n"):
         This should be applied to normalized text -- see :func:`normalize_text()`.
     """
     lines = []
-    # all_lines = ["<START>"] + text.split(delim) + ["<END>"]
     all_lines = ["<START>"] + re.split(delim, text) + ["<END>"]
     for prev_line, line, next_line in itertoolz.sliding_window(3, all_lines):
         line = line.strip()
