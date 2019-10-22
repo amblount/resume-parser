@@ -148,9 +148,14 @@ def _parse_skills_from_labeled_tokens(tok_labels):
     """
     skills = []
 
-    # get rid of leading bullet tokens
+    # get rid of leading bullets
     if tok_labels[0][1] == "bullet":
         tok_labels = tok_labels[1:]
+    # get rid of leading / trailing item_seps
+    if tok_labels[0][1] == "item_sep":
+        tok_labels = tok_labels[1:]
+    if tok_labels[-1][1] == "item_sep":
+        tok_labels = tok_labels[:-1]
     # and all other tokens
     tok_labels = [(tok, label) for tok, label in tok_labels if label != "other"]
     if not tok_labels:
@@ -212,7 +217,7 @@ def _parse_skills_from_labeled_tokens(tok_labels):
     # level explicitly separated from one or more names/keywords
     # note: the parser assigning all items as keywords after level + field_sep is an error
     # but we can catch it and fix it post-parse
-    elif re.search(r"^(level)+(other)?field_sep(name|keyword)+((item_sep)+(name|keyword)+)*?$", labels_str):
+    elif re.search(r"^(level)+field_sep(name|keyword)+((item_sep)+(name|keyword)+)*?$", labels_str):
         field_sep_idx = [label for _, label in tok_labels].index("field_sep")
         level = "".join(tok.text_with_ws for tok, label in tok_labels[:field_sep_idx] if label == "level")
         skills.extend([
@@ -223,7 +228,7 @@ def _parse_skills_from_labeled_tokens(tok_labels):
     # level implicitly separated from one or more names/keywords
     # note: the parser assigning all items as keywords after level + field_sep is an error
     # but we can catch it and fix it post-parse
-    elif re.search(r"^(level)+(other)?(name)+((item_sep)+(name|keyword)+)*?$", labels_str):
+    elif re.search(r"^(level)+(name)+((item_sep)+(name|keyword)+)*?$", labels_str):
         name_idx = [label for _, label in tok_labels].index("name")
         level = "".join(tok.text_with_ws for tok, label in tok_labels[:name_idx] if label == "level")
         skills.extend([
