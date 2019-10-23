@@ -27,6 +27,39 @@ def tokenize(line):
     return [tok for tok in TOKENIZER(line_str)]
 
 
+def get_token_features_base(token):
+    """
+    Get base per-token features, independent of other tokens within its sequence.
+    Specific sections should add to / remove from these features, as needed.
+
+    Args:
+        token (:class:`spacy.tokens.Token`)
+
+    Returns:
+        Dict[str, obj]
+    """
+    return {
+        "i": token.i,
+        "len": len(token),
+        "shape": token.shape_,
+        "prefix": token.prefix_,
+        "suffix": token.suffix_,
+        "is_alpha": token.is_alpha,
+        "is_digit": token.is_digit,
+        "is_lower": token.is_lower,
+        "is_upper": token.is_upper,
+        "is_title": token.is_title,
+        "is_punct": token.is_punct,
+        "is_left_punct": token.is_left_punct,
+        "is_right_punct": token.is_right_punct,
+        "is_space": token.is_space,
+        "like_num": token.like_num,
+        "like_url": token.like_url,
+        "like_email": token.like_email,
+        "is_stop": token.is_stop,
+    }
+
+
 def tag(*, tokens, features, tagger):
     """
     Tag each token in ``tokens`` with a section-specific label based on its features.

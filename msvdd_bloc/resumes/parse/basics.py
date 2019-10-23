@@ -191,28 +191,14 @@ def get_token_features(token):
     Returns:
         Dict[str, obj]
     """
-    return {
-        "i": token.i,
-        "len": len(token),
-        "shape": token.shape_,
-        "prefix": token.prefix_,
-        "suffix": token.suffix_,
-        "is_alpha": token.is_alpha,
-        "is_digit": token.is_digit,
-        "is_lower": token.is_lower,
-        "is_upper": token.is_upper,
-        "is_title": token.is_title,
-        "is_punct": token.is_punct,
-        "is_left_punct": token.is_left_punct,
-        "is_right_punct": token.is_right_punct,
-        "is_space": token.is_space,
-        "like_num": token.like_num,
-        "like_url": token.like_url,
-        "like_email": token.like_email,
-        "is_stop": token.is_stop,
-        "is_field_sep_char": token.text in FIELD_SEP_CHARS,
-        "like_profile_username": regexes.RE_USER_HANDLE.match(token.text) is not None,
-    }
+    features = utils.get_token_features_base(token)
+    features.update(
+        {
+            "is_field_sep_char": token.text in FIELD_SEP_CHARS,
+            "like_profile_username": regexes.RE_USER_HANDLE.match(token.text) is not None,
+        }
+    )
+    return features
 
 
 #########################
