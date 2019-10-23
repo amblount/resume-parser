@@ -3,67 +3,13 @@ import logging
 import operator
 import re
 
+import pycrfsuite
+from toolz import itertoolz
+
+import msvdd_bloc
+from msvdd_bloc.resumes.parse import utils
 
 LOGGER = logging.getLogger(__name__)
-
-#########################
-## RULES-BASED PARSING ##
-#########################
-
-RE_SKILL_NAME_DELIM = re.compile(r"(?:: +| +[-–] +)")
-RE_SKILL_KEYWORD_DELIM = re.compile(r"[,;] +(?:(?:and|&) +)?")
-RE_SKILL_LEVEL = re.compile(
-    r"\(?(?P<level>advanced|intermediate|beginner|basic|proficient|exposed)\)? ?(in )?",
-    flags=re.UNICODE | re.IGNORECASE,
-)
-RE_SKILL_CLEAN = re.compile(r"[.,;]$")
-
-
-def parse_skills_section(lines):
-    """
-    Parse a sequence of text lines belonging to the "skills" section of a résumé
-    to produce structured data in the form of :class:`schemas.ResumeSkillSchema`.
-
-    Args:
-        lines (List[str])
-
-    Returns:
-        List[Dict[str, str]]
-    """
-    all_skills = []
-    for line in lines:
-        if not line:
-            continue
-        line = line.lstrip("- ")
-        split_line = RE_SKILL_NAME_DELIM.split(line)
-        if len(split_line) == 1:
-            names = RE_SKILL_KEYWORD_DELIM.split(line)
-            if len(names) == 1:
-                names = line.split()
-            skills = []
-            for name in names:
-                match = RE_SKILL_LEVEL.search(name)
-                if match:
-                    skill = {
-                        "name": RE_SKILL_CLEAN.sub("", RE_SKILL_LEVEL.sub("", name).strip()),
-                        "level": match.group("level"),
-                    }
-                else:
-                    skill = {"name": RE_SKILL_CLEAN.sub("", name.strip())}
-                skills.append(skill)
-            all_skills.extend(skills)
-        elif len(split_line) == 2:
-            name, keywords = split_line
-            keywords_split = RE_SKILL_KEYWORD_DELIM.split(keywords)
-            if len(keywords_split) == 1:
-                keywords_split = keywords.split()
-            skill = {
-                "name": RE_SKILL_CLEAN.sub("", name.strip()),
-                "keywords": [RE_SKILL_CLEAN.sub("", kw) for kw in keywords_split]
-            }
-            all_skills.append(skill)
-    return all_skills
-
 
 #######################
 ## CRF-BASED PARSING ##
@@ -74,19 +20,11 @@ def parse_skills_section(lines):
 # - MODEL_FPATH (:class:`pathlib.Path`)
 # - TAGGER (:class:`pycrfsuite.Tagger`)
 # - LABELS (List[str])
-# - tokenize (func)
 # - featurize (func)
-
-import pycrfsuite
-import spacy
-from toolz import itertoolz
-
-import msvdd_bloc
 
 TRAINING_DATA_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-skills-training-data.jsonl")
 MODEL_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-skills.crfsuite")
 
-TOKENIZER = spacy.blank("en")
 try:
     TAGGER = pycrfsuite.Tagger()
     TAGGER.open(str(MODEL_FPATH))
@@ -112,8 +50,12 @@ FIELD_SEP_CHARS = {":", "-", "–", "(", ")"}
 ITEM_SEP_CHARS = {",", ";", "/", "&"}
 
 
-def parse_skills_section_crf(lines):
+def parse_skills_section(lines):
     """
+    Parse a sequence of text lines belonging to the "skills" section of a résumé
+    to produce structured data in the form of :class:`schemas.ResumeSkillSchema`
+    using a trained Conditional Random Field (CRF) tagger.
+
     Args:
         lines (List[str])
 
@@ -128,12 +70,12 @@ def parse_skills_section_crf(lines):
 
     skills = []
     for line in lines:
-        tokens = tokenize(line)
+        tokens = utils.tokenize(line)
         if not tokens:
             continue
         else:
             features = featurize(tokens)
-            tok_labels = tag(tokens, features)
+            tok_labels = utils.tag(tokens, features, tagger=TAGGER)
             skills.extend(_parse_skills_from_labeled_tokens(tok_labels))
     return skills
 
@@ -253,26 +195,6 @@ def _parse_skills_from_labeled_tokens(tok_labels):
     return skills
 
 
-def tokenize(line):
-    """
-    Split ``line`` into a sequence of spaCy tokens to be featurized.
-
-    Args:
-        line (List[str] or str)
-
-    Returns:
-        List[:class:`spacy.tokens.Token`]
-    """
-    if isinstance(line, str):
-        line_str = line
-    elif isinstance(line, (list, tuple)):
-        line_str = " ".join(line)
-    else:
-        raise TypeError("`line` must be a str or List[str], not {}".format(type(line)))
-
-    return [tok for tok in TOKENIZER(line_str)]
-
-
 def featurize(tokens):
     """
     Extract features from individual tokens as well as those that are dependent on
@@ -315,41 +237,76 @@ def get_token_features(token):
     Returns:
         Dict[str, obj]
     """
-    return {
-        "i": token.i,
-        "len": len(token),
-        "shape": token.shape_,
-        "prefix": token.prefix_,
-        "suffix": token.suffix_,
-        "is_alpha": token.is_alpha,
-        "is_digit": token.is_digit,
-        "is_lower": token.is_lower,
-        "is_upper": token.is_upper,
-        "is_title": token.is_title,
-        "is_punct": token.is_punct,
-        "is_left_punct": token.is_left_punct,
-        "is_right_punct": token.is_right_punct,
-        "is_space": token.is_space,
-        "like_num": token.like_num,
-        "like_url": token.like_url,
-        "like_email": token.like_email,
-        "is_stop": token.is_stop,
-        "is_level_word": token.lower_ in LEVEL_WORDS,
-        "is_field_sep_char": token.text in FIELD_SEP_CHARS,
-        "is_item_sep_char": token.text in ITEM_SEP_CHARS,
-    }
+    features = utils.get_token_features_base(token)
+    features.update(
+        {
+            "is_level_word": token.lower_ in LEVEL_WORDS,
+            "is_field_sep_char": token.text in FIELD_SEP_CHARS,
+            "is_item_sep_char": token.text in ITEM_SEP_CHARS,
+        }
+    )
+    return features
 
 
-def tag(tokens, features):
+#########################
+## RULES-BASED PARSING ##
+#########################
+
+RE_SKILL_NAME_DELIM = re.compile(r"(?:: +| +[-–] +)")
+RE_SKILL_KEYWORD_DELIM = re.compile(r"[,;] +(?:(?:and|&) +)?")
+RE_SKILL_LEVEL = re.compile(
+    r"\(?(?P<level>advanced|intermediate|beginner|basic|proficient|exposed)\)? ?(in )?",
+    flags=re.UNICODE | re.IGNORECASE,
+)
+RE_SKILL_CLEAN = re.compile(r"[.,;]$")
+
+
+def parse_skills_section_alt(lines):
     """
-    Tag each token in ``tokens`` with a label from ``LABELS`` based on its features.
+    Parse a sequence of text lines belonging to the "skills" section of a résumé
+    to produce structured data in the form of :class:`schemas.ResumeSkillSchema`
+    using logical rules based on regular expressions.
 
     Args:
-        tokens (List[:class:`spacy.tokens.Token`]): As output by :func:`tokenize()`
-        features (List[Dict[str, obj]]): As output by :func:`featurize()`
+        lines (List[str])
 
     Returns:
-        List[Tuple[str, str]]: Ordered sequence of (token, tag) pairs.
+        List[Dict[str, str]]
+
+    Note:
+        This function is not as flexible as :func:`parse_skills_section()`,
+        but its errors are probably more consistent and easier to understand.
     """
-    tags = TAGGER.tag(features)
-    return list(zip(tokens, tags))
+    all_skills = []
+    for line in lines:
+        if not line:
+            continue
+        line = line.lstrip("- ")
+        split_line = RE_SKILL_NAME_DELIM.split(line)
+        if len(split_line) == 1:
+            names = RE_SKILL_KEYWORD_DELIM.split(line)
+            if len(names) == 1:
+                names = line.split()
+            skills = []
+            for name in names:
+                match = RE_SKILL_LEVEL.search(name)
+                if match:
+                    skill = {
+                        "name": RE_SKILL_CLEAN.sub("", RE_SKILL_LEVEL.sub("", name).strip()),
+                        "level": match.group("level"),
+                    }
+                else:
+                    skill = {"name": RE_SKILL_CLEAN.sub("", name.strip())}
+                skills.append(skill)
+            all_skills.extend(skills)
+        elif len(split_line) == 2:
+            name, keywords = split_line
+            keywords_split = RE_SKILL_KEYWORD_DELIM.split(keywords)
+            if len(keywords_split) == 1:
+                keywords_split = keywords.split()
+            skill = {
+                "name": RE_SKILL_CLEAN.sub("", name.strip()),
+                "keywords": [RE_SKILL_CLEAN.sub("", kw) for kw in keywords_split]
+            }
+            all_skills.append(skill)
+    return all_skills

@@ -5,6 +5,7 @@ import re
 import sys
 
 import msvdd_bloc
+from msvdd_bloc.resumes.parse import utils
 
 
 logging.basicConfig(
@@ -27,7 +28,7 @@ def main():
 
     LOGGER.setLevel(args.loglevel)
 
-    parser_module = msvdd_bloc.resumes.parse.utils.load_module_from_path(
+    parser_module = utils.load_module_from_path(
         name="parser_module", fpath=args.module_filepath.resolve())
     training_data_fpath = parser_module.TRAINING_DATA_FPATH
     if training_data_fpath.is_file():
@@ -39,7 +40,7 @@ def main():
         }
     else:
         labeled_lines = []
-        seen_tokenized_lines = {}
+        seen_tokenized_lines = set()
 
     n_labeled_lines = len(labeled_lines)
     LOGGER.info("loaded %s labeled lines from %s", n_labeled_lines, training_data_fpath)
@@ -53,7 +54,7 @@ def main():
     for i, line in enumerate(unlabeled_lines):
         tokens = tuple(
             tok if isinstance(tok, str) else tok.text
-            for tok in parser_module.tokenize(line)
+            for tok in utils.tokenize(line)
         )
         if not tokens:
             LOGGER.debug("line \"%s\" doesn't have any tokens; skipping...", line)
@@ -95,7 +96,8 @@ def add_arguments(parser):
     )
     parser.add_argument(
         "--module_filepath", type=pathlib.Path, required=True,
-        help="path to .py file on disk with functionality for tokenizing lines"
+        help="path to .py file on disk with the set of valid labels in :obj:`LABELS` "
+        "and the path to training data in :obj:`TRAINING_DATA_FPATH`",
     )
     parser.add_argument(
         "--labels", type=str, nargs="+", default=None,
