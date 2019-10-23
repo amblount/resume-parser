@@ -126,7 +126,7 @@ def munge_location_github(value):
         return None
     else:
         # no zip codes, thanks!
-        value = regexes.RE_ZIP_CODE.sub("", value).strip()
+        value = regexes.RE_POSTAL_CODE.sub("", value).strip()
         # split multiple locations on common delimiters
         # punct-based delimiters
         if ";" in value:
