@@ -1,14 +1,14 @@
 import collections
 import re
 
-
+# NOTE: the last item within the <text> group MUST NOT have a "|" operator
+# otherwise it will match anything and bork matching for all sections below it
 SECTION_HEADERS = {
     "basics": re.compile(
         r"^(?P<text>"
         "about|"
         "contacts?|"
-        "contact info|"
-        "personal info"
+        "(contact|personal) info"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
@@ -16,25 +16,20 @@ SECTION_HEADERS = {
     "summary": re.compile(
         r"^(?P<text>"
         "career objective|"
-        "career summary|"
+        "(career|professional) summary|"
         "objective|"
-        "professional summary|"
         "summary"
         ")(?P<end>: |:?$)",
         flags=re.IGNORECASE,
     ),
     "work": re.compile(
         r"^(?P<text>"
-        "additional experiences?|"
+        "(additional|leadership|professional|relevant|work) experiences?|"
         "employment|"
         "experiences?|"
         "leadership|"
         "leadership (and|&) service|"
-        "leadership experiences?|"
         "professional development|"
-        "professional experiences?|"
-        "relevant experiences?|"
-        "work experiences?|"
         "work (and|&) (research|technical) experiences?"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
@@ -59,9 +54,8 @@ SECTION_HEADERS = {
         r"^(?P<text>"
         "coursework|"
         "courses completed|"
-        "(recent|related|relevant) courses|"
-        "(recent|related|relevant) coursework|"
-        "undergraduate courses"
+        "(recent|related|relevant|undergraduate) courses|"
+        "(recent|related|relevant) coursework"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
@@ -89,11 +83,8 @@ SECTION_HEADERS = {
         "programming languages|"
         "skills|"
         "skills (and|&) expertise|"
-        "soft skills|"
-        "special skills|"
-        "technical skills(et)?|"
+        "(relevant|soft|special|technical|technological) skills(et)?|"
         "technical strengths|"
-        "technological skills(et)?|"
         "tools"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
@@ -111,13 +102,9 @@ SECTION_HEADERS = {
         "extracurriculars|"
         "extracurricular activities|"
         "fellowships (and|&) clubs|"
-        "github projects|"
+        "(github|other|programming|recent|side|technical) projects|"
         "interests|"
-        "other projects|"
-        "programming projects|"
-        "projects|"
-        "side projects|"
-        "technical projects"
+        "projects"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
@@ -128,15 +115,19 @@ SECTION_HEADERS = {
         "awards, activities,? (and|&) additional skills|"
         "campus involvement|"
         "certifications|"
+        "community involvement|"
         "involvement|"
         "involvement (and|&) achievements|"
         "leadership (and|&) activities|"
         "leadership (and|&) affiliations|"
         "miscellaneous|"
+        "organizations|"
         "organizations (and|&) awards|"
+        "programs (and|&) affiliations|"
         "skills (and|&) activities|"
         "skills (and|&) interests|"
         "skills, activities,? (and|&) interests|"
+        "technical skills (and|&) interests|"
         "unique qualities"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
