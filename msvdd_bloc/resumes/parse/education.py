@@ -48,13 +48,14 @@ LABELS = (
     "field_label",  # 10
 )
 
-FIELD_SEP_CHARS = {":", "|", "-", "–", }
+FIELD_SEP_CHARS = {",", ";", ":", "|", "-", "–"}
 STUDY_TYPES = {
-    "BA", "B.A.", "BS", "B.S.", "Bachelor", "Bachelors",
+    "BA", "B.A.", "BS", "B.S.", "B.Sc.", "Bachelor", "Bachelors",
     "MA", "M.A.", "MS", "M.S.", "MBA", "M.B.A.", "Masters",
     "PhD", "Ph.D.", "Doctorate", "Doctor",
     "MD", "M.D.", "JD", "J.D.",
 }
+SEASON_NAMES = {"spring", "summer", "fall", "winter"}
 
 
 def featurize(tokens):
@@ -101,6 +102,7 @@ def get_token_features(token):
             "is_field_sep_char": token.text in FIELD_SEP_CHARS,
             "is_study_type": token.text in STUDY_TYPES,
             "is_month_name": regexes.RE_MONTH.match(token.text) is not None,
+            "is_season_name": token.lower_ in SEASON_NAMES,
             "is_year": regexes.RE_YEAR.match(token.text) is not None,
         }
     )
