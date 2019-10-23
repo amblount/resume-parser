@@ -75,7 +75,7 @@ def parse_skills_section(lines):
             continue
         else:
             features = featurize(tokens)
-            tok_labels = utils.tag(tokens=tokens, features=features, tagger=TAGGER)
+            tok_labels = utils.tag(tokens, features, tagger=TAGGER)
             skills.extend(_parse_skills_from_labeled_tokens(tok_labels))
     return skills
 

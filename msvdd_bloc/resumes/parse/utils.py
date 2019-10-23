@@ -62,7 +62,7 @@ def get_token_features_base(token):
     }
 
 
-def tag(*, tokens, features, tagger):
+def tag(tokens, features, *, tagger):
     """
     Tag each token in ``tokens`` with a section-specific label based on its features.
 

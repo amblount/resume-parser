@@ -30,7 +30,7 @@ def featurized_lines(tokenized_lines):
 @pytest.fixture(scope="module")
 def tagged_lines(tokenized_lines, featurized_lines):
     return [
-        parse.utils.tag(tokens=tokens, features=features, tagger=parse.basics.TAGGER)
+        parse.utils.tag(tokens, features, tagger=parse.basics.TAGGER)
         for tokens, features in zip(tokenized_lines, featurized_lines)
     ]
 

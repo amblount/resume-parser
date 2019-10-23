@@ -108,7 +108,7 @@ def parse_basics_section(lines):
             continue
         else:
             features = featurize(tokens)
-            tok_labels = utils.tag(tokens=tokens, features=features, tagger=TAGGER)
+            tok_labels = utils.tag(tokens, features, tagger=TAGGER)
             basics.update(_parse_basics_from_labeled_tokens(tok_labels))
     return basics
 
