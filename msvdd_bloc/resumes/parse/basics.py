@@ -1,4 +1,6 @@
+import itertools
 import logging
+import operator
 
 import probablepeople
 import pycrfsuite
@@ -91,7 +93,7 @@ def parse_basics_section(lines):
         lines (List[str])
 
     Returns:
-        List[Dict[str, obj]]
+        Dict[str, obj]
     """
     if TAGGER is None:
         raise IOError(
@@ -119,7 +121,35 @@ def _parse_basics_from_labeled_tokens(tok_labels):
     Returns:
         Dict[str, obj]
     """
+    excluded_labels = {"other", "field_sep", "item_sep", "field_label"}
     basics = {}
+    profiles = []
+    for label, tls in itertools.groupby(tok_labels, key=operator.itemgetter(1)):
+        field_text = "".join(tok.text_with_ws for tok, _ in tls).strip()
+        if label in excluded_labels:
+            continue
+        elif label == "location":
+            try:
+                location, location_type = usaddress.tag(
+                    field_text, tag_mapping=LOCATION_TAG_MAPPING)
+            except usaddress.RepeatedLabelError as e:
+                LOGGER.debug("'location' parsing error:\n%s", e)
+                continue
+            if location_type == "Street Address":
+                location = dict(location)
+                if "recipient" in location:
+                    basics["name"] = location.pop("recipient")
+                basics["location"] = location
+        # HACK: social profiles are not handled well by the parser or this function
+        # bc it wasn't clear how best to identify the network and/or url based on
+        # the fragments + icons typically included in résumés, *especially* since
+        # the PDF extractor can't turn those social icons into unicode chars
+        elif label == "profile":
+            profiles.append({"username": field_text})
+        else:
+            basics[label] = field_text
+    if profiles:
+        basics["profiles"] = profiles
     return basics
 
 
