@@ -35,17 +35,17 @@ except IOError:
     TAGGER = None
 
 LABELS = (
-    "other",
-    "institution",
-    "area",
-    "study_type",
-    "start_date",
-    "end_date",
-    "gpa",
-    "course",
-    "field_sep",
-    "item_sep",
-    "field_label",
+    "other",        # 0
+    "institution",  # 1
+    "area",         # 2
+    "study_type",   # 3
+    "start_date",   # 4
+    "end_date",     # 5
+    "gpa",          # 6
+    "course",       # 7
+    "field_sep",    # 8
+    "item_sep",     # 9
+    "field_label",  # 10
 )
 
 FIELD_SEP_CHARS = {":", "|", "-", "–", }
