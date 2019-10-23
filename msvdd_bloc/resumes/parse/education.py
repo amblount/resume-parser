@@ -58,6 +58,72 @@ STUDY_TYPES = {
 SEASON_NAMES = {"spring", "summer", "fall", "winter"}
 
 
+def parse_education_section(lines):
+    """
+    Parse a sequence of text lines belonging to the "education" section of a résumé
+    to produce structured data in the form of :class:`schemas.ResumeEducationSchema`
+    using a trained Conditional Random Field (CRF) tagger.
+
+    Args:
+        lines (List[str])
+
+    Returns:
+        List[Dict[str, obj]]
+    """
+    if TAGGER is None:
+        raise IOError(
+            "model file '{}' is missing; have you trained one yet? "
+            "if not, use the `label_parser_training_data.py` script.".format(MODEL_FPATH)
+        )
+
+    tok_labels = []
+    for line in lines:
+        tokens = utils.tokenize(line)
+        if not tokens:
+            continue
+        else:
+            features = featurize(tokens)
+            tok_labels.extend(utils.tag(tokens, features, tagger=TAGGER))
+    educations = _parse_educations_from_labeled_tokens(tok_labels)
+    return educations
+
+
+def _parse_educations_from_labeled_tokens(tok_labels):
+    """
+    Args:
+        tok_labels (List[Tuple[:class:`spacy.tokens.Token`, str]])
+
+    Returns:
+        List[Dict[str, obj]]
+    """
+    excluded_labels = {"other", "field_sep", "item_sep", "field_label"}
+    educations = []
+    education = {}
+    courses = []
+    for label, tls in itertools.groupby(tok_labels, key=operator.itemgetter(1)):
+        if label in excluded_labels:
+            continue
+        field_text = "".join(tok.text_with_ws for tok, _ in tls).strip()
+        if label == "course":
+            courses.append(field_text)
+        # big assumption: only one institution per educational experience
+        # and the appearance of a new one indicates another item
+        elif label == "institution" and "institution" in education:
+            if courses:
+                education["courses"] = courses
+            educations.append(education)
+            # start a new educational experience
+            education = {label: field_text}
+            courses = []
+        else:
+            education[label] = field_text
+    if education:
+        if courses:
+            education["courses"] = courses
+        educations.append(education)
+    return educations
+
+
 def featurize(tokens):
     """
     Extract features from individual tokens as well as those that are dependent on
