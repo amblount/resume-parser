@@ -2,6 +2,17 @@ import marshmallow as ma
 
 
 class ResumeBasicsLocationSchema(ma.Schema):
+    """
+    Example:
+
+        {
+            "address": "2712 Broadway St",
+            "postalCode": "CA 94115",
+            "city": "San Francisco",
+            "countryCode": "US",
+            "region": "California"
+        }
+    """
     address = ma.fields.String()
     postal_code = ma.fields.String()
     city = ma.fields.String()
@@ -10,15 +21,47 @@ class ResumeBasicsLocationSchema(ma.Schema):
 
 
 class ResumeBasicsProfileSchema(ma.Schema):
+    """
+    Example:
+
+        {
+            "network": "Twitter",
+            "username": "john",
+            "url": "http://twitter.com/john"
+        }
+    """
     network = ma.fields.String()
     username = ma.fields.String()
     url = ma.fields.String(validate=ma.validate.URL())
 
 
 class ResumeBasicsSchema(ma.Schema):
+    """
+    Example:
+
+        {
+            "name": "John Doe",
+            "label": "Programmer",
+            "email": "john@gmail.com",
+            "phone": "(912) 555-4321",
+            "website": "http://johndoe.com",
+            "summary": "A summary of John Doe...",
+            "location": {
+                "address": "2712 Broadway St",
+                "postalCode": "CA 94115",
+                "city": "San Francisco",
+                "countryCode": "US",
+                "region": "California"
+            },
+            "profiles": [{
+                "network": "Twitter",
+                "username": "john",
+                "url": "http://twitter.com/john"
+            }]
+        }
+    """
     name = ma.fields.String()
     label = ma.fields.String()
-    # picture = ma.fields.Raw()
     email = ma.fields.String(validate=ma.validate.Email())
     phone = ma.fields.String()
     website = ma.fields.String(validate=ma.validate.URL())
@@ -28,6 +71,21 @@ class ResumeBasicsSchema(ma.Schema):
 
 
 class ResumeWorkSchema(ma.Schema):
+    """
+    Example:
+
+        {
+            "company": "Company",
+            "position": "President",
+            "website": "http://company.com",
+            "startDate": "2013-01-01",
+            "endDate": "2014-01-01",
+            "summary": "Description...",
+            "highlights": [
+                "Started the company"
+            ]
+        }
+    """
     company = ma.fields.String()
     position = ma.fields.String()
     website = ma.fields.String(validate=ma.validate.URL())
@@ -38,6 +96,21 @@ class ResumeWorkSchema(ma.Schema):
 
 
 class ResumeVolunteerSchema(ma.Schema):
+    """
+    Example:
+
+        {
+            "organization": "Organization",
+            "position": "Volunteer",
+            "website": "http://organization.com/",
+            "startDate": "2012-01-01",
+            "endDate": "2013-01-01",
+            "summary": "Description...",
+            "highlights": [
+                "Awarded 'Volunteer of the Month'"
+            ]
+        }
+    """
     organization = ma.fields.String()
     position = ma.fields.String()
     website = ma.fields.String(validate=ma.validate.URL())
@@ -48,6 +121,21 @@ class ResumeVolunteerSchema(ma.Schema):
 
 
 class ResumeEducationSchema(ma.Schema):
+    """
+    Example:
+
+        {
+            "institution": "University",
+            "area": "Software Development",
+            "studyType": "Bachelor",
+            "startDate": "2011-01-01",
+            "endDate": "2013-01-01",
+            "gpa": "4.0",
+            "courses": [
+                "DB1101 - Basic SQL"
+            ]
+        }
+    """
     institution = ma.fields.String()
     area = ma.fields.String()
     study_type = ma.fields.String()
@@ -58,6 +146,16 @@ class ResumeEducationSchema(ma.Schema):
 
 
 class ResumeAwardSchema(ma.Schema):
+    """
+    Example:
+
+        {
+            "title": "Award",
+            "date": "2014-11-01",
+            "awarder": "Company",
+            "summary": "There is no spoon."
+        }
+    """
     title = ma.fields.String()
     date = ma.fields.Date()
     awarder = ma.fields.String()
@@ -65,6 +163,17 @@ class ResumeAwardSchema(ma.Schema):
 
 
 class ResumePublicationSchema(ma.Schema):
+    """
+    Example:
+
+        {
+            "name": "Publication",
+            "publisher": "Company",
+            "releaseDate": "2014-10-01",
+            "website": "http://publication.com",
+            "summary": "Description..."
+        }
+    """
     name = ma.fields.String()
     publisher = ma.fields.String()
     release_date = ma.fields.Date()
@@ -73,22 +182,62 @@ class ResumePublicationSchema(ma.Schema):
 
 
 class ResumeSkillSchema(ma.Schema):
+    """
+    Example:
+
+        {
+            "name": "Web Development",
+            "level": "Master",
+            "keywords": [
+                "HTML",
+                "CSS",
+                "Javascript"
+            ]
+        }
+    """
     name = ma.fields.String()
     level = ma.fields.String()
     keywords = ma.fields.List(ma.fields.String())
 
 
 class ResumeLanguageSchema(ma.Schema):
+    """
+    Example:
+
+        {
+            "language": "English",
+            "fluency": "Native speaker"
+        }
+    """
     language = ma.fields.String()
     fluency = ma.fields.String()
 
 
 class ResumeInterestSchema(ma.Schema):
+    """
+    Example:
+
+        {
+            "name": "Wildlife",
+            "keywords": [
+                "Ferrets",
+                "Unicorns"
+            ]
+        }
+    """
     name = ma.fields.String()
     keywords = ma.fields.List(ma.fields.String())
 
 
 class ResumeReferenceSchema(ma.Schema):
+    """
+    Example:
+
+        {
+            "name": "Jane Doe",
+            "reference": "Reference..."
+        }
+    """
     name = ma.fields.String()
     reference = ma.fields.String()
 
