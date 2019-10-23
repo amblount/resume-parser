@@ -75,7 +75,7 @@ def parse_skills_section(lines):
             continue
         else:
             features = featurize(tokens)
-            tok_labels = tag(tokens, features)
+            tok_labels = utils.tag(tokens=tokens, features=features, tagger=TAGGER)
             skills.extend(_parse_skills_from_labeled_tokens(tok_labels))
     return skills
 
@@ -260,21 +260,6 @@ def get_token_features(token):
         "is_field_sep_char": token.text in FIELD_SEP_CHARS,
         "is_item_sep_char": token.text in ITEM_SEP_CHARS,
     }
-
-
-def tag(tokens, features):
-    """
-    Tag each token in ``tokens`` with a label from ``LABELS`` based on its features.
-
-    Args:
-        tokens (List[:class:`spacy.tokens.Token`]): As output by :func:`utils.tokenize()`
-        features (List[Dict[str, obj]]): As output by :func:`featurize()`
-
-    Returns:
-        List[Tuple[str, str]]: Ordered sequence of (token, tag) pairs.
-    """
-    tags = TAGGER.tag(features)
-    return list(zip(tokens, tags))
 
 
 #########################

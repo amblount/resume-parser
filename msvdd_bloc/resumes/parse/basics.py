@@ -106,7 +106,7 @@ def parse_basics_section(lines):
             continue
         else:
             features = featurize(tokens)
-            tok_labels = tag(tokens, features)
+            tok_labels = utils.tag(tokens=tokens, features=features, tagger=TAGGER)
             basics.update(_parse_basics_from_labeled_tokens(tok_labels))
     return basics
 
@@ -183,21 +183,6 @@ def get_token_features(token):
         "is_field_sep_char": token.text in FIELD_SEP_CHARS,
         "like_profile_username": regexes.RE_USER_HANDLE.match(token.text) is not None,
     }
-
-
-def tag(tokens, features):
-    """
-    Tag each token in ``tokens`` with a label from ``LABELS`` based on its features.
-
-    Args:
-        tokens (List[:class:`spacy.tokens.Token`]): As output by :func:`utils.tokenize()`
-        features (List[Dict[str, obj]]): As output by :func:`featurize()`
-
-    Returns:
-        List[Tuple[str, str]]: Ordered sequence of (token, tag) pairs.
-    """
-    tags = TAGGER.tag(features)
-    return list(zip(tokens, tags))
 
 
 #########################

@@ -27,6 +27,23 @@ def tokenize(line):
     return [tok for tok in TOKENIZER(line_str)]
 
 
+def tag(*, tokens, features, tagger):
+    """
+    Tag each token in ``tokens`` with a section-specific label based on its features.
+
+    Args:
+        tokens (List[:class:`spacy.tokens.Token`]): As output by :func:`tokenize()`.
+        features (List[Dict[str, obj]]): As output by a section-specific ``featurize()``.
+        tagger (:class:`pycrfsuite.Tagger`): Trained, section-specific CRF tagger.
+
+    Returns:
+        List[Tuple[:class:`spacy.tokens.Token`, str]]: Ordered sequence of
+        (token, tag) pairs.
+    """
+    tags = tagger.tag(features)
+    return list(zip(tokens, tags))
+
+
 def load_module_from_path(*, name, fpath):
     """
     Args:
