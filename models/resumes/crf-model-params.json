@@ -1,5 +1,8 @@
 {
-    "c1": 0.1,
-    "c2": 0.01,
-    "feature.minfreq": 0.0
+    "c1": 1.0,
+    "c2": 0.5,
+    "delta": 0.001,
+    "max_iterations": 1000,
+    "feature.minfreq": 0.0,
+    "feature.possible_transitions": 1
 }
