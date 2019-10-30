@@ -1,8 +1,9 @@
 {
-    "c1": 1.0,
-    "c2": 0.5,
-    "delta": 0.001,
-    "max_iterations": 1000,
-    "feature.minfreq": 0.0,
-    "feature.possible_transitions": 1
+    "c1": 10.0,
+    "c2": 1.0,
+    "delta": 0.01,
+    "max_iterations": 100,
+    "feature.minfreq": 3.0,
+    "feature.possible_transitions": 1,
+    "feature.possible_states": 1
 }
