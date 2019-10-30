@@ -101,15 +101,20 @@ def parse_basics_section(lines):
             "if not, use the `label_parser_training_data.py` script.".format(MODEL_FPATH)
         )
 
-    basics = {}
-    for line in lines:
-        tokens = utils.tokenize(line)
-        if not tokens:
-            continue
-        else:
-            features = featurize(tokens)
-            tok_labels = utils.tag(tokens, features, tagger=TAGGER)
-            basics.update(_parse_basics_from_labeled_tokens(tok_labels))
+    # basics = {}
+    # for line in lines:
+    #     tokens = utils.tokenize(line)
+    #     if not tokens:
+    #         continue
+    #     else:
+    #         features = featurize(tokens)
+    #         tok_labels = utils.tag(tokens, features, tagger=TAGGER)
+    #         basics.update(_parse_basics_from_labeled_tokens(tok_labels))
+    # return basics
+    tokens = utils.tokenize("\n".join(lines).strip())
+    features = featurize(tokens)
+    tok_labels = utils.tag(tokens, features, tagger=TAGGER)
+    basics = _parse_basics_from_labeled_tokens(tok_labels)
     return basics
 
 
@@ -131,7 +136,9 @@ def _parse_basics_from_labeled_tokens(tok_labels):
         elif label == "location":
             try:
                 location, location_type = usaddress.tag(
-                    field_text, tag_mapping=LOCATION_TAG_MAPPING)
+                    field_text.replace("\n", " "),
+                    tag_mapping=LOCATION_TAG_MAPPING,
+                )
             except usaddress.RepeatedLabelError as e:
                 LOGGER.debug("'location' parsing error:\n%s", e)
                 continue
@@ -170,9 +177,14 @@ def featurize(tokens):
         return tokens_features
     else:
         feature_sequence = []
-        tokens_features = [{"_start": True}] + tokens_features + [{"_end": True}]
-        for prev_tf, curr_tf, next_tf in itertoolz.sliding_window(3, tokens_features):
+        tokens_features = (
+            [{"_start": True}, {"_start": True}]
+            + tokens_features
+            + [{"_end": True}]
+        )
+        for pprev_tf, prev_tf, curr_tf, next_tf in itertoolz.sliding_window(4, tokens_features):
             tf = curr_tf.copy()
+            tf["pprev"] = pprev_tf
             tf["prev"] = prev_tf
             tf["next"] = next_tf
             # NOTE: add features here that depend upon tokens elsewhere in the sequence
@@ -196,6 +208,7 @@ def get_token_features(token):
         {
             "is_field_sep_char": token.text in FIELD_SEP_CHARS,
             "like_profile_username": regexes.RE_USER_HANDLE.match(token.text) is not None,
+            "like_phone_number": regexes.RE_PHONE_NUMBER.match(token.text) is not None,
         }
     )
     return features
