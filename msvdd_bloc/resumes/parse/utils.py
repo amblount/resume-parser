@@ -1,10 +1,12 @@
 import importlib
+import string
 import sys
 
 import spacy
+from spacy.tokens import Doc
 
 
-TOKENIZER = spacy.blank("en")
+_PUNCT_CHARS = set(string.punctuation)
 
 
 def tokenize(line):
@@ -18,13 +20,11 @@ def tokenize(line):
         List[:class:`spacy.tokens.Token`]
     """
     if isinstance(line, str):
-        line_str = line
+        return [tok for tok in TOKENIZER(line)]
     elif isinstance(line, (list, tuple)):
-        line_str = " ".join(line)
+        return [tok for tok in Doc(TOKENIZER.vocab, words=line)]
     else:
         raise TypeError("`line` must be a str or List[str], not {}".format(type(line)))
-
-    return [tok for tok in TOKENIZER(line_str)]
 
 
 def get_token_features_base(token):
@@ -38,13 +38,13 @@ def get_token_features_base(token):
     Returns:
         Dict[str, obj]
     """
+    text = token.text
     return {
         "i": token.i,
         "len": len(token),
         "shape": token.shape_,
-        "prefix": token.prefix_,
-        "suffix": token.suffix_,
-        "is_alnum": token.text.isalnum(),
+        # "prefix": token.prefix_,
+        # "suffix": token.suffix_,
         "is_alpha": token.is_alpha,
         "is_digit": token.is_digit,
         "is_lower": token.is_lower,
@@ -54,11 +54,15 @@ def get_token_features_base(token):
         "is_left_punct": token.is_left_punct,
         "is_right_punct": token.is_right_punct,
         "is_bracket": token.is_bracket,
+        "is_quote": token.is_quote,
         "is_space": token.is_space,
         "like_num": token.like_num,
         "like_url": token.like_url,
         "like_email": token.like_email,
         "is_stop": token.is_stop,
+        "is_alnum": text.isalnum(),
+        "is_partial_digit": any(c.isdigit() for c in text) and not all(c.isdigit() for c in text),
+        "is_partial_punct": any(c in _PUNCT_CHARS for c in text) and not all(c in _PUNCT_CHARS for c in text),
     }
 
 
@@ -93,3 +97,37 @@ def load_module_from_path(*, name, fpath):
         sys.modules[name] = module
         spec.loader.exec_module(module)
         return module
+
+
+class PhoneNumberMerger:
+    """
+    Custom spaCy pipeline component that merges contiguous tokens matching
+    typical phone number patterns into a single token.
+    """
+
+    def __init__(self, nlp):
+        self.matcher = spacy.matcher.Matcher(nlp.vocab)
+        self.matcher.add(
+            "phone",
+            None,
+            [{"SHAPE": "ddd"}, {"SHAPE": "ddd"}, {"SHAPE": "dddd"}],
+            [{"SHAPE": "ddd"}, {"TEXT": "-", "OP": "?"}, {"SHAPE": "ddd"}, {"TEXT": "-"}, {"SHAPE": "dddd"}],
+            [{"SHAPE": "ddd"}, {"TEXT": ".", "OP": "?"}, {"SHAPE": "ddd"}, {"TEXT": "."}, {"SHAPE": "dddd"}],
+            [{"TEXT": "("}, {"SHAPE": "ddd"}, {"TEXT": ")"}, {"SHAPE": "ddd"}, {"TEXT": "-"}, {"SHAPE": "dddd"}],
+            [{"TEXT": "("}, {"SHAPE": "ddd"}, {"TEXT": ")"}, {"SHAPE": "ddd"}, {"TEXT": {"REGEX": "[.-]"}}, {"SHAPE": "dddd"}],
+            [{"SHAPE": "+d"}, {"TEXT": "("}, {"SHAPE": "ddd"}, {"TEXT": ")"}, {"SHAPE": "ddd"}, {"TEXT": "-"}, {"SHAPE": "dddd"}],
+            [{"TEXT": "("}, {"SHAPE": "ddd)ddd"}, {"TEXT": {"REGEX": "[.-]"}}, {"SHAPE": "dddd"}],
+        )
+
+    def __call__(self, doc):
+        matches = spacy.util.filter_spans(
+            [doc[start:end] for _, start, end in self.matcher(doc)]
+        )
+        with doc.retokenize() as retokenizer:
+            for match in matches:
+                retokenizer.merge(match)
+        return doc
+
+
+TOKENIZER = spacy.blank("en")
+TOKENIZER.add_pipe(PhoneNumberMerger(TOKENIZER), last=True)
