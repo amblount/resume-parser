@@ -7,7 +7,8 @@ import pycrfsuite
 from toolz import itertoolz
 
 import msvdd_bloc
-from msvdd_bloc.resumes.parse import utils
+from msvdd_bloc.resumes import parse_utils
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -70,12 +71,12 @@ def parse_skills_section(lines):
 
     skills = []
     for line in lines:
-        tokens = utils.tokenize(line)
+        tokens = parse_utils.tokenize(line)
         if not tokens:
             continue
         else:
             features = featurize(tokens)
-            tok_labels = utils.tag(tokens, features, tagger=TAGGER)
+            tok_labels = parse_utils.tag(tokens, features, tagger=TAGGER)
             skills.extend(_parse_skills_from_labeled_tokens(tok_labels))
     return skills
 
@@ -237,7 +238,7 @@ def get_token_features(token):
     Returns:
         Dict[str, obj]
     """
-    features = utils.get_token_features_base(token)
+    features = parse_utils.get_token_features_base(token)
     features.update(
         {
             "is_level_word": token.lower_ in LEVEL_WORDS,
