@@ -2,8 +2,12 @@ import functools
 import random
 import re
 
-from msvdd_bloc.resumes.parse.utils import TOKENIZER
+import faker
 
+from msvdd_bloc.resumes.parse_utils import TOKENIZER
+
+
+FAKER = faker.Faker(locale="en_US")
 
 RE_TEMPLATE_FIELD = re.compile(
     r"{(?P<key>[\w|]+)(?::(?P<label>\w+)?(?::(?P<prob>\d\.\d+)?)?)?}",
@@ -11,7 +15,7 @@ RE_TEMPLATE_FIELD = re.compile(
 )
 
 
-def generate_labeled_tokens(templates, fields, n=1, const_field_keys=None):
+def generate_labeled_tokens(templates, fields, *, n=1, const_field_keys=None):
     """
     Args:
         templates (List[str] or List[Callable])
