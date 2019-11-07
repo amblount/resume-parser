@@ -1,11 +1,7 @@
-import functools
 import random
 from random import randint
 
 import faker
-
-from msvdd_bloc.resumes.generate import generators
-from msvdd_bloc.resumes.generate import noise
 
 
 FAKER = faker.Faker(locale="en_US")
@@ -122,6 +118,13 @@ def generate_item_sep():
     )
 
 
+def generate_newline():
+    if random.random() < 0.8:
+        return "\n"
+    else:
+        return "\n\n"
+
+
 def generate_proficiency_level():
     return random.choice(_PROFICIENCY_LEVELS)
 
@@ -132,6 +135,10 @@ def generate_proficiency_level_prep():
 
 def generate_programming_language():
     return random.choice(_PROGRAMMING_LANGUAGES)
+
+
+def generate_sentence():
+    return FAKER.sentence(nb_words=random.randint(5, 15))
 
 
 def generate_skill_group_name():
@@ -170,10 +177,10 @@ FIELDS = {
     "lang": (generate_human_language, "name"),  # TODO: should this be "other"?
     "level": (generate_proficiency_level, "level"),
     "lb": (generate_bracket_left, "field_sep"),
-    "nl": (generators.newline, "field_sep"),
+    "nl": (generate_newline, "field_sep"),
     "plang": (generate_programming_language, "name"),
     "rb": (generate_bracket_right, "field_sep"),
-    "sent": (generators.sentence_short, "other"),
+    "sent": (generate_sentence, "other"),
     "sw": (generate_software, "name"),
     "ws": (generate_whitespace, "field_sep"),
 }
