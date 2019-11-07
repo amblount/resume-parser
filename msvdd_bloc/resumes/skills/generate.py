@@ -6,7 +6,7 @@ from msvdd_bloc.resumes.generate_utils import FAKER
 
 _GROUP_SEPS = (":", "-", "")
 _ITEM_SEPS = (",", ";")
-_PROFICIENCY_LEVEL_PREPS = ("in", "with", "to", "of")
+_LEVEL_PREPS = ("in", "with", "to", "of")
 
 _LEVELS = (
     "advanced", "intermediate", "beginner",
@@ -130,7 +130,7 @@ def generate_field_level():
 
 
 def generate_field_level_prep():
-    return rnd.choices(_PROFICIENCY_LEVEL_PREPS, weights=[1.0, 0.4, 0.2, 0.1], k=1)[0]
+    return rnd.choices(_LEVEL_PREPS, weights=[1.0, 0.4, 0.2, 0.1], k=1)[0]
 
 
 def generate_field_programming_language():
@@ -280,7 +280,7 @@ def generate_line_fields_level_grped(*, key, nrange, bullet=False):
     ).strip()
 
 
-_LINES = {
+LINES = {
     "grp_name_and_sep": lambda: "{grp_name} {grp_sep}",
     "dev_mixes": fnc.partial(generate_line_fields, key="dev_mix", nrange=(3, 10)),
     "dev_mixes_bulleted": fnc.partial(generate_line_fields, key="dev_mix", nrange=(3, 10), bullet=True),
@@ -297,20 +297,29 @@ _LINES = {
     "langs_bulleted": fnc.partial(generate_line_fields, key="lang", nrange=(2, 4), bullet=True),
     "langs_grped": fnc.partial(generate_line_fields_grped, key="lang", nrange=(2, 4)),
 }
+"""
+Dict[str, Callable]: Intermediate mapping of line type name to a function that generates
+a random corresponding value.
+"""
 
 
 TEMPLATES = [
-    lambda: " {nl} ".join(_LINES["dev_mixes"]() for _ in range(rnd.randint(1, 4))),
-    lambda: " {nl} ".join(_LINES["dev_mixes_bulleted"]() for _ in range(rnd.randint(1, 4))),
-    lambda: " {nl} ".join(_LINES["dev_mixes_grped"]() for _ in range(rnd.randint(1, 4))),
-    lambda: " {nl} ".join(_LINES["dev_mixes_level"]() for _ in range(rnd.randint(1, 2))),
-    lambda: " {nl} ".join(_LINES["dev_mixes_level_grped"]() for _ in range(rnd.randint(1, 3))),
-    lambda: " {nl} ".join([_LINES["plangs_bulleted"](), _LINES["dbs_bulleted"](), _LINES["dev_mixes_bulleted"]()]),
-    lambda: " {nl} ".join([_LINES["plangs_grped"](), _LINES["dbs_grped"]()]),
-    lambda: " {nl} ".join([_LINES["langs_grped"](), _LINES["plangs_grped"]()]),
-    lambda: " {nl} ".join([_LINES["grp_name_and_sep"](), _LINES["dev_mixes"](), _LINES["grp_name_and_sep"](), _LINES["dev_mixes"]()]),
-    lambda: " {nl} ".join(["{level} {grp_sep::0.5}", _LINES["dev_mixes"](), "{level} {grp_sep::0.5}", _LINES["dev_mixes"]()]),
+    lambda: " {nl} ".join(LINES["dev_mixes"]() for _ in range(rnd.randint(1, 4))),
+    lambda: " {nl} ".join(LINES["dev_mixes_bulleted"]() for _ in range(rnd.randint(1, 4))),
+    lambda: " {nl} ".join(LINES["dev_mixes_grped"]() for _ in range(rnd.randint(1, 4))),
+    lambda: " {nl} ".join(LINES["dev_mixes_level"]() for _ in range(rnd.randint(1, 2))),
+    lambda: " {nl} ".join(LINES["dev_mixes_level_grped"]() for _ in range(rnd.randint(1, 3))),
+    lambda: " {nl} ".join([LINES["plangs_bulleted"](), LINES["dbs_bulleted"](), LINES["dev_mixes_bulleted"]()]),
+    lambda: " {nl} ".join([LINES["plangs_grped"](), LINES["dbs_grped"]()]),
+    lambda: " {nl} ".join([LINES["langs_grped"](), LINES["plangs_grped"]()]),
+    lambda: " {nl} ".join([LINES["grp_name_and_sep"](), LINES["dev_mixes"](), LINES["grp_name_and_sep"](), LINES["dev_mixes"]()]),
+    lambda: " {nl} ".join(["{level} {grp_sep::0.5}", LINES["dev_mixes"](), "{level} {grp_sep::0.5}", LINES["dev_mixes"]()]),
     lambda: " {nl} ".join(" {nl} ".join("{dev_mix}" for _ in range(rnd.randint(3, 10))) for _ in range(rnd.randint(1, 2))),
-    lambda: "{bullet::0.25} " + _LINES["dev_mixes_level_grped"]() + " {grp_sep} " + _LINES["dev_mixes_level_grped"](),
-    lambda: "{bullet} " + _LINES["dev_mixes_grped"]() + " {nl} ".join("{bullet} {sent}" for i in range(rnd.randint(1, 3))),
+    lambda: "{bullet::0.25} " + LINES["dev_mixes_level_grped"]() + " {grp_sep} " + LINES["dev_mixes_level_grped"](),
+    lambda: "{bullet} " + LINES["dev_mixes_grped"]() + " {nl} ".join("{bullet} {sent}" for i in range(rnd.randint(1, 3))),
 ]
+"""
+List[Callable]: Collection of functions that generate random skills section templates,
+by combining individual field generators defined in :obj:`FIELDS` plus line generators
+defined in :obj:`LINES`.
+"""
