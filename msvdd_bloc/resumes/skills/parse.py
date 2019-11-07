@@ -8,6 +8,7 @@ from toolz import itertoolz
 
 import msvdd_bloc
 from msvdd_bloc.resumes import parse_utils
+from msvdd_bloc.resumes.skills import generate
 
 
 LOGGER = logging.getLogger(__name__)
@@ -42,13 +43,9 @@ LABELS = (
     "other",
 )
 
-LEVEL_WORDS = {
-    "advanced", "intermediate", "beginner",
-    "experienced", "proficient", "exposed", "exposure",
-    "basic", "familiar",
-}
-FIELD_SEP_CHARS = {":", "-", "–", "(", ")"}
-ITEM_SEP_CHARS = {",", ";", "/", "&"}
+LEVEL_WORDS = set(generate._LEVELS)
+FIELD_SEP_CHARS = set(generate._GROUP_SEPS + ("(", ")"))
+ITEM_SEP_CHARS = set(generate._ITEM_SEPS + ("&",))
 
 
 def parse_skills_section(lines):

@@ -4,7 +4,7 @@ import random as rnd
 from msvdd_bloc.resumes.generate_utils import FAKER
 
 
-_GROUP_SEPS = (":", "-", "")
+_GROUP_SEPS = (":", "-", "–")
 _ITEM_SEPS = (",", ";")
 _LEVEL_PREPS = ("in", "with", "to", "of")
 
@@ -99,7 +99,10 @@ def generate_field_dev_mix():
 def generate_field_group_sep():
     return "{ws1}{sep}".format(
         ws1="" if rnd.random() < 0.9 else " ",
-        sep=rnd.choices(_GROUP_SEPS, weights=[1.0, 0.5, 0.1], k=1)[0],
+        sep=(
+            rnd.choices(_GROUP_SEPS, weights=[1.0, 0.5, 0.25], k=1)[0] if rnd.random() < 0.9
+            else "",
+        ),
     )
 
 
