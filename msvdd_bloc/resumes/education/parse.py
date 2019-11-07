@@ -9,7 +9,7 @@ from toolz import itertoolz
 
 import msvdd_bloc
 from msvdd_bloc import regexes
-from msvdd_bloc.resumes.parse import utils
+from msvdd_bloc.resumes import parse_utils
 
 
 LOGGER = logging.getLogger(__name__)
@@ -78,12 +78,12 @@ def parse_education_section(lines):
 
     tok_labels = []
     for line in lines:
-        tokens = utils.tokenize(line)
+        tokens = parse_utils.tokenize(line)
         if not tokens:
             continue
         else:
             features = featurize(tokens)
-            tok_labels.extend(utils.tag(tokens, features, tagger=TAGGER))
+            tok_labels.extend(parse_utils.tag(tokens, features, tagger=TAGGER))
     educations = _parse_educations_from_labeled_tokens(tok_labels)
     return educations
 
@@ -162,7 +162,7 @@ def get_token_features(token):
     Returns:
         Dict[str, obj]
     """
-    features = utils.get_token_features_base(token)
+    features = parse_utils.get_token_features_base(token)
     features.update(
         {
             "is_field_sep_char": token.text in FIELD_SEP_CHARS,
