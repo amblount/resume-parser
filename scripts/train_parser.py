@@ -8,7 +8,7 @@ import sys
 import pycrfsuite
 
 import msvdd_bloc
-from msvdd_bloc.resumes.parse import utils
+from msvdd_bloc.resumes import parse_utils
 
 
 logging.basicConfig(
@@ -37,7 +37,7 @@ def main():
     trainer = pycrfsuite.Trainer(
         algorithm=args.algorithm, params=params, verbose=args.verbose)
 
-    parser_module = utils.load_module_from_path(
+    parser_module = parse_utils.load_module_from_path(
         name="parser_module", fpath=args.module_filepath.resolve())
     training_data_fpath = parser_module.TRAINING_DATA_FPATH
     model_fpath = parser_module.MODEL_FPATH
@@ -47,7 +47,7 @@ def main():
     for labeled_line in labeled_lines:
         labels = [label for _, label in labeled_line]
         token_strs = [token for token, _ in labeled_line]
-        tokens = utils.tokenize(token_strs)
+        tokens = parse_utils.tokenize(token_strs)
         features = parser_module.featurize(tokens)
         all_feature_label_pairs.append((features, labels))
 
