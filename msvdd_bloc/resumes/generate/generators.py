@@ -40,6 +40,10 @@ def address_street():
     return FAKER.street_address()
 
 
+def catch_phrase():
+    return FAKER.catch_phrase()
+
+
 def email():
     return FAKER.email()
 
@@ -70,7 +74,11 @@ def newline():
         return "\n\n"
 
 
-def person_name():
+def name_company():
+    return FAKER.company()
+
+
+def name_person():
     return random.choice(_COMMON_PERSON_NAMES)
 
 

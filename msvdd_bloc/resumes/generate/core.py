@@ -14,7 +14,7 @@ RE_TEMPLATE_FIELD = re.compile(
 def generate_labeled_tokens(templates, fields, n=1, const_field_keys=None):
     """
     Args:
-        templates (List[Tuple[str, int]])
+        templates (List[str] or List[Callable])
         fields (Dict[str, Tuple[Callable, str]])
         section (str)
         n (int)
@@ -23,11 +23,9 @@ def generate_labeled_tokens(templates, fields, n=1, const_field_keys=None):
     Yields:
         List[Tuple[:class:`spacy.token.Token`, str]]
     """
-    for template in random.choices(
-        [s for s, _ in templates],
-        weights=[w for _, w in templates],
-        k=n,
-    ):
+    for template in random.choices(templates, k=n):
+        if callable(template):
+            template = template()
         template_fields = RE_TEMPLATE_FIELD.findall(template)
         field_keys = []
         field_labels = []
