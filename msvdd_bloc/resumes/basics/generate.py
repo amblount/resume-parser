@@ -2,7 +2,7 @@ import functools
 import random
 
 from msvdd_bloc.resumes.generate import generators
-from msvdd_bloc.resumes.generate import noise
+from msvdd_bloc.resumes import noise_utils
 
 
 _COMMON_FIELD_LABEL_SEPS = (":", "-", "")
@@ -158,9 +158,9 @@ def add_noise(tok_labels):
         List[Tuple[str, str]]
     """
     noise_funcs = []
-    # noise_funcs.append(functools.partial(noise.delete_token_chars, 0.001))
+    # noise_funcs.append(functools.partial(noise_utils.delete_token_chars, 0.001))
     if random.random() < 0.05:
-        noise_funcs.append(functools.partial(noise.uppercase_token_text, {"name"}))
+        noise_funcs.append(functools.partial(noise_utils.uppercase_token_text, {"name"}))
     for noise_func in noise_funcs:
         tok_labels = noise_func(tok_labels)
     return tok_labels
