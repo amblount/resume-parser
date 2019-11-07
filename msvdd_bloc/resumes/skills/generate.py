@@ -1,3 +1,4 @@
+import functools as fnc
 import random as rnd
 
 from msvdd_bloc.resumes.generate_utils import FAKER
@@ -79,6 +80,9 @@ _HOBBIES = (
     "Bowling", "Karaoke", "Kayaking", "Swimming", "Fishing", "Rock Climbing",
 )
 
+#############################
+## random field generators ##
+#############################
 
 def generate_field_and():
     return rnd.choices(["and", "&"], weights=[1.0, 0.2], k=1)[0]
@@ -162,13 +166,13 @@ FIELDS = {
     "bullet": (lambda : "- ", "bullet"),
     "db": (generate_field_database, "name"),
     "dev_mix": (generate_field_dev_mix, "name"),
-    "in": (generate_field_level_prep, "field_sep"),
     "is": (generate_field_item_sep, "item_sep"),
     "grp_name": (generate_field_skill_group_name, "name"),
     "grp_name_sep": (generate_field_skill_group_sep, "field_sep"),
     "hobby": (generate_field_hobby, "other"),
     "lang": (generate_field_human_language, "name"),  # TODO: should this be "other"?
     "level": (generate_field_level, "level"),
+    "level_prep": (generate_field_level_prep, "field_sep"),
     "lb": (generate_field_bracket_left, "field_sep"),
     "nl": (generate_field_newline, "field_sep"),
     "plang": (generate_field_programming_language, "name"),
@@ -182,38 +186,127 @@ Dict[str, Tuple[Callable, str]]: Mapping of field key string to a function that 
 a random field value and the default field label assigned to the value.
 """
 
-_LNTMPLTS = {
+############################
+## random line generators ##
+############################
+
+def generate_line_fields(*, key, nrange, bullet=False):
+    """
+    Args:
+        key (str)
+        nrange (Tuple[int, int])
+        bullet (bool)
+
+    Returns:
+        str
+    """
+    nmin, nmax = nrange
+    return "{blt} {fields} {field_end}".format(
+        blt="" if bullet is False else "{bullet}",
+        fields=" {is} ".join(
+            "{{{key}}}".format(key=key)
+            for _ in range(rnd.randint(nmin - 1, nmax - 1))
+        ),
+        field_end="{{is}} {{and::0.1}} {{{key}}}".format(key=key),
+    )
+
+
+def generate_line_fields_grped(*, key, nrange, bullet=False):
+    """
+    Args:
+        key (str)
+        nrange (Tuple[int, int])
+        bullet (bool)
+
+    Returns:
+        str
+    """
+    nmin, nmax = nrange
+    return "{blt} {grp} {fields} {field_end}".format(
+        blt="" if bullet is False else "{bullet}",
+        grp="{grp_name} {grp_name_sep} {ws}",
+        fields=" {is} ".join(
+            "{{{key}:keyword}}".format(key=key)
+            for _ in range(rnd.randint(nmin - 1, nmax - 1))
+        ),
+        field_end="{{is}} {{and::0.1}} {{{key}:keyword}}".format(key=key),
+    )
+
+
+def generate_line_fields_levels(*, key, nrange, bullet=False):
+    """
+    Args:
+        key (str)
+        nrange (Tuple[int, int])
+        bullet (bool)
+
+    Returns:
+        str
+    """
+    nmin, nmax = nrange
+    return "{blt} {fields} {field_end}".format(
+        blt="" if bullet is False else "{bullet}",
+        fields=" {is} ".join(
+            "{{{key}}} {{lb}} {{level}} {{rb}}".format(key=key)
+            for _ in range(rnd.randint(nmin - 1, nmax - 1))
+        ),
+        field_end="{{is}} {{and::0.1}} {{{key}}} {{lb}} {{level}} {{rb}}".format(key=key),
+    )
+
+
+def generate_line_fields_level_grped(*, key, nrange, bullet=False):
+    """
+    Args:
+        key (str)
+        nrange (Tuple[int, int])
+        bullet (bool)
+
+    Returns:
+        str
+    """
+    nmin, nmax = nrange
+    return "{blt} {lvl} {fields} {field_end}".format(
+        blt="" if bullet is False else "{bullet}",
+        lvl="{level} {level_prep::0.5} {grp_name_sep::0.25}",
+        fields=" {is} ".join(
+            "{{{key}}}".format(key=key)
+            for _ in range(rnd.randint(nmin - 1, nmax - 1))
+        ),
+        field_end="{{is}} {{and::0.1}} {{{key}}}".format(key=key),
+    )
+
+
+_LINES = {
     "grp_name_and_sep": lambda: "{grp_name} {grp_name_sep}",
-    "dev_mixes": lambda: " {is} ".join("{dev_mix}" for _ in range(rnd.randint(3, 9))) + " {is} {and::0.1} {dev_mix}",
-    "dev_mixes_bulleted": lambda: "{bullet} " + " {is} ".join("{dev_mix}" for _ in range(rnd.randint(3, 9))) + " {is} {and::0.1} {dev_mix}",
-    "dev_mixes_grped": lambda: "{grp_name} {grp_name_sep} {ws} " + " {is} ".join("{dev_mix:keyword}" for _ in range(rnd.randint(3, 9))) + " {is} {and::0.1} {dev_mix:keyword}",
-    "dev_mixes_kw": lambda: " {is} ".join("{dev_mix:keyword}" for _ in range(rnd.randint(3, 10))),
-    "dev_mixes_level": lambda: " {is} ".join("{dev_mix} {lb} {level} {rb}" for _ in range(rnd.randint(3, 8))),
-    "dev_mixes_level_grped": lambda: "{level} {in::0.5} {grp_name_sep::0.25}" + " {is} ".join("{dev_mix}" for _ in range(rnd.randint(3, 8))),
-    "plangs": lambda: " {is} ".join("{plang}" for _ in range(rnd.randint(3, 8))),
-    "plangs_bulleted": lambda: "{bullet} " + " {is} ".join("{plang}" for _ in range(rnd.randint(3, 8))),
-    "plangs_grped": lambda: "{grp_name} {grp_name_sep} {ws} " + " {is} ".join("{plang:keyword}" for _ in range(rnd.randint(3, 8))),
-    "plangs_kw": lambda: " {is} ".join("{plang:keyword}" for _ in range(rnd.randint(3, 8))),
-    "dbs": lambda: " {is} ".join("{db}" for _ in range(rnd.randint(3, 6))),
-    "dbs_bulleted": lambda: "{bullet} " + " {is} ".join("{db}" for _ in range(rnd.randint(3, 6))),
-    "dbs_grped": lambda: "{grp_name} {grp_name_sep} {ws} " + " {is} ".join("{db:keyword}" for _ in range(rnd.randint(3, 6))),
-    "dbs_kw": lambda: " {is} ".join("{db:keyword}" for _ in range(rnd.randint(3, 6))),
-    "langs": lambda: " {is} ".join("{lang}" for _ in range(rnd.randint(2, 4))),
-    "langs_bulleted": lambda: "{bullet} " + " {is} ".join("{lang}" for _ in range(rnd.randint(2, 4))),
-    "langs_grped": lambda: "{grp_name} {grp_name_sep} {ws} " + " {is} ".join("{lang:keyword}" for _ in range(rnd.randint(2, 4))),
-    "langs_kw": lambda: " {is} ".join("{lang:keyword}" for _ in range(rnd.randint(2, 4))),
+    "dev_mixes": fnc.partial(generate_line_fields, key="dev_mix", nrange=(3, 10)),
+    "dev_mixes_bulleted": fnc.partial(generate_line_fields, key="dev_mix", nrange=(3, 10), bullet=True),
+    "dev_mixes_grped": fnc.partial(generate_line_fields_grped, key="dev_mix", nrange=(3, 10)),
+    "dev_mixes_level": fnc.partial(generate_line_fields_levels, key="dev_mix", nrange=(3, 10)),
+    "dev_mixes_level_grped": fnc.partial(generate_line_fields_level_grped, key="dev_mix", nrange=(3, 10)),
+    "plangs": fnc.partial(generate_line_fields, key="plang", nrange=(3, 8)),
+    "plangs_bulleted": fnc.partial(generate_line_fields, key="plang", nrange=(3, 8), bullet=True),
+    "plangs_grped": fnc.partial(generate_line_fields_grped, key="plang", nrange=(3, 8)),
+    "dbs": fnc.partial(generate_line_fields, key="db", nrange=(3, 6)),
+    "dbs_bulleted": fnc.partial(generate_line_fields, key="db", nrange=(3, 6), bullet=True),
+    "dbs_grped": fnc.partial(generate_line_fields_grped, key="db", nrange=(3, 6)),
+    "langs": fnc.partial(generate_line_fields, key="lang", nrange=(2, 4)),
+    "langs_bulleted": fnc.partial(generate_line_fields, key="lang", nrange=(2, 4), bullet=True),
+    "langs_grped": fnc.partial(generate_line_fields_grped, key="lang", nrange=(2, 4)),
 }
 
+
 TEMPLATES = [
-    lambda: " {nl} ".join(_LNTMPLTS["dev_mixes"]() for _ in range(rnd.randint(1, 4))),
-    lambda: " {nl} ".join(_LNTMPLTS["dev_mixes_bulleted"]() for _ in range(rnd.randint(1, 4))),
-    lambda: " {nl} ".join(_LNTMPLTS["dev_mixes_grped"]() for _ in range(rnd.randint(1, 4))),
-    lambda: " {nl} ".join(_LNTMPLTS["dev_mixes_level"]() for _ in range(rnd.randint(1, 2))),
-    lambda: " {nl} ".join(_LNTMPLTS["dev_mixes_level_grped"]() for _ in range(rnd.randint(1, 3))),
-    lambda: " {nl} ".join([_LNTMPLTS["plangs_bulleted"](), _LNTMPLTS["dbs_bulleted"](), _LNTMPLTS["dev_mixes_bulleted"]()]),
-    lambda: " {nl} ".join([_LNTMPLTS["plangs_grped"](), _LNTMPLTS["dbs_grped"]()]),
-    lambda: " {nl} ".join([_LNTMPLTS["grp_name_and_sep"](), _LNTMPLTS["dev_mixes"](), _LNTMPLTS["grp_name_and_sep"](), _LNTMPLTS["dev_mixes"]()]),
+    lambda: " {nl} ".join(_LINES["dev_mixes"]() for _ in range(rnd.randint(1, 4))),
+    lambda: " {nl} ".join(_LINES["dev_mixes_bulleted"]() for _ in range(rnd.randint(1, 4))),
+    lambda: " {nl} ".join(_LINES["dev_mixes_grped"]() for _ in range(rnd.randint(1, 4))),
+    lambda: " {nl} ".join(_LINES["dev_mixes_level"]() for _ in range(rnd.randint(1, 2))),
+    lambda: " {nl} ".join(_LINES["dev_mixes_level_grped"]() for _ in range(rnd.randint(1, 3))),
+    lambda: " {nl} ".join([_LINES["plangs_bulleted"](), _LINES["dbs_bulleted"](), _LINES["dev_mixes_bulleted"]()]),
+    lambda: " {nl} ".join([_LINES["plangs_grped"](), _LINES["dbs_grped"]()]),
+    lambda: " {nl} ".join([_LINES["langs_grped"](), _LINES["plangs_grped"]()]),
+    lambda: " {nl} ".join([_LINES["grp_name_and_sep"](), _LINES["dev_mixes"](), _LINES["grp_name_and_sep"](), _LINES["dev_mixes"]()]),
+    lambda: " {nl} ".join(["{level} {grp_name_sep::0.5}", _LINES["dev_mixes"](), "{level} {grp_name_sep::0.5}", _LINES["dev_mixes"]()]),
     lambda: " {nl} ".join(" {nl} ".join("{dev_mix}" for _ in range(rnd.randint(3, 10))) for _ in range(rnd.randint(1, 2))),
-    lambda: "{bullet::0.25} " + _LNTMPLTS["dev_mixes_level_grped"]() + " {grp_name_sep} " + _LNTMPLTS["dev_mixes_level_grped"](),
-    lambda: "{bullet} " + _LNTMPLTS["dev_mixes_grped"]() + " {nl} ".join("{bullet} {sent}" for i in range(rnd.randint(1, 3))),
+    lambda: "{bullet::0.25} " + _LINES["dev_mixes_level_grped"]() + " {grp_name_sep} " + _LINES["dev_mixes_level_grped"](),
+    lambda: "{bullet} " + _LINES["dev_mixes_grped"]() + " {nl} ".join("{bullet} {sent}" for i in range(rnd.randint(1, 3))),
 ]
