@@ -1,97 +1,183 @@
 import functools
 import random
 
-from msvdd_bloc.resumes.generate import generators
 from msvdd_bloc.resumes import noise_utils
+from msvdd_bloc.resumes.generate_utils import FAKER
 
 
-_COMMON_FIELD_LABEL_SEPS = (":", "-", "")
-_COMMON_FIELD_SEPS = ("|", "–", "-", ":", "•", "·", "Ÿ", "�", "⇧")
-_COMMON_ITEM_SEPS = (",", ";")
+_FIELD_LABEL_SEPS = (":", "-", "")
+_FIELD_SEPS = ("|", "–", "-", ":", "•", "·", "Ÿ", "�", "⇧")
+_ITEM_SEPS = (",", ";")
+
+_FIELD_LABEL_ADDRS = ("Address", "Current Address")
+_FIELD_LABEL_EMAILS = ("Email", "E-mail")
+_FIELD_LABEL_PHONES = ("Phone", "Mobile", "Cell", "Tel.")
+_FIELD_LABEL_PROFILES = ("GitHub", "Twitter", "LinkedIn")
+
+_PHONE_FORMATS = (
+    "###-###-####", "###.###.####", "(###) ###-####", "### ###-####",
+)
+_URL_SCHEMES = ("www.", "http://", "http://www.", "")
 
 
-def generate_field_sep():
+def generate_field_address():
+    return FAKER.address().replace("\n", " ")
+
+
+def generate_field_address_city_state():
+    return "{city}, {state_abbr}".format(
+        city=FAKER.city(),
+        state_abbr=FAKER.state_abbr(),
+    )
+
+
+def generate_field_address_city_state_zip():
+    return "{city}, {state_abbr} {postcode}".format(
+        city=FAKER.city(),
+        state_abbr=FAKER.state_abbr(),
+        postcode=FAKER.postcode(),
+    )
+
+
+def generate_field_address_street():
+    return FAKER.street_address()
+
+
+def generate_field_email():
+    return FAKER.email()
+
+
+def generate_field_field_sep():
     return "{ws}{sep}{ws}".format(
         ws=" " * random.randint(1, 4),
         sep=random.choices(
-            _COMMON_FIELD_SEPS,
+            _FIELD_SEPS,
             weights=[1.0, 0.5, 0.5, 0.25, 0.1, 0.05, 0.05, 0.05, 0.05],
             k=1,
         )[0],
     )
 
 
-def generate_item_sep():
+def generate_field_item_sep():
     return "{sep}{ws}".format(
-        sep=random.choices(_COMMON_ITEM_SEPS, weights=[1.0, 0.2], k=1)[0],
+        sep=random.choices(_ITEM_SEPS, weights=[1.0, 0.2], k=1)[0],
         ws=" " * random.randint(1, 2),
     )
 
 
-def generate_resume_label():
-    if random.random() > 0.8:
-        return generators.job_title()
+def generate_field_label_addr():
+    return "{label}{ws}{sep}".format(
+        label=random.choices(_FIELD_LABEL_ADDRS , weights=[1.0, 0.1], k=1)[0],
+        ws="" if random.random() < 0.9 else " ",
+        sep=random.choices(_FIELD_LABEL_SEPS, weights=[1.0, 0.2, 0.2], k=1)[0],
+    )
+
+
+def generate_field_label_email():
+    return "{label}{ws}{sep}".format(
+        label=random.choice(_FIELD_LABEL_EMAILS),
+        ws="" if random.random() < 0.9 else " ",
+        sep=random.choices(_FIELD_LABEL_SEPS, weights=[1.0, 0.2, 0.2], k=1)[0],
+    )
+
+
+def generate_field_label_phone():
+    return "{label}{ws}{sep}".format(
+        label=random.choice(_FIELD_LABEL_PHONES),
+        ws="" if random.random() < 0.9 else " ",
+        sep=random.choices(_FIELD_LABEL_SEPS, weights=[1.0, 0.2, 0.2], k=1)[0],
+    )
+
+
+def generate_field_label_profile():
+    return "{label}{ws}{sep}".format(
+        label=random.choice(_FIELD_LABEL_PROFILES),
+        ws="" if random.random() < 0.9 else " ",
+        sep=random.choices(_FIELD_LABEL_SEPS, weights=[1.0, 0.2, 0.2], k=1)[0],
+    )
+
+
+def generate_field_name():
+    return FAKER.name()
+
+
+def generate_field_newline():
+    if random.random() < 0.8:
+        return "\n"
     else:
-        return generators.catch_phrase()
+        return "\n\n"
 
 
-def generate_label_addr():
-    return "{label}{ws}{sep}".format(
-        label=random.choices(["Address", "Current Address"], weights=[1.0, 0.1], k=1)[0],
-        ws="" if random.random() < 0.9 else " ",
-        sep=random.choices(_COMMON_FIELD_LABEL_SEPS, weights=[1.0, 0.2, 0.2], k=1)[0],
+def generate_field_phone():
+    if random.random() < 0.25:
+        return FAKER.phone_number()
+    else:
+        return FAKER.numerify(random.choice(_PHONE_FORMATS))
+
+
+def generate_field_resume_label():
+    if random.random() > 0.8:
+        return FAKER.job()
+    else:
+        return FAKER.catch_phrase()
+
+
+def generate_field_sentence():
+    return FAKER.sentence(nb_words=random.randint(5, 15))
+
+
+def generate_field_user_name():
+    return "{at}{name}".format(
+        at="@" if random.random() < 0.33 else "",
+        name=FAKER.user_name(),
     )
 
 
-def generate_label_email():
-    return "{label}{ws}{sep}".format(
-        label=random.choice(["Email", "E-mail"]),
-        ws="" if random.random() < 0.9 else " ",
-        sep=random.choices(_COMMON_FIELD_LABEL_SEPS, weights=[1.0, 0.2, 0.2], k=1)[0],
-    )
+def generate_field_website():
+    if random.random() < 0.5:
+        return FAKER.url()
+    else:
+        return FAKER.domain_name(levels=random.randint(1, 2))
 
 
-def generate_label_phone():
-    return "{label}{ws}{sep}".format(
-        label=random.choice(["Phone", "Mobile", "Cell", "Tel."]),
-        ws="" if random.random() < 0.9 else " ",
-        sep=random.choices(_COMMON_FIELD_LABEL_SEPS, weights=[1.0, 0.2, 0.2], k=1)[0],
-    )
+def generate_field_website_profile():
+    if random.random() < 0.5:
+        return "{scheme}linkedin.com/in/{slug}".format(
+            scheme=random.choice(_URL_SCHEMES),
+            slug=FAKER.slug(value=FAKER.name()),
+        )
+    else:
+        return "{scheme}github.com/{user}".format(
+            scheme=random.choice(_URL_SCHEMES),
+            user=FAKER.user_name(),
+        )
 
 
-def generate_label_profile():
-    return "{label}{ws}{sep}".format(
-        label=random.choice(["GitHub", "Twitter", "LinkedIn"]),
-        ws="" if random.random() < 0.9 else " ",
-        sep=random.choices(_COMMON_FIELD_LABEL_SEPS, weights=[1.0, 0.2, 0.2], k=1)[0],
-    )
-
-
-def generate_whitespace():
+def generate_field_whitespace():
     return " " * random.randint(1, 4)
 
 
 FIELDS = {
-    "addr": (generators.address, "location"),
-    "addr_city_state": (generators.address_city_state, "location"),
-    "addr_city_state_zip": (generators.address_city_state_zip, "location"),
-    "addr_street": (generators.address_street, "location"),
-    "email": (generators.email, "email"),
-    "fs": (generate_field_sep, "field_sep"),
-    "is": (generate_item_sep, "item_sep"),
-    "label": (generate_resume_label, "label"),
-    "label_addr": (generate_label_addr, "field_label"),
-    "label_email": (generate_label_email, "field_label"),
-    "label_phone": (generate_label_phone, "field_label"),
-    "label_profile": (generate_label_profile, "field_label"),
-    "name": (generators.name_person, "name"),
-    "nl": (generators.newline, "field_sep"),
-    "phone": (generators.phone, "phone"),
-    "sent_short": (generators.sentence_short, "other"),
-    "user_name": (generators.user_name, "profile"),
-    "website": (generators.website, "website"),
-    "website_profile": (generators.website_profile, "website"),  # TODO: is this best?
-    "ws": (generate_whitespace, "field_sep"),
+    "addr": (generate_field_address, "location"),
+    "addr_city_state": (generate_field_address_city_state, "location"),
+    "addr_city_state_zip": (generate_field_address_city_state_zip, "location"),
+    "addr_street": (generate_field_address_street, "location"),
+    "email": (generate_field_email, "email"),
+    "fs": (generate_field_field_sep, "field_sep"),
+    "is": (generate_field_item_sep, "item_sep"),
+    "label": (generate_field_resume_label, "label"),
+    "label_addr": (generate_field_label_addr, "field_label"),
+    "label_email": (generate_field_label_email, "field_label"),
+    "label_phone": (generate_field_label_phone, "field_label"),
+    "label_profile": (generate_field_label_profile, "field_label"),
+    "name": (generate_field_name, "name"),
+    "nl": (generate_field_newline, "field_sep"),
+    "phone": (generate_field_phone, "phone"),
+    "sent_short": (generate_field_sentence, "other"),
+    "user_name": (generate_field_user_name, "profile"),
+    "website": (generate_field_website, "website"),
+    "website_profile": (generate_field_website_profile, "website"),  # TODO: improve this?
+    "ws": (generate_field_whitespace, "field_sep"),
 }
 """
 Dict[str, Tuple[Callable, str]]: Mapping of field key string to a function that generates
