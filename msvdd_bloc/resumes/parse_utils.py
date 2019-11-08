@@ -1,11 +1,14 @@
 import importlib
+import logging
 import string
 import sys
 
+import pycrfsuite
 import spacy
 from spacy.tokens import Doc
 
 
+LOGGER = logging.getLogger(__name__)
 _PUNCT_CHARS = set(string.punctuation)
 
 
@@ -97,6 +100,27 @@ def load_module_from_path(*, name, fpath):
         sys.modules[name] = module
         spec.loader.exec_module(module)
         return module
+
+
+def load_tagger(fpath):
+    """
+    Args:
+        fpath (str or :class:`pathlib.Path`)
+
+    Returns:
+        :class:`pycrfsuite.Tagger`
+    """
+    try:
+        tagger = pycrfsuite.Tagger()
+        tagger.open(str(fpath))
+        return tagger
+    except IOError:
+        LOGGER.warning(
+            "tagger model file '%s' is missing; have you trained one yet? "
+            "if not, use the `label_parser_training_data.py` script to do so.",
+            fpath,
+        )
+        raise
 
 
 class PhoneNumberMerger:

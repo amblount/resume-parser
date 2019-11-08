@@ -3,11 +3,10 @@ import logging
 import operator
 import re
 
-import pycrfsuite
 from toolz import itertoolz
 
-import msvdd_bloc
 from msvdd_bloc.resumes import parse_utils
+from msvdd_bloc.resumes import skills
 from msvdd_bloc.resumes.skills import generate
 
 
@@ -17,38 +16,12 @@ LOGGER = logging.getLogger(__name__)
 ## CRF-BASED PARSING ##
 #######################
 
-# NOTE: required objects are as follows
-# - TRAINING_DATA_FPATH (:class:`pathlib.Path`)
-# - MODEL_FPATH (:class:`pathlib.Path`)
-# - TAGGER (:class:`pycrfsuite.Tagger`)
-# - LABELS (List[str])
-# - featurize (func)
-
-TRAINING_DATA_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-skills-training-data.jsonl")
-MODEL_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-skills.crfsuite")
-
-try:
-    TAGGER = pycrfsuite.Tagger()
-    TAGGER.open(str(MODEL_FPATH))
-except IOError:
-    TAGGER = None
-
-LABELS = (
-    "bullet",
-    "name",
-    "keyword",
-    "level",
-    "field_sep",
-    "item_sep",
-    "other",
-)
-
 LEVEL_WORDS = set(generate._LEVELS)
 FIELD_SEP_CHARS = set(generate._GROUP_SEPS + ("(", ")"))
 ITEM_SEP_CHARS = set(generate._ITEM_SEPS + ("&",))
 
 
-def parse_skills_section(lines):
+def parse_skills_section(lines, tagger=None):
     """
     Parse a sequence of text lines belonging to the "skills" section of a résumé
     to produce structured data in the form of :class:`schemas.ResumeSkillSchema`
@@ -56,26 +29,24 @@ def parse_skills_section(lines):
 
     Args:
         lines (List[str])
+        tagger (:class:`pycrfsuite.Tagger`)
 
     Returns:
         List[Dict[str, obj]]
     """
-    if TAGGER is None:
-        raise IOError(
-            "model file '{}' is missing; have you trained one yet? "
-            "if not, use the `label_parser_training_data.py` script.".format(MODEL_FPATH)
-        )
+    if tagger is None:
+        tagger = parse_utils.load_tagger(skills.FPATH_TAGGER)
 
-    skills = []
+    skills_data = []
     for line in lines:
         tokens = parse_utils.tokenize(line)
         if not tokens:
             continue
         else:
             features = featurize(tokens)
-            tok_labels = parse_utils.tag(tokens, features, tagger=TAGGER)
-            skills.extend(_parse_skills_from_labeled_tokens(tok_labels))
-    return skills
+            tok_labels = parse_utils.tag(tokens, features, tagger=tagger)
+            skills_data.extend(_parse_skills_from_labeled_tokens(tok_labels))
+    return skills_data
 
 
 def _parse_skills_from_labeled_tokens(tok_labels):
@@ -86,7 +57,7 @@ def _parse_skills_from_labeled_tokens(tok_labels):
     Returns:
         List[Dict[str, obj]]
     """
-    skills = []
+    skills_data = []
 
     # get rid of leading bullets
     if tok_labels[0][1] == "bullet":
@@ -111,16 +82,16 @@ def _parse_skills_from_labeled_tokens(tok_labels):
     # note: this is a parser error -- they shouldn't be keywords -- but we can correct it
     # note: this is an ambiguous way to list skills; we assume each token is separate
     elif re.search(r"^(name|keyword)+$", labels_str):
-        skills.extend({"name": tok.text} for tok, _ in tok_labels)
+        skills_data.extend({"name": tok.text} for tok, _ in tok_labels)
     # a name separated by a level
     elif re.search(r"^(name)+field_sep(level)+$", labels_str):
-        skills.append({
+        skills_data.append({
             "name": "".join(tok.text_with_ws for tok, label in tok_labels if label == "name"),
             "level": "".join(tok.text_with_ws for tok, label in tok_labels if label == "level"),
         })
     # char-delimited list of skill names
     elif re.search(r"^(name)+((item_sep)+(name)+)+$", labels_str):
-        skills.extend([
+        skills_data.extend([
             {"name": "".join(tok.text_with_ws for tok, label in tls)}
             for label, tls in itertools.groupby(tok_labels, key=operator.itemgetter(1))
             if label != "item_sep"
@@ -128,7 +99,7 @@ def _parse_skills_from_labeled_tokens(tok_labels):
     # char-delimited list of skill names (or keywords)
     # note: this is a parser error -- they shouldn't be keywords -- but we can correct it
     elif re.search(r"^(name)+((item_sep)+(name|keyword)+)+$", labels_str):
-        skills.extend([
+        skills_data.extend([
             {"name": "".join(tok.text_with_ws for tok, label in tls)}
             for label, tls in itertools.groupby(tok_labels, key=operator.itemgetter(1))
             if label != "item_sep"
@@ -138,7 +109,7 @@ def _parse_skills_from_labeled_tokens(tok_labels):
         for is_item_sep, tls in itertools.groupby(tok_labels, key=lambda tl: tl[1] == "item_sep"):
             if not is_item_sep:
                 tls = list(tls)
-                skills.append({
+                skills_data.append({
                     "name": "".join(tok.text_with_ws for tok, label in tls if label == "name"),
                     "level": "".join(tok.text_with_ws for tok, label in tls if label == "level"),
                 })
@@ -146,7 +117,7 @@ def _parse_skills_from_labeled_tokens(tok_labels):
     # either by a leading separator (e.g. ":") or bracketed separators (e.g. "(...)")
     elif re.search(r"^(name)+field_sep(keyword)+((item_sep)+(keyword)+)*?field_sep?$", labels_str):
         field_sep_idx = [label for _, label in tok_labels].index("field_sep")
-        skills.append({
+        skills_data.append({
             "name": "".join(tok.text_with_ws for tok, _ in tok_labels[:field_sep_idx]),
             "keywords": [
                 "".join(tok.text_with_ws for tok, label in tls)
@@ -160,7 +131,7 @@ def _parse_skills_from_labeled_tokens(tok_labels):
     elif re.search(r"^(level)+field_sep(name|keyword)+((item_sep)+(name|keyword)+)*?$", labels_str):
         field_sep_idx = [label for _, label in tok_labels].index("field_sep")
         level = "".join(tok.text_with_ws for tok, label in tok_labels[:field_sep_idx] if label == "level")
-        skills.extend([
+        skills_data.extend([
             {"level": level, "name": "".join(tok.text_with_ws for tok, label in tls)}
             for label, tls in itertools.groupby(tok_labels[field_sep_idx + 1:], key=operator.itemgetter(1))
             if label != "item_sep"
@@ -171,7 +142,7 @@ def _parse_skills_from_labeled_tokens(tok_labels):
     elif re.search(r"^(level)+(name)+((item_sep)+(name|keyword)+)*?$", labels_str):
         name_idx = [label for _, label in tok_labels].index("name")
         level = "".join(tok.text_with_ws for tok, label in tok_labels[:name_idx] if label == "level")
-        skills.extend([
+        skills_data.extend([
             {"level": level, "name": "".join(tok.text_with_ws for tok, label in tls)}
             for label, tls in itertools.groupby(tok_labels[name_idx + 1:], key=operator.itemgetter(1))
             if label != "item_sep"
@@ -184,13 +155,13 @@ def _parse_skills_from_labeled_tokens(tok_labels):
         for is_item_sep, tls in itertools.groupby(tok_labels[field_sep_idx + 1:], key=lambda tl: tl[1] == "item_sep"):
             if not is_item_sep:
                 tls = list(tls)
-                skills.append({
+                skills_data.append({
                     "name": "".join(tok.text_with_ws for tok, label in tls if label in {"name", "keyword"}),
                     "level": "".join(tok.text_with_ws for tok, label in tls if label == "level"),
                 })
     else:
         LOGGER.warning("unable to parse skills from labeled tokens: {}".format(tok_labels))
-    return skills
+    return skills_data
 
 
 def featurize(tokens):

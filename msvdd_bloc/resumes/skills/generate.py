@@ -97,11 +97,11 @@ def generate_field_dev_mix():
 
 
 def generate_field_group_sep():
-    return "{ws1}{sep}".format(
-        ws1="" if rnd.random() < 0.9 else " ",
+    return "{ws}{sep}".format(
+        ws="" if rnd.random() < 0.9 else " ",
         sep=(
             rnd.choices(_GROUP_SEPS, weights=[1.0, 0.5, 0.25], k=1)[0] if rnd.random() < 0.9
-            else "",
+            else ""
         ),
     )
 

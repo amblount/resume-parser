@@ -3,18 +3,17 @@ import logging
 import operator
 
 import probablepeople
-import pycrfsuite
 import usaddress
 from toolz import itertoolz
 
-import msvdd_bloc
 from msvdd_bloc import regexes
+from msvdd_bloc.resumes import basics
 from msvdd_bloc.resumes import parse_utils
 
 
 LOGGER = logging.getLogger(__name__)
 
-LOCATION_TAG_MAPPING = {
+_LOCATION_TAG_MAPPING = {
    'Recipient': 'recipient',
    'AddressNumber': 'address',
    'AddressNumberPrefix': 'address',
@@ -50,40 +49,10 @@ Dict[str, str]: Mapping of ``usaddress` location tag to corresponding résumé s
 ## CRF-BASED PARSING ##
 #######################
 
-# NOTE: required objects are as follows
-# - TRAINING_DATA_FPATH (:class:`pathlib.Path`)
-# - MODEL_FPATH (:class:`pathlib.Path`)
-# - TAGGER (:class:`pycrfsuite.Tagger`)
-# - LABELS (List[str])
-# - featurize (func)
-
-TRAINING_DATA_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-basics-training-data.jsonl")
-MODEL_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-basics.crfsuite")
-
-try:
-    TAGGER = pycrfsuite.Tagger()
-    TAGGER.open(str(MODEL_FPATH))
-except IOError:
-    TAGGER = None
-
-LABELS = (
-    "other",
-    "name",
-    "label",
-    "email",
-    "phone",
-    "website",
-    "location",
-    "profile",
-    "field_sep",
-    "item_sep",
-    "field_label",
-)
-
 FIELD_SEP_CHARS = {"|", "-", "–", "®", "⇧", "\ufffd", "\u0178"}
 
 
-def parse_basics_section(lines):
+def parse_basics_section(lines, tagger=None):
     """
     Parse a sequence of text lines belonging to the "basics" section of a résumé
     to produce structured data in the form of :class:`schemas.ResumeBasicsSchema`
@@ -91,31 +60,29 @@ def parse_basics_section(lines):
 
     Args:
         lines (List[str])
+        tagger (:class:`pycrfsuite.Tagger`)
 
     Returns:
         Dict[str, obj]
     """
-    if TAGGER is None:
-        raise IOError(
-            "model file '{}' is missing; have you trained one yet? "
-            "if not, use the `label_parser_training_data.py` script.".format(MODEL_FPATH)
-        )
+    if tagger is None:
+        tagger = parse_utils.load_tagger(basics.FPATH_TAGGER)
 
-    # basics = {}
+    # basics_data = {}
     # for line in lines:
     #     tokens = parse_utils.tokenize(line)
     #     if not tokens:
     #         continue
     #     else:
     #         features = featurize(tokens)
-    #         tok_labels = parse_utils.tag(tokens, features, tagger=TAGGER)
-    #         basics.update(_parse_basics_from_labeled_tokens(tok_labels))
-    # return basics
+    #         tok_labels = parse_utils.tag(tokens, features, tagger=tagger)
+    #         basics_data.update(_parse_basics_from_labeled_tokens(tok_labels))
+    # return basics_data
     tokens = parse_utils.tokenize("\n".join(lines).strip())
     features = featurize(tokens)
-    tok_labels = parse_utils.tag(tokens, features, tagger=TAGGER)
-    basics = _parse_basics_from_labeled_tokens(tok_labels)
-    return basics
+    tok_labels = parse_utils.tag(tokens, features, tagger=tagger)
+    basics_data = _parse_basics_from_labeled_tokens(tok_labels)
+    return basics_data
 
 
 def _parse_basics_from_labeled_tokens(tok_labels):
@@ -127,7 +94,7 @@ def _parse_basics_from_labeled_tokens(tok_labels):
         Dict[str, obj]
     """
     excluded_labels = {"other", "field_sep", "item_sep", "field_label"}
-    basics = {}
+    basics_data = {}
     profiles = []
     for label, tls in itertools.groupby(tok_labels, key=operator.itemgetter(1)):
         field_text = "".join(tok.text_with_ws for tok, _ in tls).strip()
@@ -137,7 +104,7 @@ def _parse_basics_from_labeled_tokens(tok_labels):
             try:
                 location, location_type = usaddress.tag(
                     field_text.replace("\n", " "),
-                    tag_mapping=LOCATION_TAG_MAPPING,
+                    tag_mapping=_LOCATION_TAG_MAPPING,
                 )
             except usaddress.RepeatedLabelError as e:
                 LOGGER.debug("'location' parsing error:\n%s", e)
@@ -145,8 +112,8 @@ def _parse_basics_from_labeled_tokens(tok_labels):
             if location_type == "Street Address":
                 location = dict(location)
                 if "recipient" in location:
-                    basics["name"] = location.pop("recipient")
-                basics["location"] = location
+                    basics_data["name"] = location.pop("recipient")
+                basics_data["location"] = location
         # HACK: social profiles are not handled well by the parser or this function
         # bc it wasn't clear how best to identify the network and/or url based on
         # the fragments + icons typically included in résumés, *especially* since
@@ -154,10 +121,10 @@ def _parse_basics_from_labeled_tokens(tok_labels):
         elif label == "profile":
             profiles.append({"username": field_text})
         else:
-            basics[label] = field_text
+            basics_data[label] = field_text
     if profiles:
-        basics["profiles"] = profiles
-    return basics
+        basics_data["profiles"] = profiles
+    return basics_data
 
 
 def featurize(tokens):
@@ -277,7 +244,7 @@ def parse_basics_section_alt(lines):
             if "location" not in basics:
                 try:
                     location, location_type = usaddress.tag(
-                        line_chunk, tag_mapping=LOCATION_TAG_MAPPING)
+                        line_chunk, tag_mapping=_LOCATION_TAG_MAPPING)
                 except usaddress.RepeatedLabelError as e:
                     LOGGER.debug("'location' parsing error:\n%s", e)
                     continue
