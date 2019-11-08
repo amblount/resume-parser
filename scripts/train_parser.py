@@ -1,4 +1,5 @@
 import argparse
+import importlib
 import logging
 import pathlib
 import random
@@ -37,18 +38,15 @@ def main():
     trainer = pycrfsuite.Trainer(
         algorithm=args.algorithm, params=params, verbose=args.verbose)
 
-    parser_module = parse_utils.load_module_from_path(
-        name="parser_module", fpath=args.module_filepath.resolve())
-    training_data_fpath = parser_module.TRAINING_DATA_FPATH
-    model_fpath = parser_module.MODEL_FPATH
+    parser_module = importlib.import_module(args.module_name)
 
     all_feature_label_pairs = []
-    labeled_lines = msvdd_bloc.fileio.load_json(training_data_fpath, lines=True)
+    labeled_lines = msvdd_bloc.fileio.load_json(parser_module.FPATH_TRAINING_DATA, lines=True)
     for labeled_line in labeled_lines:
         labels = [label for _, label in labeled_line]
         token_strs = [token for token, _ in labeled_line]
         tokens = parse_utils.tokenize(token_strs)
-        features = parser_module.featurize(tokens)
+        features = parser_module.parse.featurize(tokens)
         all_feature_label_pairs.append((features, labels))
 
     if args.test_size == 0.0:
@@ -61,8 +59,8 @@ def main():
             group = 0 if random.random() >= args.test_size else 1
             trainer.append(features, labels, group=group)
 
-    trainer.train(str(model_fpath), holdout=holdout)
-    LOGGER.info("saved trained model settings to %s", model_fpath)
+    trainer.train(str(parser_module.FPATH_TAGGER), holdout=holdout)
+    LOGGER.info("saved trained model settings to %s", parser_module.FPATH_TAGGER)
 
 
 def add_arguments(parser):
@@ -73,9 +71,10 @@ def add_arguments(parser):
         parser (:class:`argparse.ArgumentParser`)
     """
     parser.add_argument(
-        "--module_filepath", type=pathlib.Path, required=True,
-        help="path to .py file on disk with functionality for featurizing tokens "
-        "as well as filepaths to training data and trained model settings",
+        "--module_name", type=str, required=True,
+        help="absolute name of module with functionality for featurizing tokens, "
+        "as well as filepaths to training data and trained model settings, "
+        "e.g. 'msvdd_bloc.resumes.basics'",
     )
     parser.add_argument(
         "--test_size", type=float, default=0.0,

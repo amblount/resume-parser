@@ -1,1 +1,19 @@
+from msvdd_bloc import MODELS_DIR as _MDIR
 from . import parse
+
+
+FPATH_TRAINING_DATA = _MDIR.joinpath("resumes", "resume-education-training-data.jsonl")
+FPATH_TAGGER = _MDIR.joinpath("resumes", "resume-education-tagger.crfsuite")
+LABELS = (
+    "other",
+    "institution",
+    "area",
+    "study_type",
+    "start_date",
+    "end_date",
+    "gpa",
+    "course",
+    "field_sep",
+    "item_sep",
+    "field_label",
+)

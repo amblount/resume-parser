@@ -2,13 +2,10 @@ import itertools
 import logging
 import operator
 
-import probablepeople
-import pycrfsuite
-import usaddress
 from toolz import itertoolz
 
-import msvdd_bloc
 from msvdd_bloc import regexes
+from msvdd_bloc.resumes import education
 from msvdd_bloc.resumes import parse_utils
 
 
@@ -17,36 +14,6 @@ LOGGER = logging.getLogger(__name__)
 #######################
 ## CRF-BASED PARSING ##
 #######################
-
-# NOTE: required objects are as follows
-# - TRAINING_DATA_FPATH (:class:`pathlib.Path`)
-# - MODEL_FPATH (:class:`pathlib.Path`)
-# - TAGGER (:class:`pycrfsuite.Tagger`)
-# - LABELS (List[str])
-# - featurize (func)
-
-TRAINING_DATA_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-education-training-data.jsonl")
-MODEL_FPATH = msvdd_bloc.MODELS_DIR.joinpath("resumes", "resume-education.crfsuite")
-
-try:
-    TAGGER = pycrfsuite.Tagger()
-    TAGGER.open(str(MODEL_FPATH))
-except IOError:
-    TAGGER = None
-
-LABELS = (
-    "other",        # 0
-    "institution",  # 1
-    "area",         # 2
-    "study_type",   # 3
-    "start_date",   # 4
-    "end_date",     # 5
-    "gpa",          # 6
-    "course",       # 7
-    "field_sep",    # 8
-    "item_sep",     # 9
-    "field_label",  # 10
-)
 
 FIELD_SEP_CHARS = {",", ";", ":", "|", "-", "–"}
 STUDY_TYPES = {
@@ -58,7 +25,7 @@ STUDY_TYPES = {
 SEASON_NAMES = {"spring", "summer", "fall", "winter"}
 
 
-def parse_education_section(lines):
+def parse_education_section(lines, tagger=None):
     """
     Parse a sequence of text lines belonging to the "education" section of a résumé
     to produce structured data in the form of :class:`schemas.ResumeEducationSchema`
@@ -66,15 +33,13 @@ def parse_education_section(lines):
 
     Args:
         lines (List[str])
+        tagger (:class:`pycrfsuite.Tagger`)
 
     Returns:
         List[Dict[str, obj]]
     """
-    if TAGGER is None:
-        raise IOError(
-            "model file '{}' is missing; have you trained one yet? "
-            "if not, use the `label_parser_training_data.py` script.".format(MODEL_FPATH)
-        )
+    if tagger is None:
+        tagger = parse_utils.load_tagger(education.FPATH_TAGGER)
 
     tok_labels = []
     for line in lines:
@@ -83,9 +48,9 @@ def parse_education_section(lines):
             continue
         else:
             features = featurize(tokens)
-            tok_labels.extend(parse_utils.tag(tokens, features, tagger=TAGGER))
-    educations = _parse_educations_from_labeled_tokens(tok_labels)
-    return educations
+            tok_labels.extend(parse_utils.tag(tokens, features, tagger=tagger))
+    educations_data = _parse_educations_from_labeled_tokens(tok_labels)
+    return educations_data
 
 
 def _parse_educations_from_labeled_tokens(tok_labels):
@@ -97,8 +62,8 @@ def _parse_educations_from_labeled_tokens(tok_labels):
         List[Dict[str, obj]]
     """
     excluded_labels = {"other", "field_sep", "item_sep", "field_label"}
-    educations = []
-    education = {}
+    educations_data = []
+    education_data = {}
     courses = []
     for label, tls in itertools.groupby(tok_labels, key=operator.itemgetter(1)):
         if label in excluded_labels:
@@ -108,20 +73,20 @@ def _parse_educations_from_labeled_tokens(tok_labels):
             courses.append(field_text)
         # big assumption: only one institution per educational experience
         # and the appearance of a new one indicates another item
-        elif label == "institution" and "institution" in education:
+        elif label == "institution" and "institution" in education_data:
             if courses:
-                education["courses"] = courses
-            educations.append(education)
+                education_data["courses"] = courses
+            educations_data.append(education_data)
             # start a new educational experience
-            education = {label: field_text}
+            education_data = {label: field_text}
             courses = []
         else:
-            education[label] = field_text
-    if education:
+            education_data[label] = field_text
+    if education_data:
         if courses:
-            education["courses"] = courses
-        educations.append(education)
-    return educations
+            education_data["courses"] = courses
+        educations_data.append(education_data)
+    return educations_data
 
 
 def featurize(tokens):

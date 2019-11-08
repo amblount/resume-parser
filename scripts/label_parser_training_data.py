@@ -5,7 +5,7 @@ import re
 import sys
 
 import msvdd_bloc
-from msvdd_bloc.resumes.parse import utils
+from msvdd_bloc.resumes import parse_utils
 
 
 logging.basicConfig(
@@ -28,7 +28,7 @@ def main():
 
     LOGGER.setLevel(args.loglevel)
 
-    parser_module = utils.load_module_from_path(
+    parser_module = parse_utils.load_module_from_path(
         name="parser_module", fpath=args.module_filepath.resolve())
     training_data_fpath = parser_module.TRAINING_DATA_FPATH
     if training_data_fpath.is_file():
@@ -54,7 +54,7 @@ def main():
     for i, line in enumerate(unlabeled_lines):
         tokens = tuple(
             tok if isinstance(tok, str) else tok.text
-            for tok in utils.tokenize(line)
+            for tok in parse_utils.tokenize(line)
         )
         if not tokens:
             LOGGER.debug("line \"%s\" doesn't have any tokens; skipping...", line)
