@@ -5,9 +5,9 @@ import re
 
 from toolz import itertoolz
 
+from msvdd_bloc.providers import resume_skills
 from msvdd_bloc.resumes import parse_utils
 from msvdd_bloc.resumes import skills
-from msvdd_bloc.resumes.skills import generate
 
 
 LOGGER = logging.getLogger(__name__)
@@ -16,9 +16,9 @@ LOGGER = logging.getLogger(__name__)
 ## CRF-BASED PARSING ##
 #######################
 
-LEVEL_WORDS = set(generate._LEVELS)
-FIELD_SEP_CHARS = set(generate._GROUP_SEPS + ("(", ")"))
-ITEM_SEP_CHARS = set(generate._ITEM_SEPS + ("&",))
+LEVEL_WORDS = set(resume_skills._LEVELS)
+FIELD_SEP_CHARS = set(resume_skills._GROUP_SEPS + ("(", ")"))
+ITEM_SEP_CHARS = set(resume_skills._ITEM_SEPS + ("&",))
 
 
 def parse_skills_section(lines, tagger=None):
