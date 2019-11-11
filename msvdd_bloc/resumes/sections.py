@@ -52,10 +52,10 @@ SECTION_HEADERS = {
     # "courses" section becomes a field in "education" section
     "courses": re.compile(
         r"^(?P<text>"
-        "coursework|"
+        "course ?work|"
         "courses completed|"
         "(recent|related|relevant|undergraduate) courses|"
-        "(recent|related|relevant) coursework"
+        "(recent|related|relevant) course ?work"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
