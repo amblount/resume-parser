@@ -28,6 +28,10 @@ class Provider(faker.providers.BaseProvider):
         "{city}, {state_abbr} {postcode}",
         "{city}, {state} {postcode}",
     )
+    _user_name_templates = (
+        "{user_name}",
+        "@{user_name}",
+    )
     _website_profile_templates = (
         "{scheme}linkedin.com/in/{slug}",
         "{scheme}github.com/{user}",
@@ -107,10 +111,8 @@ class Provider(faker.providers.BaseProvider):
             return self.generator.catch_phrase()
 
     def user_name_rand_at(self):
-        return "{at}{name}".format(
-            at="@" if rnd.random() < 0.33 else "",
-            name=self.generator.user_name(),
-        )
+        template = rnd.choices(self._user_name_templates, weights=[1.0, 0.33], k=1)[0]
+        return template.format(user_name=self.generator.user_name())
 
     def website(self):
         if rnd.random() < 0.5:

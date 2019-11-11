@@ -7,6 +7,7 @@ import usaddress
 from toolz import itertoolz
 
 from msvdd_bloc import regexes
+from msvdd_bloc.providers import resume_basics
 from msvdd_bloc.resumes import basics
 from msvdd_bloc.resumes import parse_utils
 
@@ -49,7 +50,8 @@ Dict[str, str]: Mapping of ``usaddress` location tag to corresponding résumé s
 ## CRF-BASED PARSING ##
 #######################
 
-FIELD_SEP_CHARS = {"|", "-", "–", "®", "⇧", "\ufffd", "\u0178"}
+FIELD_SEP_CHARS = set(resume_basics._FIELD_SEPS)
+ITEM_SEP_CHARS = set(resume_basics._ITEM_SEPS)
 
 
 def parse_basics_section(lines, tagger=None):
@@ -68,16 +70,6 @@ def parse_basics_section(lines, tagger=None):
     if tagger is None:
         tagger = parse_utils.load_tagger(basics.FPATH_TAGGER)
 
-    # basics_data = {}
-    # for line in lines:
-    #     tokens = parse_utils.tokenize(line)
-    #     if not tokens:
-    #         continue
-    #     else:
-    #         features = featurize(tokens)
-    #         tok_labels = parse_utils.tag(tokens, features, tagger=tagger)
-    #         basics_data.update(_parse_basics_from_labeled_tokens(tok_labels))
-    # return basics_data
     tokens = parse_utils.tokenize("\n".join(lines).strip())
     features = featurize(tokens)
     tok_labels = parse_utils.tag(tokens, features, tagger=tagger)
@@ -149,6 +141,7 @@ def featurize(tokens):
             + tokens_features
             + [{"_end": True}]
         )
+        idx_last_newline = 0
         for pprev_tf, prev_tf, curr_tf, next_tf in itertoolz.sliding_window(4, tokens_features):
             tf = curr_tf.copy()
             tf["pprev"] = pprev_tf
@@ -156,6 +149,9 @@ def featurize(tokens):
             tf["next"] = next_tf
             # NOTE: add features here that depend upon tokens elsewhere in the sequence
             # e.g. whether or not a particular word appeared earlier in the sequence
+            if all(char == "\n" for char in tf["shape"]):
+                idx_last_newline = tf["idx"]
+            tf["n_toks_since_newline"] = tf["idx"] - idx_last_newline
             feature_sequence.append(tf)
         return feature_sequence
 
@@ -174,6 +170,7 @@ def get_token_features(token):
     features.update(
         {
             "is_field_sep_char": token.text in FIELD_SEP_CHARS,
+            "is_item_sep_char": token.text in ITEM_SEP_CHARS,
             "like_profile_username": regexes.RE_USER_HANDLE.match(token.text) is not None,
             "like_phone_number": regexes.RE_PHONE_NUMBER.match(token.text) is not None,
         }
