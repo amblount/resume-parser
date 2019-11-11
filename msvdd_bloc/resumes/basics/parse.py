@@ -7,51 +7,18 @@ import usaddress
 from toolz import itertoolz
 
 from msvdd_bloc import regexes
-from msvdd_bloc.providers import resume_basics
 from msvdd_bloc.resumes import basics
 from msvdd_bloc.resumes import parse_utils
 
 
 LOGGER = logging.getLogger(__name__)
 
-_LOCATION_TAG_MAPPING = {
-   'Recipient': 'recipient',
-   'AddressNumber': 'address',
-   'AddressNumberPrefix': 'address',
-   'AddressNumberSuffix': 'address',
-   'StreetName': 'address',
-   'StreetNamePreDirectional': 'address',
-   'StreetNamePreModifier': 'address',
-   'StreetNamePreType': 'address',
-   'StreetNamePostDirectional': 'address',
-   'StreetNamePostModifier': 'address',
-   'StreetNamePostType': 'address',
-   'CornerOf': 'address',
-   'IntersectionSeparator': 'address',
-   'LandmarkName': 'address',
-   'USPSBoxGroupID': 'address',
-   'USPSBoxGroupType': 'address',
-   'USPSBoxID': 'address',
-   'USPSBoxType': 'address',
-   'BuildingName': 'address',
-   'OccupancyType': 'address',
-   'OccupancyIdentifier': 'address',
-   'SubaddressIdentifier': 'address',
-   'SubaddressType': 'address',
-   'PlaceName': 'city',
-   'StateName': 'region',
-   'ZipCode': 'postal_code',
-}
-"""
-Dict[str, str]: Mapping of ``usaddress` location tag to corresponding résumé schema field.
-"""
-
 #######################
 ## CRF-BASED PARSING ##
 #######################
 
-FIELD_SEP_CHARS = set(resume_basics._FIELD_SEPS)
-ITEM_SEP_CHARS = set(resume_basics._ITEM_SEPS)
+FIELD_SEP_CHARS = set(basics.constants.FIELD_SEPS)
+ITEM_SEP_CHARS = set(basics.constants.ITEM_SEPS)
 
 
 def parse_basics_section(lines, tagger=None):
@@ -96,7 +63,7 @@ def _parse_basics_from_labeled_tokens(tok_labels):
             try:
                 location, location_type = usaddress.tag(
                     field_text.replace("\n", " "),
-                    tag_mapping=_LOCATION_TAG_MAPPING,
+                    tag_mapping=basics.constants.LOCATION_TAG_MAPPING,
                 )
             except usaddress.RepeatedLabelError as e:
                 LOGGER.debug("'location' parsing error:\n%s", e)
@@ -195,67 +162,67 @@ def parse_basics_section_alt(lines):
     Returns:
         Dict[str, obj]
     """
-    basics = {}
+    basics_data = {}
     for line in lines:
         if not line:
             continue
         for line_chunk in regexes.RE_LINE_DELIM.split(line):
             if not line_chunk:
                 continue
-            if "email" not in basics:
+            if "email" not in basics_data:
                 match = regexes.RE_EMAIL.search(line_chunk)
                 if match:
-                    basics["email"] = match.group()
+                    basics_data["email"] = match.group()
                     start, end = match.span()
                     if start == 0 and end == len(line_chunk):
                         continue
                     else:
                         line_chunk = line_chunk[:start] + line_chunk[end:]
-            if "phone" not in basics:
+            if "phone" not in basics_data:
                 match = regexes.RE_PHONE_NUMBER.search(line_chunk)
                 if match:
-                    basics["phone"] = match.group()
+                    basics_data["phone"] = match.group()
                     start, end = match.span()
                     if start == 0 and end == len(line_chunk):
                         continue
                     else:
                         line_chunk = line_chunk[:start] + line_chunk[end:]
-            if "website" not in basics:
+            if "website" not in basics_data:
                 match = regexes.RE_URL.search(line_chunk)
                 if match:
-                    basics["website"] = match.group()
+                    basics_data["website"] = match.group()
                     start, end = match.span()
                     if start == 0 and end == len(line_chunk):
                         continue
                     else:
                         line_chunk = line_chunk[:start] + line_chunk[end:]
-            if "profiles" not in basics:
+            if "profiles" not in basics_data:
                 match = regexes.RE_USER_HANDLE.search(line_chunk)
                 if match:
-                    basics["profiles"] = [{"username": match.group()}]
+                    basics_data["profiles"] = [{"username": match.group()}]
                     start, end = match.span()
                     if start == 0 and end == len(line_chunk):
                         continue
                     else:
                         line_chunk = line_chunk[:start] + line_chunk[end:]
-            if "location" not in basics:
+            if "location" not in basics_data:
                 try:
                     location, location_type = usaddress.tag(
-                        line_chunk, tag_mapping=_LOCATION_TAG_MAPPING)
+                        line_chunk, tag_mapping=basics.constants.LOCATION_TAG_MAPPING)
                 except usaddress.RepeatedLabelError as e:
                     LOGGER.debug("'location' parsing error:\n%s", e)
                     continue
                 if location_type == "Street Address":
                     location = dict(location)
                     if "recipient" in location:
-                        basics["name"] = location.pop("recipient")
-                    basics["location"] = location
-            if "name" not in basics:
+                        basics_data["name"] = location.pop("recipient")
+                    basics_data["location"] = location
+            if "name" not in basics_data:
                 try:
                     name, name_type = probablepeople.tag(line_chunk)
                 except probablepeople.RepeatedLabelError as e:
                     LOGGER.debug("'name' parsing error:\n%s", e)
                     continue
                 if name_type == "Person":
-                    basics["name"] = " ".join(name.values())
-    return basics
+                    basics_data["name"] = " ".join(name.values())
+    return basics_data

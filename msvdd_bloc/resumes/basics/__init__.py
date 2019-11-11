@@ -1,4 +1,5 @@
 from msvdd_bloc import MODELS_DIR as _MDIR
+from . import constants
 from . import generate
 from . import parse
 
