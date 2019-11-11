@@ -8,6 +8,8 @@ _FIELD_SEP_DTS = ("-", "–")
 _FIELD_SEP_PREPS = ("in",)
 _FIELD_SEP_SMS = (",", ";")
 _FIELD_LABEL_SEPS = (":", "-")
+_LEFT_BRACKETS = ("(", "[")
+_RIGHT_BRACKETS = (")", "]")
 
 _DIRECTIONS = (
     "North", "South", "East", "West",
@@ -16,7 +18,7 @@ _DIRECTIONS = (
 _SEASONS = ("Spring", "Summer", "Fall", "Winter")
 
 _SCHOOL_DEGREES = (
-    "High School Diploma", "Diploma",
+    "Diploma", "High School Diploma", "Honor's Diploma",
     "GED", "G.E.D.",
 )
 _SCHOOL_TYPES = (
@@ -30,20 +32,20 @@ _SCHOOL_TYPES = (
 )
 
 _UNIVERSITY_DEGREES = (
-    "Associate Degree",
+    "Associate", "Associate Degree",
     "AA", "A.A.", "Associate of Arts",
     "AE", "A.E.", "Associate of Engineering",
     "APS", "A.P.S.", "Associate of Political Science",
     "AS", "A.S.", "Associate of Science",
     "AAS", "A.A.S.", "Associate of Applied Science",
-    "Bachelor's", "Bachelor's Degree",
+    "Bachelor", "Bachelor's", "Bachelor's Degree",
     "B.Arch.", "Bachelor of Architecture",
     "BA", "B.A.", "Bachelor of Arts",
     "BBA", "B.B.A.", "Bachelor of Business Administration",
     "BCS", "BS CS", "B.Sc. CS", "BCompSc", "Bachelor of Computer Science",
     "BFA", "B.F.A.", "Bachelor of Fine Arts",
     "BS", "B.S.", "B.Sc.", "BSc", "Bachelor of Science",
-    "Master's", "Master's Degree",
+    "Master", "Master's", "Master's Degree",
     "MA", "M.A.", "Master of Arts",
     "MBA", "M.B.A.", "Master of Business Administration",
     "MFA", "M.F.A.", "Master of Fine Arts",
@@ -403,6 +405,12 @@ class Provider(faker.providers.BaseProvider):
             ws=rnd.choice(["", " "]),
         )
 
+    def item_sep(self):
+        return "{sep}{ws}".format(
+            ws=" " * rnd.randint(1, 2),
+            sep=rnd.choices(_FIELD_SEP_SMS, weights=[1.0, 0.25], k=1)[0],
+        )
+
     def _label_field(self, label_values, label_weights):
         return "{label}{ws}{sep}".format(
             label=rnd.choices(label_values , weights=label_weights, k=1)[0],
@@ -419,8 +427,14 @@ class Provider(faker.providers.BaseProvider):
     def label_gpa(self):
         return self._label_field(_FIELD_LABEL_GPAS, [1.0, 0.2, 0.2, 0.1])
 
+    def left_bracket(self):
+        return rnd.choice(_LEFT_BRACKETS)
+
     def newline(self):
         return "\n" if rnd.random() < 0.8 else "\n\n"
+
+    def right_bracket(self):
+        return rnd.choice(_RIGHT_BRACKETS)
 
     def school(self):
         template = rnd.choices(self._school_templates, weights=[1.0, 0.5, 0.25], k=1)[0]
