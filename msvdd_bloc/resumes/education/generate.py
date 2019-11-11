@@ -3,12 +3,248 @@ import random as rnd
 
 import faker
 
-from msvdd_bloc.providers import resume_education
 from msvdd_bloc.resumes import noise_utils
+from msvdd_bloc.resumes.education import constants as c
+
+
+class Provider(faker.providers.BaseProvider):
+    """Class for providing randomly-generated field values."""
+
+    _area_minor_templates = (
+        "{subunit} {field_sep} {area_of_study}",
+        "{area_of_study} {subunit}",
+    )
+    _city_state_templates = (
+        "{city}, {state_abbr}",
+        "{city}, {state}",
+    )
+    _course_templates = (
+        "{subject}",
+        "{prefix} {subject}",
+        "{subject} {suffix}",
+        "{subject} & {subject2}",
+    )
+    _date_approx_templates = (
+        "{month} {year}",
+        "{month_abbr} {year}",
+        "{month_abbr}. {year}",
+        "{season} {year}",
+        "{year}",
+    )
+    _gpa_templates = (
+        "{gpa:.{prec}f}",
+        "{gpa:.{prec}f}{ws}/{ws}{max_gpa:.{prec}f}",
+    )
+    _school_templates = (
+        "{school_name}",
+        "{school_name} {field_sep_sm} {city_state}",
+        "{school_name} {field_sep_dt} {city_state}",
+    )
+    _school_name_templates = (
+        "{person_name} {school_type}",
+        "{place_name} {school_type}",
+    )
+    _university_templates = (
+        "{university_name}",
+        "{university_name} {field_sep_sm} {city_state}",
+        "{university_name} {field_sep_dt} {city_state}",
+    )
+    _university_name_templates = (
+        "{person_name} {uni_type}",
+        "{place_name} {uni_type}",
+        "{uni_type} of {place_name}",
+        "{uni_type} of {place_name_full}",
+        "{uni_type} of {place_name}, {uni_subunit} of {area_of_study}",
+    )
+    _university_name_place_name_templates = (
+        "{state}",
+        "{city}",
+        "{direction}{ern} {state}",
+    )
+
+    def area_of_study(self):
+        return rnd.choice(c.AREAS_OF_STUDY)
+
+    def area_minor(self):
+        template = rnd.choices(self._area_minor_templates, weights=[1.0, 0.25], k=1)[0]
+        return template.format(
+            area_of_study=self.area_of_study(),
+            field_sep=rnd.choice(c.FIELD_SEP_SMS + c.FIELD_SEP_PREPS + (":",)),
+            subunit=rnd.choices(c.AREA_SUBUNITS, weights=[1.0, 0.1, 0.1], k=1)[0],
+        )
+
+    def city_state(self):
+        template = rnd.choices(self._city_state_templates, weights=[1.0, 0.2], k=1)[0]
+        return template.format(
+            city=self.generator.city(),
+            state=self.generator.state(),
+            state_abbr=self.generator.state_abbr(),
+        )
+
+    def course_title(self):
+        template = rnd.choices(
+            self._course_templates, weights=[1.0, 0.5, 0.2, 0.1], k=1,
+        )[0]
+        return template.format(
+            prefix=rnd.choice(c.COURSE_PREFIXES),
+            subject=rnd.choice(c.COURSE_SUBJECTS),
+            subject2=rnd.choice(c.COURSE_SUBJECTS),
+            suffix=rnd.choice(c.COURSE_SUFFIXES),
+        )
+
+    def date_approx(self):
+        template = rnd.choices(
+            self._date_approx_templates, weights=[1.0, 1.0, 0.25, 0.25, 0.25], k=1,
+        )[0]
+        month = self.generator.month_name()
+        return template.format(
+            month=month,
+            month_abbr=month[:3],
+            season=rnd.choice(c.SEASONS),
+            year=self.generator.year(),
+        )
+
+    def date_present(self):
+        return rnd.choices(["Present", "Current"], weights=[1.0, 0.25], k=1)[0]
+
+    def field_sep(self):
+        return "{ws}{sep}{ws}".format(
+            ws=" " * rnd.randint(1, 3),
+            sep=rnd.choice(c.FIELD_SEPS),
+        )
+
+    def field_sep_dt(self):
+        return "{ws}{sep}{ws}".format(
+            ws=" " * rnd.randint(1, 2),
+            sep=rnd.choice(c.FIELD_SEP_DTS),
+        )
+
+    def field_sep_prep(self):
+        return "{ws}{sep}{ws}".format(
+            ws=" " * rnd.randint(1, 2),
+            sep=rnd.choice(c.FIELD_SEP_PREPS),
+        )
+
+    def field_sep_sm(self):
+        return "{sep}{ws}".format(
+            ws=" " * rnd.randint(1, 2),
+            sep=rnd.choices(c.FIELD_SEP_SMS, weights=[1.0, 0.5], k=1)[0],
+        )
+
+    def gpa(self):
+        template = rnd.choices(self._gpa_templates, weights=[1.0, 0.5], k=1)[0]
+        gpa, max_gpa = sorted(rnd.uniform(1.0, 4.0) for _ in range(2))
+        return template.format(
+            gpa=gpa,
+            max_gpa=max_gpa,
+            prec=rnd.randint(1, 2),
+            ws=rnd.choice(["", " "]),
+        )
+
+    def item_sep(self):
+        return "{sep}{ws}".format(
+            ws=" " * rnd.randint(1, 2),
+            sep=rnd.choices(c.FIELD_SEP_SMS, weights=[1.0, 0.25], k=1)[0],
+        )
+
+    def _label_field(self, label_values, label_weights):
+        return "{label}{ws}{sep}".format(
+            label=rnd.choices(label_values , weights=label_weights, k=1)[0],
+            ws="" if rnd.random() < 0.9 else " ",
+            sep=rnd.choices(c.FIELD_LABEL_SEPS, weights=[1.0, 0.2], k=1)[0] if rnd.random() < 0.9 else "",
+        )
+
+    def label_courses(self):
+        return self._label_field(c.FIELD_LABEL_COURSES, None)
+
+    def label_grad_date(self):
+        return self._label_field(c.FIELD_LABEL_GRAD_DATES, None)
+
+    def label_gpa(self):
+        return self._label_field(c.FIELD_LABEL_GPAS, [1.0, 0.2, 0.2, 0.1])
+
+    def left_bracket(self):
+        return rnd.choice(c.LEFT_BRACKETS)
+
+    def newline(self):
+        return "\n" if rnd.random() < 0.8 else "\n\n"
+
+    def right_bracket(self):
+        return rnd.choice(c.RIGHT_BRACKETS)
+
+    def school(self):
+        template = rnd.choices(self._school_templates, weights=[1.0, 0.5, 0.25], k=1)[0]
+        return template.format(
+            school_name=self.school_name(),
+            field_sep_dt=self.field_sep_dt(),
+            field_sep_sm=self.field_sep_sm(),
+            city_state=self.city_state(),
+        )
+
+    def school_degree(self):
+        return rnd.choice(c.SCHOOL_DEGREES)
+
+    def school_name(self):
+        template = rnd.choice(self._school_name_templates)
+        return template.format(
+            person_name=self.generator.last_name(),
+            place_name=self.generator.city(),
+            school_type=rnd.choice(c.SCHOOL_TYPES),
+        )
+
+    def university(self):
+        template = rnd.choices(self._university_templates, weights=[1.0, 0.5, 0.25], k=1)[0]
+        return template.format(
+            university_name=self.university_name(),
+            field_sep_dt=self.field_sep_dt(),
+            field_sep_sm=self.field_sep_sm(),
+            city_state=self.city_state(),
+        )
+
+    def university_degree(self):
+        return rnd.choice(c.UNIVERSITY_DEGREES)
+
+    def university_name(self):
+        template = rnd.choices(
+            self._university_name_templates,
+            weights=[1.0, 1.0, 1.0, 0.5, 0.25],
+            k=1,
+        )[0]
+        place_name_template = rnd.choices(
+            self._university_name_place_name_templates,
+            weights=[1.0, 1.0, 0.5],
+            k=1,
+        )[0]
+        city = self.generator.city()
+        state = self.generator.state()
+        return template.format(
+            area_of_study=self.area_of_study(),
+            person_name=self.generator.last_name(),
+            place_name=place_name_template.format(
+                city=city,
+                direction=rnd.choice(c.DIRECTIONS),
+                ern="ern" if rnd.random() < 0.5 else "",
+                state=state,
+            ),
+            place_name_full="{state}{sep}{city}".format(
+                city=city,
+                state=state,
+                sep=rnd.choice([", ", " – ", "-", "–", " ", " at "]),
+            ),
+            uni_subunit=rnd.choice(c.UNIVERSITY_SUBUNITS),
+            uni_type=rnd.choices(
+                c.UNIVERSITY_TYPES,
+                weights=[1.0, 1.0, 0.5, 0.5, 0.25, 0.25],
+                k=1,
+            )[0],
+        )
+
+    def whitespace(self):
+        return " " * rnd.randint(1, 4)
 
 
 FAKER = faker.Faker()
-FAKER.add_provider(resume_education.Provider)
+FAKER.add_provider(Provider)
 
 
 FIELDS = {

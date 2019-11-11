@@ -5,7 +5,6 @@ import operator
 from toolz import itertoolz
 
 from msvdd_bloc import regexes
-from msvdd_bloc.providers import resume_education
 from msvdd_bloc.resumes import education
 from msvdd_bloc.resumes import parse_utils
 
@@ -18,24 +17,24 @@ LOGGER = logging.getLogger(__name__)
 
 FIELD_SEP_CHARS = {
     sep for sep in itertoolz.concatv(
-        resume_education._FIELD_SEPS,
-        resume_education._FIELD_SEP_DTS,
-        resume_education._FIELD_SEP_SMS,
-        resume_education._LEFT_BRACKETS,
-        resume_education._RIGHT_BRACKETS,
+        education.constants.FIELD_SEPS,
+        education.constants.FIELD_SEP_DTS,
+        education.constants.FIELD_SEP_SMS,
+        education.constants.LEFT_BRACKETS,
+        education.constants.RIGHT_BRACKETS,
     )
 }
-ITEM_SEP_CHARS = set(resume_education._FIELD_SEP_SMS)
+ITEM_SEP_CHARS = set(education.constants.FIELD_SEP_SMS)
 STUDY_TYPES = {
     sep for sep in itertoolz.concatv(
-        resume_education._UNIVERSITY_DEGREES,
-        resume_education._SCHOOL_DEGREES,
+        education.constants.UNIVERSITY_DEGREES,
+        education.constants.SCHOOL_DEGREES,
     )
 }
 INSTITUTION_TYPES = {
     "University", "College", "School", "Institute", "Academy", "Department",
 }
-AREA_SUBUNITS = set(resume_education._AREA_SUBUNITS)
+AREA_SUBUNITS = set(education.constants.AREA_SUBUNITS)
 
 
 def parse_education_section(lines, tagger=None):
