@@ -43,7 +43,7 @@ def get_token_features_base(token):
     """
     text = token.text
     return {
-        "i": token.i,
+        "idx": token.i,
         "len": len(token),
         "shape": token.shape_,
         # "prefix": token.prefix_,
