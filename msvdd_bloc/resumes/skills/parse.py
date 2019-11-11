@@ -5,7 +5,6 @@ import re
 
 from toolz import itertoolz
 
-from msvdd_bloc.providers import resume_skills
 from msvdd_bloc.resumes import parse_utils
 from msvdd_bloc.resumes import skills
 
@@ -16,9 +15,9 @@ LOGGER = logging.getLogger(__name__)
 ## CRF-BASED PARSING ##
 #######################
 
-LEVEL_WORDS = set(resume_skills._LEVELS)
-FIELD_SEP_CHARS = set(resume_skills._GROUP_SEPS + ("(", ")"))
-ITEM_SEP_CHARS = set(resume_skills._ITEM_SEPS + ("&",))
+LEVEL_WORDS = set(skills.constants.LEVELS)
+FIELD_SEP_CHARS = set(skills.constants.GROUP_SEPS + ("(", ")"))
+ITEM_SEP_CHARS = set(skills.constants.ITEM_SEPS + skills.constants.ITEM_SEP_ANDS)
 
 
 def parse_skills_section(lines, tagger=None):
@@ -188,10 +187,11 @@ def featurize(tokens):
             tf["next"] = next_tf
             # NOTE: add features here that depend upon tokens elsewhere in the sequence
             # e.g. whether or not a particular word appeared earlier in the sequence
-            if any(_tf.get("prefix") in FIELD_SEP_CHARS for _tf in feature_sequence):
-                tf["after_field_sep"] = True
-            else:
-                tf["after_field_sep"] = False
+            # TODO: i don't think this works bc we dropped prefix from base features
+            # if any(_tf.get("prefix") in FIELD_SEP_CHARS for _tf in feature_sequence):
+            #     tf["after_field_sep"] = True
+            # else:
+            #     tf["after_field_sep"] = False
             feature_sequence.append(tf)
         return feature_sequence
 

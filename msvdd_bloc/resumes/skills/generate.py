@@ -3,12 +3,67 @@ import random as rnd
 
 import faker
 
-from msvdd_bloc.providers import resume_skills
 from msvdd_bloc.resumes import noise_utils
+from msvdd_bloc.resumes.skills import constants as c
+
+
+class Provider(faker.providers.BaseProvider):
+    """Class for providing randomly-generated field values."""
+
+    def database(self):
+        return rnd.choice(c.DATABASES)
+
+    def dev_mix(self):
+        return rnd.choice(c.DEV_MIX)
+
+    def group_name(self):
+        return rnd.choice(c.GROUP_NAMES)
+
+    def group_sep(self):
+        return "{ws}{sep}".format(
+            ws="" if rnd.random() < 0.9 else " ",
+            sep=(
+                rnd.choices(c.GROUP_SEPS, weights=[1.0, 0.5, 0.25], k=1)[0] if rnd.random() < 0.9
+                else ""
+            ),
+        )
+
+    def hobby(self):
+        return rnd.choice(c.HOBBIES)
+
+    def human_language(self):
+        return rnd.choice(c.HUMAN_LANGUAGES)
+
+    def item_sep(self):
+        return "{sep}{ws}".format(
+            sep=rnd.choices(c.ITEM_SEPS, weights=[1.0, 0.2], k=1)[0],
+            ws=" " * rnd.randint(1, 2),
+        )
+
+    def item_sep_and(self):
+        return rnd.choices(c.ITEM_SEP_ANDS, weights=[1.0, 0.2], k=1)[0]
+
+    def level(self):
+        return rnd.choice(c.LEVELS)
+
+    def level_prep(self):
+        return rnd.choices(c.LEVEL_PREPS, weights=[1.0, 0.4, 0.2, 0.1], k=1)[0]
+
+    def newline(self):
+        return "\n" if rnd.random() < 0.8 else "\n\n"
+
+    def programming_language(self):
+        return rnd.choice(c.PROGRAMMING_LANGUAGES)
+
+    def software(self):
+        return rnd.choice(c.SOFTWARE)
+
+    def whitespace(self):
+        return " " * rnd.randint(0, 3)
 
 
 FAKER = faker.Faker()
-FAKER.add_provider(resume_skills.Provider)
+FAKER.add_provider(Provider)
 
 
 FIELDS = {
