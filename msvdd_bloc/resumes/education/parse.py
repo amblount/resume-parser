@@ -5,6 +5,7 @@ import operator
 from toolz import itertoolz
 
 from msvdd_bloc import regexes
+from msvdd_bloc.providers import resume_education
 from msvdd_bloc.resumes import education
 from msvdd_bloc.resumes import parse_utils
 
@@ -15,14 +16,26 @@ LOGGER = logging.getLogger(__name__)
 ## CRF-BASED PARSING ##
 #######################
 
-FIELD_SEP_CHARS = {",", ";", ":", "|", "-", "–"}
-STUDY_TYPES = {
-    "BA", "B.A.", "BS", "B.S.", "B.Sc.", "Bachelor", "Bachelors",
-    "MA", "M.A.", "MS", "M.S.", "MBA", "M.B.A.", "Masters",
-    "PhD", "Ph.D.", "Doctorate", "Doctor",
-    "MD", "M.D.", "JD", "J.D.",
+FIELD_SEP_CHARS = {
+    sep for sep in itertoolz.concatv(
+        resume_education._FIELD_SEPS,
+        resume_education._FIELD_SEP_DTS,
+        resume_education._FIELD_SEP_SMS,
+        resume_education._LEFT_BRACKETS,
+        resume_education._RIGHT_BRACKETS,
+    )
 }
-SEASON_NAMES = {"spring", "summer", "fall", "winter"}
+ITEM_SEP_CHARS = set(resume_education._FIELD_SEP_SMS)
+STUDY_TYPES = {
+    sep for sep in itertoolz.concatv(
+        resume_education._UNIVERSITY_DEGREES,
+        resume_education._SCHOOL_DEGREES,
+    )
+}
+INSTITUTION_TYPES = {
+    "University", "College", "School", "Institute", "Academy", "Department",
+}
+AREA_SUBUNITS = set(resume_education._AREA_SUBUNITS)
 
 
 def parse_education_section(lines, tagger=None):
@@ -41,14 +54,9 @@ def parse_education_section(lines, tagger=None):
     if tagger is None:
         tagger = parse_utils.load_tagger(education.FPATH_TAGGER)
 
-    tok_labels = []
-    for line in lines:
-        tokens = parse_utils.tokenize(line)
-        if not tokens:
-            continue
-        else:
-            features = featurize(tokens)
-            tok_labels.extend(parse_utils.tag(tokens, features, tagger=tagger))
+    tokens = parse_utils.tokenize("\n".join(lines).strip())
+    features = featurize(tokens)
+    tok_labels = parse_utils.tag(tokens, features, tagger=tagger)
     educations_data = _parse_educations_from_labeled_tokens(tok_labels)
     return educations_data
 
@@ -106,13 +114,22 @@ def featurize(tokens):
         return tokens_features
     else:
         feature_sequence = []
-        tokens_features = [{"_start": True}] + tokens_features + [{"_end": True}]
-        for prev_tf, curr_tf, next_tf in itertoolz.sliding_window(3, tokens_features):
+        tokens_features = (
+            [{"_start": True}, {"_start": True}]
+            + tokens_features
+            + [{"_end": True}]
+        )
+        idx_last_newline = 0
+        for pprev_tf, prev_tf, curr_tf, next_tf in itertoolz.sliding_window(4, tokens_features):
             tf = curr_tf.copy()
+            tf["pprev"] = pprev_tf
             tf["prev"] = prev_tf
             tf["next"] = next_tf
             # NOTE: add features here that depend upon tokens elsewhere in the sequence
             # e.g. whether or not a particular word appeared earlier in the sequence
+            if all(char == "\n" for char in tf["shape"]):
+                idx_last_newline = tf["idx"]
+            tf["n_toks_since_newline"] = tf["idx"] - idx_last_newline
             feature_sequence.append(tf)
         return feature_sequence
 
@@ -131,9 +148,11 @@ def get_token_features(token):
     features.update(
         {
             "is_field_sep_char": token.text in FIELD_SEP_CHARS,
+            "is_item_sep_char": token.text in ITEM_SEP_CHARS,
             "is_study_type": token.text in STUDY_TYPES,
+            "is_institution_type": token.text in INSTITUTION_TYPES,
+            "is_area_subunit": token.text in AREA_SUBUNITS,
             "is_month_name": regexes.RE_MONTH.match(token.text) is not None,
-            "is_season_name": token.lower_ in SEASON_NAMES,
             "is_year": regexes.RE_YEAR.match(token.text) is not None,
         }
     )
