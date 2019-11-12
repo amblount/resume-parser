@@ -278,20 +278,3 @@ TEMPLATES = [
         ]
     ),
 ]
-
-
-def add_noise(tok_labels):
-    """
-    Args:
-        tok_labels (List[Tuple[str, str]])
-
-    Returns:
-        List[Tuple[str, str]]
-    """
-    noise_funcs = []
-    # noise_funcs.append(fnc.partial(noise_utils.delete_token_chars, 0.001))
-    if rnd.random() < 0.05:
-        noise_funcs.append(fnc.partial(noise_utils.upper_case_token_text, {"name"}))
-    for noise_func in noise_funcs:
-        tok_labels = noise_func(tok_labels)
-    return tok_labels
