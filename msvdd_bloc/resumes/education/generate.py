@@ -10,7 +10,7 @@ from msvdd_bloc.resumes.education import constants as c
 class Provider(faker.providers.BaseProvider):
     """Class for providing randomly-generated field values."""
 
-    _area_minor_templates = (
+    _area_detail_templates = (
         "{subunit} {field_sep} {area_of_study}",
         "{area_of_study} {subunit}",
     )
@@ -65,12 +65,12 @@ class Provider(faker.providers.BaseProvider):
     def area_of_study(self):
         return rnd.choice(c.AREAS_OF_STUDY)
 
-    def area_minor(self):
-        template = rnd.choices(self._area_minor_templates, weights=[1.0, 0.25], k=1)[0]
+    def area_detail(self):
+        template = rnd.choices(self._area_detail_templates, weights=[1.0, 0.25], k=1)[0]
         return template.format(
             area_of_study=self.area_of_study(),
             field_sep=rnd.choice(c.FIELD_SEP_SMS + c.FIELD_SEP_PREPS + (":",)),
-            subunit=rnd.choices(c.AREA_SUBUNITS, weights=[1.0, 0.1, 0.1], k=1)[0],
+            subunit=rnd.choices(c.STUDY_SUBUNITS, weights=[1.0, 1.0, 0.1, 0.1], k=1)[0],
         )
 
     def city_state(self):
@@ -249,7 +249,7 @@ FAKER.add_provider(Provider)
 
 FIELDS = {
     "area": (FAKER.area_of_study, "area"),
-    "area_minor": (FAKER.area_minor, "area"),
+    "area_detail": (FAKER.area_detail, "area"),
     "bullet": (lambda: "- ", "other"),  # TODO: should it be other, or bullet?
     "city_state": (FAKER.city_state, "institution"),
     "course": (FAKER.course_title, "course"),
@@ -319,7 +319,7 @@ def generate_group_study():
     """
     templates = (
         "{deg_uni} {fsep_sm|fsep_prep|ws::0.5} {area}",
-        "{deg_uni} {fsep_sm|fsep_prep|ws::0.5} {area} {fsep_sm:area} {area_minor}",
+        "{deg_uni} {fsep_sm|fsep_prep|ws::0.5} {area} {fsep_sm:area} {area_detail}",
         "{deg_uni}",
     )
     return rnd.choices(templates, weights=[1.0, 0.5, 0.2], k=1)[0]
@@ -336,13 +336,13 @@ _EXPERIENCES = [
     ),
     lambda: " {nl} {bullet} ".join(
         ["{uni}"] + rnd.sample(
-            ["{label_gpa} {gpa}", "{area_minor}", generate_group_study(), generate_group_date(), generate_group_courses()],
+            ["{label_gpa} {gpa}", "{area_detail}", generate_group_study(), generate_group_date(), generate_group_courses()],
             rnd.randint(2, 3)
         )
     ),
     lambda: " {nl} ".join(
         ["{uni}"] + rnd.sample(
-            ["{label_gpa} {gpa}", "{area_minor}", generate_group_study(), generate_group_date(), generate_group_courses()],
+            ["{label_gpa} {gpa}", "{area_detail}", generate_group_study(), generate_group_date(), generate_group_courses()],
             rnd.randint(2, 3)
         )
     ),

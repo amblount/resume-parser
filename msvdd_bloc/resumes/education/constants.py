@@ -62,6 +62,7 @@ UNIVERSITY_TYPES = (
     "Polytechnic University", "Community College"
 )
 
+STUDY_SUBUNITS = ("Major", "Minor", "Concentration", "Emphasis")
 AREAS_OF_STUDY = (
     "Humanities",
     "Anthropology",
@@ -121,7 +122,6 @@ AREAS_OF_STUDY = (
     "Social Work",
     "Transportation",
 )
-AREA_SUBUNITS = ("Minor", "Concentration", "Emphasis")
 
 COURSE_SUBJECTS = (
     "Accounting and Informational Systems",

@@ -34,7 +34,7 @@ STUDY_TYPES = {
 INSTITUTION_TYPES = {
     "University", "College", "School", "Institute", "Academy", "Department",
 }
-AREA_SUBUNITS = set(education.constants.AREA_SUBUNITS)
+STUDY_SUBUNITS = set(education.constants.STUDY_SUBUNITS)
 
 
 def parse_education_section(lines, tagger=None):
@@ -150,7 +150,7 @@ def get_token_features(token):
             "is_item_sep_char": token.text in ITEM_SEP_CHARS,
             "is_study_type": token.text in STUDY_TYPES,
             "is_institution_type": token.text in INSTITUTION_TYPES,
-            "is_area_subunit": token.text in AREA_SUBUNITS,
+            "is_study_subunit": token.text in STUDY_SUBUNITS,
             "is_month_name": regexes.RE_MONTH.match(token.text) is not None,
             "is_year": regexes.RE_YEAR.match(token.text) is not None,
         }
