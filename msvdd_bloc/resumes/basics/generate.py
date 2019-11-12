@@ -132,8 +132,8 @@ FIELDS = {
     "addr_city_state_zip": (FAKER.address_city_state_zip, "location"),
     "addr_street": (FAKER.street_address, "location"),
     "email": (FAKER.email, "email"),
-    "fs": (FAKER.field_sep, "field_sep"),
-    "is": (FAKER.item_sep, "item_sep"),
+    "fsep": (FAKER.field_sep, "field_sep"),
+    "isep": (FAKER.item_sep, "item_sep"),
     "label": (FAKER.person_label, "label"),
     "label_addr": (FAKER.label_addr, "field_label"),
     "label_email": (FAKER.label_email, "field_label"),
@@ -198,7 +198,7 @@ TEMPLATES = [
             "{label::0.05}",
             generate_line_fields_shuffle(
                 field_keys=["addr|addr_city_state|addr_city_state_zip", "email", "phone", "user_name", "website", "profile"],
-                sep_key="fs",
+                sep_key="fsep",
                 n=rnd.randint(1, 5),
             ),
             "{sent::0.05}",
@@ -233,12 +233,12 @@ TEMPLATES = [
             "{label::0.05}",
             generate_line_fields_shuffle(
                 field_keys=["addr|addr_city_state|addr_city_state_zip", "phone"],
-                sep_key="fs",
+                sep_key="fsep",
                 n=2,
             ),
             generate_line_fields_shuffle(
                 field_keys=["email", "user_name", "website", "profile"],
-                sep_key="fs",
+                sep_key="fsep",
                 n=rnd.randint(2, 4),
             ),
         ]
@@ -249,7 +249,7 @@ TEMPLATES = [
             "{name}",
             generate_line_fields_shuffle(
                 field_keys=["email", "profile", "user_name", "website"],
-                sep_key="fs|nl",
+                sep_key="fsep|nl",
                 n=rnd.randint(2, 4),
             ),
         ]
@@ -260,19 +260,19 @@ TEMPLATES = [
             "{label::0.05}",
             generate_line_fields_labeled_shuffle(
                 field_keys=["addr", "email", "phone", "profile"],
-                sep_key="fs",
+                sep_key="fsep",
                 n=rnd.randint(2, 4),
             ),
             "{sent::0.05}",
         ]
     ),
-    lambda: " {nl|fs} ".join(
+    lambda: " {nl|fsep} ".join(
         [
             "{name}",
-            "{addr_street} {fs:item_sep} {addr_city_state_zip}",
+            "{addr_street} {fsep:item_sep} {addr_city_state_zip}",
             generate_line_fields_shuffle(
                 field_keys=["email", "phone", "profile", "website"],
-                sep_key="fs",
+                sep_key="fsep",
                 n=rnd.randint(2, 4),
             ),
         ]

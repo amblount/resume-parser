@@ -67,11 +67,11 @@ FAKER.add_provider(Provider)
 
 
 FIELDS = {
-    "and": (FAKER.item_sep_and, "item_sep"),
     "bullet": (lambda : "- ", "bullet"),
     "db": (FAKER.database, "name"),
     "dev_mix": (FAKER.dev_mix, "name"),
-    "is": (FAKER.item_sep, "item_sep"),
+    "isep": (FAKER.item_sep, "item_sep"),
+    "isep_and": (FAKER.item_sep_and, "item_sep"),
     "grp_name": (FAKER.group_name, "name"),
     "grp_sep": (FAKER.group_sep, "field_sep"),
     "hobby": (FAKER.hobby, "other"),
@@ -98,7 +98,7 @@ a random field value and the default field label assigned to the value.
 def generate_line_fields(*, key, nrange, bullet=False):
     """
     Generate line template for a list of fields, formatted as
-    ``{key} {is} {key} {is} {and::0.1} {key}``.
+    ``{key} {isep} {key} {isep} {isep_and::0.1} {key}``.
 
     Args:
         key (str)
@@ -111,18 +111,18 @@ def generate_line_fields(*, key, nrange, bullet=False):
     nmin, nmax = nrange
     return "{blt} {fields} {field_end}".format(
         blt="" if bullet is False else "{bullet}",
-        fields=" {is} ".join(
+        fields=" {isep} ".join(
             "{{{key}}}".format(key=key)
             for _ in range(rnd.randint(nmin - 1, nmax - 1))
         ),
-        field_end="{{is}} {{and::0.1}} {{{key}}}".format(key=key),
+        field_end="{{isep}} {{isep_and::0.1}} {{{key}}}".format(key=key),
     ).strip()
 
 
 def generate_line_fields_grped(*, key, nrange, bullet=False):
     """
     Generate line template for a list of fields with a group name, formatted as
-    ``{grp_name} {grp_sep} {ws} {key:keyword} {is} {key:keyword} {is} {and::0.1} {key:keyword}``.
+    ``{grp_name} {grp_sep} {ws} {key:keyword} {isep} {key:keyword} {isep} {isep_and::0.1} {key:keyword}``.
 
     Args:
         key (str)
@@ -136,18 +136,18 @@ def generate_line_fields_grped(*, key, nrange, bullet=False):
     return "{blt} {grp} {fields} {field_end}".format(
         blt="" if bullet is False else "{bullet}",
         grp="{grp_name} {grp_sep} {ws}",
-        fields=" {is} ".join(
+        fields=" {isep} ".join(
             "{{{key}:keyword}}".format(key=key)
             for _ in range(rnd.randint(nmin - 1, nmax - 1))
         ),
-        field_end="{{is}} {{and::0.1}} {{{key}:keyword}}".format(key=key),
+        field_end="{{isep}} {{isep_and::0.1}} {{{key}:keyword}}".format(key=key),
     ).strip()
 
 
 def generate_line_fields_levels(*, key, nrange, bullet=False):
     """
     Generate line template for a list of fields with individual levels, formatted as
-    ``{key} {lb} {level} {rb} {is} {key} {lb} {level} {rb} {is} {and::0.1} {key} {lb} {level} {rb}``.
+    ``{key} {lb} {level} {rb} {isep} {key} {lb} {level} {rb} {isep} {isep_and::0.1} {key} {lb} {level} {rb}``.
 
     Args:
         key (str)
@@ -160,18 +160,18 @@ def generate_line_fields_levels(*, key, nrange, bullet=False):
     nmin, nmax = nrange
     return "{blt} {fields} {field_end}".format(
         blt="" if bullet is False else "{bullet}",
-        fields=" {is} ".join(
+        fields=" {isep} ".join(
             "{{{key}}} {{lb}} {{level}} {{rb}}".format(key=key)
             for _ in range(rnd.randint(nmin - 1, nmax - 1))
         ),
-        field_end="{{is}} {{and::0.1}} {{{key}}} {{lb}} {{level}} {{rb}}".format(key=key),
+        field_end="{{isep}} {{isep_and::0.1}} {{{key}}} {{lb}} {{level}} {{rb}}".format(key=key),
     ).strip()
 
 
 def generate_line_fields_level_grped(*, key, nrange, bullet=False):
     """
     Generate line template for a list of fields with a group-wide level, formatted as
-    ``{level} {level_prep::0.5} {grp_sep::0.25} {key} {is} {key} {is} {and::0.1} {key}``.
+    ``{level} {level_prep::0.5} {grp_sep::0.25} {key} {isep} {key} {isep} {isep_and::0.1} {key}``.
 
     Args:
         key (str)
@@ -185,11 +185,11 @@ def generate_line_fields_level_grped(*, key, nrange, bullet=False):
     return "{blt} {lvl} {fields} {field_end}".format(
         blt="" if bullet is False else "{bullet}",
         lvl="{level} {level_prep::0.5} {grp_sep::0.25}",
-        fields=" {is} ".join(
+        fields=" {isep} ".join(
             "{{{key}}}".format(key=key)
             for _ in range(rnd.randint(nmin - 1, nmax - 1))
         ),
-        field_end="{{is}} {{and::0.1}} {{{key}}}".format(key=key),
+        field_end="{{isep}} {{isep_and::0.1}} {{{key}}}".format(key=key),
     ).strip()
 
 

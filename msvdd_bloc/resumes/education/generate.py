@@ -262,7 +262,7 @@ FIELDS = {
     "fsep_prep": (FAKER.field_sep_prep, "field_sep"),
     "fsep_sm": (FAKER.field_sep_sm, "field_sep"),
     "gpa": (FAKER.gpa, "gpa"),
-    "item_sep": (FAKER.item_sep, "item_sep"),
+    "isep": (FAKER.item_sep, "item_sep"),
     "label_courses": (FAKER.label_courses, "field_label"),
     "label_gpa": (FAKER.label_gpa, "field_label"),
     "label_dt": (FAKER.label_grad_date, "field_label"),
@@ -294,8 +294,8 @@ def generate_group_courses():
     )
     template = rnd.choices(templates, weights=[1.0, 0.25], k=1)[0]
     return template.format(
-        courses=" {item_sep} ".join("{course}" for _ in range(rnd.randint(3, 5))),
-        courses2=" {item_sep} ".join("{course}" for _ in range(rnd.randint(1, 3))),
+        courses=" {isep} ".join("{course}" for _ in range(rnd.randint(3, 5))),
+        courses2=" {isep} ".join("{course}" for _ in range(rnd.randint(1, 3))),
     )
 
 
