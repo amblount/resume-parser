@@ -7,9 +7,9 @@ Examples:
 
 .. code-block::
 
-    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.basics" --n 5000 --add_noise --fixed_val_field_keys fsep isep ws
-    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.education" --n 5000 --add_noise --fixed_val_field_keys fsep isep ws
-    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.skills" --n 5000 --add_noise --fixed_val_field_keys grp_name_sep isep isep_and ws
+    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.basics" --n 5000 --augment --fixed_val_field_keys fsep isep ws
+    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.education" --n 5000 --augment --fixed_val_field_keys fsep isep ws
+    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.skills" --n 5000 --augment --fixed_val_field_keys grp_name_sep isep isep_and ws
 """
 import argparse
 import importlib
@@ -54,17 +54,17 @@ def main():
         "%s fake '%s' examples generated:\n%s ...",
         args.n, args.module_name, all_labeled_tokens[:1],
     )
-    if args.add_noise is True:
+    if args.augment is True:
         try:
             all_labeled_tokens = [
-                module.noise.NOISER.apply(labeled_tokens)
+                module.augment.AUGMENTER.apply(labeled_tokens)
                 for labeled_tokens in all_labeled_tokens
             ]
-            LOGGER.info("noise added to fake examples...")
+            LOGGER.info("data augmentation applied added to fake examples...")
         except AttributeError:
             LOGGER.warning(
-                "no noiser found at module '%s.noise.NOISER'; "
-                "no noise added to fake examples...",
+                "no augmenter found at module '%s.augment.AUGMENTER'; "
+                "no data augmentation applied to fake examples...",
                 module,
             )
     fileio.save_json(module.FPATH_TRAINING_DATA, all_labeled_tokens, lines=True)
@@ -94,9 +94,9 @@ def add_arguments(parser):
         "is used throughout a given fake example",
     )
     parser.add_argument(
-        "--add_noise", action="store_true", default=False,
-        help="if specified, add noise to fake examples, as specified in a Noiser class; "
-        "e.g. `msvdd_bloc.resumes.basics.noise.NOISER()`",
+        "--augment", action="store_true", default=False,
+        help="if specified, apply data augmentation to fake examples, as specified in "
+        "an `Augmenter` class, e.g. `msvdd_bloc.resumes.basics.augment.AUGMENTER()`",
     )
     parser.add_argument(
         "--loglevel", type=int, default=logging.INFO,

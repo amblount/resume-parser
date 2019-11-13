@@ -1,9 +1,9 @@
 import random
 
 
-class BaseNoiser:
+class Augmenter:
     """
-    Randomly apply one or many noise-adding transform functions to labeled tokens
+    Randomly apply one or many data-augmentation transform functions to labeled tokens
     to produce new sequences with additional variety and/or noise in the data.
 
     Args:
@@ -15,7 +15,7 @@ class BaseNoiser:
                they are applied *in order* as listed here.
 
         num (int or float or List[float]): If int, number of transforms to randomly select
-            from ``transforms`` each time :meth:`Noiser.apply()` is called. If float,
+            from ``transforms`` each time :meth:`Augmenter.apply()` is called. If float,
             probability that any given transform will be selected. If List[float],
             probability that the corresponding transform in ``transforms`` will be
             selected (these must be the same length). If None (default), num is set to
@@ -28,7 +28,7 @@ class BaseNoiser:
 
     def apply(self, labeled_tokens, **kwargs):
         """
-        Sequentially apply some subset of noise-adding transforms to ``labeled_tokens``,
+        Sequentially apply some subset of augmentation transforms to ``labeled_tokens``,
         returning a new, modified sequence of labeled tokens.
 
         Args:
