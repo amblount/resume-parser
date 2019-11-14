@@ -1,3 +1,17 @@
+#!/usr/bin/env python
+"""
+Script to train a CRF parser based on labeled, tokenized training data -- either fake
+data generated via ``generate_fake_training_dataset.py``, or real data labeled via
+``label_training_dataset.py``.
+
+Examples:
+
+.. code-block::
+
+    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.basics" --test_size 0.1 --params_filepath "./models/resumes/crf-model-params.json" --verbose
+    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.education" --test_size 0.1 --params_filepath "./models/resumes/crf-model-params.json" --verbose
+    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.skills" --test_size 0.1 --params_filepath "./models/resumes/crf-model-params.json" --verbose
+"""
 import argparse
 import importlib
 import logging
@@ -21,7 +35,7 @@ LOGGER = logging.getLogger("train_parser")
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Script to train a CRF parser on domain-specific texts.",
+        description="Script to train a CRF parser on section-specific texts.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     add_arguments(parser)
@@ -38,15 +52,15 @@ def main():
     trainer = pycrfsuite.Trainer(
         algorithm=args.algorithm, params=params, verbose=args.verbose)
 
-    parser_module = importlib.import_module(args.module_name)
+    module = importlib.import_module(args.module_name)
 
     all_feature_label_pairs = []
-    labeled_lines = msvdd_bloc.fileio.load_json(parser_module.FPATH_TRAINING_DATA, lines=True)
+    labeled_lines = msvdd_bloc.fileio.load_json(module.FPATH_TRAINING_DATA, lines=True)
     for labeled_line in labeled_lines:
         labels = [label for _, label in labeled_line]
         token_strs = [token for token, _ in labeled_line]
         tokens = parse_utils.tokenize(token_strs)
-        features = parser_module.parse.featurize(tokens)
+        features = module.parse.featurize(tokens)
         all_feature_label_pairs.append((features, labels))
 
     if args.test_size == 0.0:
@@ -59,8 +73,9 @@ def main():
             group = 0 if random.random() >= args.test_size else 1
             trainer.append(features, labels, group=group)
 
-    trainer.train(str(parser_module.FPATH_TAGGER), holdout=holdout)
-    LOGGER.info("saved trained model settings to %s", parser_module.FPATH_TAGGER)
+    LOGGER.info("training CRF model with the following params:\n%s", trainer.get_params())
+    trainer.train(str(module.FPATH_TAGGER), holdout=holdout)
+    LOGGER.info("saved trained model settings to %s", module.FPATH_TAGGER)
 
 
 def add_arguments(parser):
@@ -77,7 +92,7 @@ def add_arguments(parser):
         "e.g. 'msvdd_bloc.resumes.basics'",
     )
     parser.add_argument(
-        "--test_size", type=float, default=0.0,
+        "--test_size", type=float, default=0.1,
         help="fraction of the available training data to use as a test set, i.e. "
         "hold out from training for model evaluation purposes",
     )
