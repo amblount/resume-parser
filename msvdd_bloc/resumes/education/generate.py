@@ -115,7 +115,7 @@ class Provider(faker.providers.BaseProvider):
     def field_sep_dt(self):
         return "{ws}{sep}{ws}".format(
             ws=" " * rnd.randint(1, 2),
-            sep=rnd.choice(c.FIELD_SEP_DTS),
+            sep=rnd.choices(c.FIELD_SEP_DTS, weights=[1.0, 0.5, 0.1], k=1)[0],
         )
 
     def field_sep_prep(self):

@@ -1,5 +1,5 @@
 FIELD_SEPS = (":", ";", ",", "|")
-FIELD_SEP_DTS = ("-", "–")
+FIELD_SEP_DTS = ("-", "–", "to")
 FIELD_SEP_PREPS = ("in",)
 FIELD_SEP_SMS = (",", ";")
 FIELD_LABEL_SEPS = (":", "-")
