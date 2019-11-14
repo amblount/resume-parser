@@ -46,8 +46,8 @@ def get_token_features_base(token):
         "idx": token.i,
         "len": len(token),
         "shape": token.shape_,
-        # "prefix": token.prefix_,
-        # "suffix": token.suffix_,
+        "prefix": token.prefix_,
+        "suffix": token.suffix_,
         "is_alpha": token.is_alpha,
         "is_digit": token.is_digit,
         "is_lower": token.is_lower,
@@ -67,6 +67,26 @@ def get_token_features_base(token):
         "is_partial_digit": any(c.isdigit() for c in text) and not all(c.isdigit() for c in text),
         "is_partial_punct": any(c in _PUNCT_CHARS for c in text) and not all(c in _PUNCT_CHARS for c in text),
     }
+
+
+def pad_tokens_features(tokens_features, *, n_left=1, n_right=1):
+    """
+    Pad list of tokens' features on the left and/or right with a configurable number of
+    dummy feature dicts.
+
+    Args:
+        tokens_features (List[Dict[str, obj]])
+        n_left (int): Number of dummy feature dicts to prepend.
+        n_right (int): Number of dummy feature dicts to append.
+
+    Returns:
+        List[Dict[str, obj]]
+    """
+    return (
+        [{"_start": True} for _ in range(n_left)]
+        + tokens_features
+        + [{"_end": True} for _ in range(n_right)]
+    )
 
 
 def tag(tokens, features, *, tagger):
