@@ -17,11 +17,11 @@ LOGGER = logging.getLogger(__name__)
 ## CRF-BASED PARSING ##
 #######################
 
-FIELD_SEP_CHARS = set(basics.constants.FIELD_SEPS)
-ITEM_SEP_CHARS = set(basics.constants.ITEM_SEPS)
+FIELD_SEP_TEXTS = set(basics.constants.FIELD_SEPS)
+ITEM_SEP_TEXTS = set(basics.constants.ITEM_SEPS)
 
 
-def parse_basics_section(lines, tagger=None):
+def parse_lines(lines, tagger=None):
     """
     Parse a sequence of text lines belonging to the "basics" section of a résumé
     to produce structured data in the form of :class:`schemas.ResumeBasicsSchema`
@@ -103,11 +103,8 @@ def featurize(tokens):
         return tokens_features
     else:
         feature_sequence = []
-        tokens_features = (
-            [{"_start": True}, {"_start": True}]
-            + tokens_features
-            + [{"_end": True}]
-        )
+        tokens_features = parse_utils.pad_tokens_features(
+            tokens_features, n_left=2, n_right=1)
         idx_last_newline = 0
         for pprev_tf, prev_tf, curr_tf, next_tf in itertoolz.sliding_window(4, tokens_features):
             tf = curr_tf.copy()
@@ -133,13 +130,14 @@ def get_token_features(token):
     Returns:
         Dict[str, obj]
     """
+    text = token.text
     features = parse_utils.get_token_features_base(token)
     features.update(
         {
-            "is_field_sep_char": token.text in FIELD_SEP_CHARS,
-            "is_item_sep_char": token.text in ITEM_SEP_CHARS,
-            "like_profile_username": regexes.RE_USER_HANDLE.match(token.text) is not None,
-            "like_phone_number": regexes.RE_PHONE_NUMBER.match(token.text) is not None,
+            "is_field_sep_text": text in FIELD_SEP_TEXTS,
+            "is_item_sep_text": text in ITEM_SEP_TEXTS,
+            "like_profile_username": regexes.RE_USER_HANDLE.match(text) is not None,
+            "like_phone_number": regexes.RE_PHONE_NUMBER.match(text) is not None,
         }
     )
     return features

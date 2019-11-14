@@ -15,7 +15,7 @@ LOGGER = logging.getLogger(__name__)
 ## CRF-BASED PARSING ##
 #######################
 
-FIELD_SEP_CHARS = {
+FIELD_SEP_TEXTS = {
     sep for sep in itertoolz.concatv(
         education.constants.FIELD_SEPS,
         education.constants.FIELD_SEP_DTS,
@@ -24,20 +24,10 @@ FIELD_SEP_CHARS = {
         education.constants.RIGHT_BRACKETS,
     )
 }
-ITEM_SEP_CHARS = set(education.constants.FIELD_SEP_SMS)
-STUDY_TYPES = {
-    sep for sep in itertoolz.concatv(
-        education.constants.UNIVERSITY_DEGREES,
-        education.constants.SCHOOL_DEGREES,
-    )
-}
-INSTITUTION_TYPES = {
-    "University", "College", "School", "Institute", "Academy", "Department",
-}
-STUDY_SUBUNITS = set(education.constants.STUDY_SUBUNITS)
+ITEM_SEP_TEXTS = set(education.constants.FIELD_SEP_SMS)
 
 
-def parse_education_section(lines, tagger=None):
+def parse_lines(lines, tagger=None):
     """
     Parse a sequence of text lines belonging to the "education" section of a résumé
     to produce structured data in the form of :class:`schemas.ResumeEducationSchema`
@@ -113,11 +103,8 @@ def featurize(tokens):
         return tokens_features
     else:
         feature_sequence = []
-        tokens_features = (
-            [{"_start": True}, {"_start": True}]
-            + tokens_features
-            + [{"_end": True}]
-        )
+        tokens_features = parse_utils.pad_tokens_features(
+            tokens_features, n_left=2, n_right=1)
         idx_last_newline = 0
         for pprev_tf, prev_tf, curr_tf, next_tf in itertoolz.sliding_window(4, tokens_features):
             tf = curr_tf.copy()
@@ -143,16 +130,14 @@ def get_token_features(token):
     Returns:
         Dict[str, obj]
     """
+    text = token.text
     features = parse_utils.get_token_features_base(token)
     features.update(
         {
-            "is_field_sep_char": token.text in FIELD_SEP_CHARS,
-            "is_item_sep_char": token.text in ITEM_SEP_CHARS,
-            "is_study_type": token.text in STUDY_TYPES,
-            "is_institution_type": token.text in INSTITUTION_TYPES,
-            "is_study_subunit": token.text in STUDY_SUBUNITS,
-            "is_month_name": regexes.RE_MONTH.match(token.text) is not None,
-            "is_year": regexes.RE_YEAR.match(token.text) is not None,
+            "is_field_sep_text": text in FIELD_SEP_TEXTS,
+            "is_item_sep_text": text in ITEM_SEP_TEXTS,
+            "like_month_name": regexes.RE_MONTH.match(text) is not None,
+            "like_year": regexes.RE_YEAR.match(text) is not None,
         }
     )
     return features
