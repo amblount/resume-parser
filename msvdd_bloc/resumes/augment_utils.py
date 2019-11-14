@@ -1,5 +1,7 @@
 import random
 
+from cytoolz import itertoolz
+
 
 class Augmenter:
     """
@@ -130,3 +132,31 @@ def delete_token(tok_labels, *, prob=0.01,  target_labels=None):
             for tok_label in tok_labels
             if tok_label[1] in target_labels and random.random() >= prob
         ]
+
+
+def insert_whitespace_token(
+    tok_labels, *,
+    prob=0.01,
+    nrange=(1, 2),
+    field_labels=("field_sep", "item_sep"),
+):
+    """
+    Randomly insert a whitespace token between any given two tokens with a probability
+    of ``prob``, provided neither token is already whitespace.
+
+    Args:
+        tok_labels (List[Tuple[str, str]])
+        prob (float)
+        ngrange (Tuple[int, int])
+        field_labels (Tuple[str, str])
+
+    Returns:
+        List[Tuple[str, str]]
+    """
+    aug_tok_labels = []
+    for tl1, tl2 in itertoolz.sliding_window(2, tok_labels):
+        aug_tok_labels.append(tl1)
+        if random.random() < prob and not (tl1[0].isspace() or tl2[0].isspace()):
+            ws_label = field_labels[tl1[1] == tl2[1]]
+            aug_tok_labels.append((" " * random.randint(*nrange), ws_label))
+    return aug_tok_labels
