@@ -214,6 +214,8 @@ LINES = {
     "langs": fnc.partial(generate_line_fields, key="lang", nrange=(2, 4)),
     "langs_bulleted": fnc.partial(generate_line_fields, key="lang", nrange=(2, 4), bullet=True),
     "langs_grped": fnc.partial(generate_line_fields_grped, key="lang", nrange=(2, 4)),
+    "hobbies": fnc.partial(generate_line_fields, key="hobby", nrange=(2, 6)),
+    "hobbies_grped": fnc.partial(generate_line_fields_grped, key="hobby", nrange=(2, 6)),
 }
 """
 Dict[str, Callable]: Intermediate mapping of line type name to a function that generates
@@ -227,6 +229,7 @@ TEMPLATES = [
     lambda: " {nl} ".join(LINES["dev_mixes_grped"]() for _ in range(rnd.randint(1, 4))),
     lambda: " {nl} ".join(LINES["dev_mixes_level"]() for _ in range(rnd.randint(1, 2))),
     lambda: " {nl} ".join(LINES["dev_mixes_level_grped"]() for _ in range(rnd.randint(1, 3))),
+    lambda: " {nl} ".join(LINES[key]() for key in rnd.sample(["dev_mixes_grped", "plangs_grped", "dbs_grped", "langs_grped", "hobbies_grped"], rnd.randint(3, 4))),
     lambda: " {nl} ".join([LINES["plangs_bulleted"](), LINES["dbs_bulleted"](), LINES["dev_mixes_bulleted"]()]),
     lambda: " {nl} ".join([LINES["plangs_grped"](), LINES["dbs_grped"]()]),
     lambda: " {nl} ".join([LINES["langs_grped"](), LINES["plangs_grped"]()]),

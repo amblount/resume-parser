@@ -80,5 +80,22 @@ HUMAN_LANGUAGES = (
     "Yoruba", "Sindhi",
 )
 HOBBIES = (
-    "Bowling", "Karaoke", "Kayaking", "Swimming", "Fishing", "Rock Climbing",
-)
+    "Acting", "Aerobics", "Amateur Radio", "Animal Care", "Antiques", "Aquariums",
+    "Archaeology", "Archery", "Architecture", "Aromatherapy", "Astrology", "Astronomy",
+    "Autographs", "Badge Collecting", "Badminton", "Baking", "Ballet", "Base Jumping",
+    "Baseball", "Basketball", "Beach", "Bee Keeping", "Bicycling", "Billiards", "Boating",
+    "Bowling", "Camping", "Church Activities", "Computer", "Cooking", "Crafts", "Dancing",
+    "Eating Out", "Entertaining", "Exercise", "Family Time", "Fashion", "Fencing", "Films",
+    "Fish Keeping", "Fishing", "Fitness", "Flower Arranging", "Football", "Fossils",
+    "Frisbee", "Gardening", "Genealogy", "Going to the Movies", "Golf",
+    "Greeting Card Collecting", "Greyhound Racing", "Handball", "Handwriting", "Hiking",
+    "History", "Hockey", "Home Brewing", "Horseback Riding", "Housework", "Hunting",
+    "Karaoke", "Kayaking", "Listening to Music", "Motorcycling", "Ornithology", "Paintball",
+    "Painting", "Papercraft", "Photography", "Playing Cards", "Playing Music", "Poker",
+    "Polo", "Poole", "Post Cards", "Pottery", "Psychology", "Quilting", "RC Model Aircrafts",
+    "RC Model Boats", "RC Model Cars", "Reading", "Reflexology", "Relaxing", "Riddles",
+    "Robotics", "Rock Climbing", "Rock Music", "Roller Skating", "Running", "Sewing",
+    "Shopping", "Skiing", "Sleeping", "Socializing", "Swimming", "Team Sports", "Tennis",
+    "Theater", "Traveling", "Volunteer Work", "Walking", "Watching Sports", "Watching TV",
+    "Working on Cars", "Writing",
+ )

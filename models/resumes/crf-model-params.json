@@ -2,7 +2,7 @@
     "c1": 10.0,
     "c2": 1.0,
     "delta": 0.01,
-    "max_iterations": 100,
+    "max_iterations": 150,
     "feature.minfreq": 3.0,
     "feature.possible_transitions": 1,
     "feature.possible_states": 1
