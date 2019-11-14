@@ -3,7 +3,6 @@ import random as rnd
 
 import faker
 
-from msvdd_bloc.resumes import noise_utils
 from msvdd_bloc.resumes.skills import constants as c
 
 
@@ -43,6 +42,9 @@ class Provider(faker.providers.BaseProvider):
     def item_sep_and(self):
         return rnd.choices(c.ITEM_SEP_ANDS, weights=[1.0, 0.2], k=1)[0]
 
+    def left_bracket(self):
+        return rnd.choice(c.LEFT_BRACKETS)
+
     def level(self):
         return rnd.choice(c.LEVELS)
 
@@ -54,6 +56,9 @@ class Provider(faker.providers.BaseProvider):
 
     def programming_language(self):
         return rnd.choice(c.PROGRAMMING_LANGUAGES)
+
+    def right_bracket(self):
+        return rnd.choice(c.RIGHT_BRACKETS)
 
     def software(self):
         return rnd.choice(c.SOFTWARE)
@@ -78,10 +83,10 @@ FIELDS = {
     "lang": (FAKER.human_language, "name"),
     "level": (FAKER.level, "level"),
     "level_prep": (FAKER.level_prep, "field_sep"),
-    "lb": (lambda: "(", "field_sep"),
+    "lb": (FAKER.left_bracket, "field_sep"),
     "nl": (FAKER.newline, "field_sep"),
     "plang": (FAKER.programming_language, "name"),
-    "rb": (lambda: ")", "field_sep"),
+    "rb": (FAKER.right_bracket, "field_sep"),
     "sent": (fnc.partial(FAKER.sentence, nb_words=10, variable_nb_words=True), "other"),
     "sw": (FAKER.software, "name"),
     "ws": (FAKER.whitespace, "field_sep"),

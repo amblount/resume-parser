@@ -8,7 +8,6 @@ from . import parse
 FPATH_TRAINING_DATA = _MDIR.joinpath("resumes", "resume-education-training-data.jsonl")
 FPATH_TAGGER = _MDIR.joinpath("resumes", "resume-education-tagger.crfsuite")
 LABELS = (
-    "other",
     "institution",
     "area",
     "study_type",
@@ -19,4 +18,6 @@ LABELS = (
     "field_sep",
     "item_sep",
     "field_label",
+    "bullet",
+    "other",
 )

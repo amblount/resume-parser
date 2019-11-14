@@ -2,6 +2,8 @@ GROUP_SEPS = (":", "-", "–")
 ITEM_SEPS = (",", ";")
 ITEM_SEP_ANDS = ("and", "&")
 LEVEL_PREPS = ("in", "with", "to", "of")
+LEFT_BRACKETS = ("(", "[")
+RIGHT_BRACKETS = (")", "]")
 
 LEVELS = (
     "advanced", "intermediate", "beginner",

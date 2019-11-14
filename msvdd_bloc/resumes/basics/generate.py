@@ -3,7 +3,6 @@ import random as rnd
 
 import faker
 
-from msvdd_bloc.resumes import noise_utils
 from msvdd_bloc.resumes.basics import constants as c
 
 

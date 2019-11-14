@@ -3,7 +3,6 @@ import random as rnd
 
 import faker
 
-from msvdd_bloc.resumes import noise_utils
 from msvdd_bloc.resumes.education import constants as c
 
 
@@ -250,7 +249,7 @@ FAKER.add_provider(Provider)
 FIELDS = {
     "area": (FAKER.area_of_study, "area"),
     "area_detail": (FAKER.area_detail, "area"),
-    "bullet": (lambda: "- ", "other"),  # TODO: should it be other, or bullet?
+    "bullet": (lambda: "- ", "bullet"),
     "city_state": (FAKER.city_state, "institution"),
     "course": (FAKER.course_title, "course"),
     "deg_school": (FAKER.school_degree, "study_type"),
