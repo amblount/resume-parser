@@ -42,6 +42,19 @@ SECTION_HEADERS = {
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
+    # combining education + courses doesn't seem to parse well
+    # so, let's punt on this and keep them separate
+    # "education": re.compile(
+    #     r"^(?P<text>"
+    #     "academic qualifications|"
+    #     "course ?work|"
+    #     "courses completed|"
+    #     "education|"
+    #     "(recent|related|relevant|undergraduate) courses|"
+    #     "(recent|related|relevant) course ?work"
+    #     ")(?P<end>:?$)",
+    #     flags=re.IGNORECASE,
+    # ),
     "education": re.compile(
         r"^(?P<text>"
         "academic qualifications|"
@@ -99,6 +112,7 @@ SECTION_HEADERS = {
         r"^(?P<text>"
         "activities|"
         "activities (and|&) student groups|"
+        "clubs|"
         "extracurriculars|"
         "extracurricular activities|"
         "fellowships (and|&) clubs|"
