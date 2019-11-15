@@ -1,3 +1,4 @@
+beautifulsoup4>=4.7.0
 Faker>=2.0.0
 ftfy>=5.6
 glom>=19.0.0

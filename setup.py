@@ -14,7 +14,7 @@ with io.open(os.path.join(root_path, "msvdd_bloc", "about.py")) as f:
 setuptools.setup(
     name="msvdd_bloc",
     version=about["__version__"],
-    description=about["description__"],
+    description=about["__description__"],
     long_description=long_description,
     long_description_content_type="text/markdown",
     url=about["__url__"],
@@ -31,6 +31,7 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     python_requires=">=3.6",
     install_requires=[
+        "beautifulsoup4>=4.7.0",
         "Faker>=2.0.0",
         "ftfy>=5.6",
         "glom>=19.0.0",
