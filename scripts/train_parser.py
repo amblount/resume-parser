@@ -8,9 +8,9 @@ Examples:
 
 .. code-block::
 
-    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.basics" --test_size 0.1 --params_filepath "./models/resumes/crf-model-params.json" --verbose
-    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.education" --test_size 0.1 --params_filepath "./models/resumes/crf-model-params.json" --verbose
-    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.skills" --test_size 0.1 --params_filepath "./models/resumes/crf-model-params.json" --verbose
+    $ python scripts/train_parser.py --module_name "msvdd_bloc.resumes.basics" --test_size 0.1 --params_filepath "./models/resumes/crf-model-params.json" --verbose
+    $ python scripts/train_parser.py --module_name "msvdd_bloc.resumes.education" --test_size 0.1 --params_filepath "./models/resumes/crf-model-params.json" --verbose
+    $ python scripts/train_parser.py --module_name "msvdd_bloc.resumes.skills" --test_size 0.1 --params_filepath "./models/resumes/crf-model-params.json" --verbose
 """
 import argparse
 import importlib

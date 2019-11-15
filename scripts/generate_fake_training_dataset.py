@@ -9,7 +9,7 @@ Examples:
 
     $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.basics" --n 5000 --augment --fixed_val_field_keys fsep isep ws
     $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.education" --n 5000 --augment --fixed_val_field_keys fsep isep ws
-    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.skills" --n 5000 --augment --fixed_val_field_keys grp_name_sep isep isep_and ws
+    $ python scripts/generate_fake_training_dataset.py --module_name "msvdd_bloc.resumes.skills" --n 5000 --augment --fixed_val_field_keys isep isep_and ws
 """
 import argparse
 import importlib
