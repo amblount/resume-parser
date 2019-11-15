@@ -1,6 +1,6 @@
 import random
 
-from cytoolz import itertoolz
+from toolz import itertoolz
 
 
 class Augmenter:
