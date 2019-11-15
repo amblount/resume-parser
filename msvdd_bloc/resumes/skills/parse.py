@@ -22,6 +22,10 @@ ITEM_SEP_TEXTS = {
         skills.constants.ITEM_SEP_ANDS,
     )
 }
+# HACK: we generally don't want features that depend on belonging to a set
+# of manually-curated words; but this is a somewhat special case,
+# and it improves performance on those fields, so... :shrug:
+LEVEL_TEXTS = set(skills.constants.LEVELS)
 
 
 def parse_lines(lines, tagger=None):
@@ -42,24 +46,33 @@ def parse_lines(lines, tagger=None):
 
     tokens = parse_utils.tokenize("\n".join(lines).strip())
     features = featurize(tokens)
-    tok_labels = parse_utils.tag(tokens, features, tagger=tagger)
-    skills_data = _parse_skills_from_labeled_tokens(tok_labels)
-    return skills_data
+    labeled_tokens = parse_utils.tag(tokens, features, tagger=tagger)
+    data = _parse_labeled_tokens(labeled_tokens)
+    return data
 
 
-def _parse_skills_from_labeled_tokens(tok_labels):
+def _parse_labeled_tokens(labeled_tokens):
     """
     Args:
-        tok_labels (List[Tuple[:class:`spacy.tokens.Token`, str]])
+        labeled_tokens (List[Tuple[:class:`spacy.tokens.Token`, str]])
 
     Returns:
         List[Dict[str, obj]]
     """
     skills_data = []
-    all_tok_labels = [tok_label for tok_label in tok_labels]
-    line_sep = ("\n", "field_sep")
-    grped_tok_labels = itertools.groupby(
-        all_tok_labels, key=lambda tl: (tl[0].text, tl[1]) == line_sep)
+
+    def _is_line_group_sep(tok_label):
+        """
+        Groups of related skills don't necessarily stick to a single line; only split
+        them if there's a newline labeled specifically as a field separator, rather than
+        an item separator.
+        """
+        return (
+            tok_label[1] == "field_sep" and
+            re.match(r"\n+", tok_label[0].text) is not None
+        )
+
+    grped_tok_labels = itertools.groupby(labeled_tokens, key=_is_line_group_sep)
     for key, tok_labels in grped_tok_labels:
         # skip newline field separators
         if key is True:
@@ -70,12 +83,12 @@ def _parse_skills_from_labeled_tokens(tok_labels):
         # get rid of leading bullets
         if tok_labels[0][1] == "bullet":
             tok_labels = tok_labels[1:]
-        # get rid of leading / trailing item_seps
+        # get rid of spurious leading / trailing item_seps
         if tok_labels[0][1] == "item_sep":
             tok_labels = tok_labels[1:]
         if tok_labels[-1][1] == "item_sep":
             tok_labels = tok_labels[:-1]
-        # and all other tokens
+        # get rid of all "other" tokens
         tok_labels = [(tok, label) for tok, label in tok_labels if label != "other"]
         if not tok_labels:
             return []
@@ -192,13 +205,15 @@ def featurize(tokens):
     else:
         feature_sequence = []
         tokens_features = parse_utils.pad_tokens_features(
-            tokens_features, n_left=2, n_right=1)
+            tokens_features, n_left=2, n_right=2)
         idx_last_newline = 0
-        for pprev_tf, prev_tf, curr_tf, next_tf in itertoolz.sliding_window(4, tokens_features):
+        tf_windows = itertoolz.sliding_window(5, tokens_features)
+        for pprev_tf, prev_tf, curr_tf, next_tf, nnext_tf in tf_windows:
             tf = curr_tf.copy()
             tf["pprev"] = pprev_tf
             tf["prev"] = prev_tf
             tf["next"] = next_tf
+            tf["nnext"] = nnext_tf
             # NOTE: add features here that depend upon tokens elsewhere in the sequence
             # e.g. whether or not a particular word appeared earlier in the sequence
             if any(_tf["is_group_sep_text"] for _tf in feature_sequence[idx_last_newline : tf["idx"]]):
@@ -228,6 +243,7 @@ def get_token_features(token):
         {
             "is_group_sep_text": text in GROUP_SEP_TEXTS,
             "is_item_sep_text": text in ITEM_SEP_TEXTS,
+            "is_level_text": text.lower() in LEVEL_TEXTS,
         }
     )
     return features
