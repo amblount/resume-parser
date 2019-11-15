@@ -89,8 +89,8 @@ class ResumeWorkSchema(ma.Schema):
     company = ma.fields.String()
     position = ma.fields.String()
     website = ma.fields.String(validate=ma.validate.URL())
-    start_date = ma.fields.Date()
-    end_date = ma.fields.Date()
+    start_date = ma.fields.String()  # not necessarily a date
+    end_date = ma.fields.String()  # not necessarily a date
     summary = ma.fields.String()
     highlights = ma.fields.List(ma.fields.String())
 
@@ -114,8 +114,8 @@ class ResumeVolunteerSchema(ma.Schema):
     organization = ma.fields.String()
     position = ma.fields.String()
     website = ma.fields.String(validate=ma.validate.URL())
-    start_date = ma.fields.Date()
-    end_date = ma.fields.Date()
+    start_date = ma.fields.String()  # not necessarily a date
+    end_date = ma.fields.String()  # not necessarily a date
     summary = ma.fields.String()
     highlights = ma.fields.List(ma.fields.String())
 
@@ -139,9 +139,9 @@ class ResumeEducationSchema(ma.Schema):
     institution = ma.fields.String()
     area = ma.fields.String()
     study_type = ma.fields.String()
-    start_date = ma.fields.Date()
-    end_date = ma.fields.Date()
-    gpa = ma.fields.Number()
+    start_date = ma.fields.String()  # not necessarily a date
+    end_date = ma.fields.String()  # not necessarily a date
+    gpa = ma.fields.String()  # not necessarily a number
     course = ma.fields.List(ma.fields.String())
 
 

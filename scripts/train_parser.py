@@ -1,4 +1,19 @@
+#!/usr/bin/env python
+"""
+Script to train a CRF parser based on labeled, tokenized training data -- either fake
+data generated via ``generate_fake_training_dataset.py``, or real data labeled via
+``label_training_dataset.py``.
+
+Examples:
+
+.. code-block::
+
+    $ python scripts/train_parser.py --module_name "msvdd_bloc.resumes.basics" --test_size 0.1 --params_filepath "./models/resumes/crf-model-params.json" --verbose
+    $ python scripts/train_parser.py --module_name "msvdd_bloc.resumes.education" --test_size 0.1 --params_filepath "./models/resumes/crf-model-params.json" --verbose
+    $ python scripts/train_parser.py --module_name "msvdd_bloc.resumes.skills" --test_size 0.1 --params_filepath "./models/resumes/crf-model-params.json" --verbose
+"""
 import argparse
+import importlib
 import logging
 import pathlib
 import random
@@ -8,7 +23,7 @@ import sys
 import pycrfsuite
 
 import msvdd_bloc
-from msvdd_bloc.resumes.parse import utils
+from msvdd_bloc.resumes import parse_utils
 
 
 logging.basicConfig(
@@ -20,7 +35,7 @@ LOGGER = logging.getLogger("train_parser")
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Script to train a CRF parser on domain-specific texts.",
+        description="Script to train a CRF parser on section-specific texts.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     add_arguments(parser)
@@ -37,18 +52,15 @@ def main():
     trainer = pycrfsuite.Trainer(
         algorithm=args.algorithm, params=params, verbose=args.verbose)
 
-    parser_module = utils.load_module_from_path(
-        name="parser_module", fpath=args.module_filepath.resolve())
-    training_data_fpath = parser_module.TRAINING_DATA_FPATH
-    model_fpath = parser_module.MODEL_FPATH
+    module = importlib.import_module(args.module_name)
 
     all_feature_label_pairs = []
-    labeled_lines = msvdd_bloc.fileio.load_json(training_data_fpath, lines=True)
+    labeled_lines = msvdd_bloc.fileio.load_json(module.FPATH_TRAINING_DATA, lines=True)
     for labeled_line in labeled_lines:
         labels = [label for _, label in labeled_line]
         token_strs = [token for token, _ in labeled_line]
-        tokens = utils.tokenize(token_strs)
-        features = parser_module.featurize(tokens)
+        tokens = parse_utils.tokenize(token_strs)
+        features = module.parse.featurize(tokens)
         all_feature_label_pairs.append((features, labels))
 
     if args.test_size == 0.0:
@@ -61,8 +73,9 @@ def main():
             group = 0 if random.random() >= args.test_size else 1
             trainer.append(features, labels, group=group)
 
-    trainer.train(str(model_fpath), holdout=holdout)
-    LOGGER.info("saved trained model settings to %s", model_fpath)
+    LOGGER.info("training CRF model with the following params:\n%s", trainer.get_params())
+    trainer.train(str(module.FPATH_TAGGER), holdout=holdout)
+    LOGGER.info("saved trained model settings to %s", module.FPATH_TAGGER)
 
 
 def add_arguments(parser):
@@ -73,12 +86,13 @@ def add_arguments(parser):
         parser (:class:`argparse.ArgumentParser`)
     """
     parser.add_argument(
-        "--module_filepath", type=pathlib.Path, required=True,
-        help="path to .py file on disk with functionality for featurizing tokens "
-        "as well as filepaths to training data and trained model settings",
+        "--module_name", type=str, required=True,
+        help="absolute name of module with functionality for featurizing tokens, "
+        "as well as filepaths to training data and trained model settings, "
+        "e.g. 'msvdd_bloc.resumes.basics'",
     )
     parser.add_argument(
-        "--test_size", type=float, default=0.0,
+        "--test_size", type=float, default=0.1,
         help="fraction of the available training data to use as a test set, i.e. "
         "hold out from training for model evaluation purposes",
     )

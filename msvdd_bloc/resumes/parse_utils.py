@@ -1,11 +1,22 @@
+"""
+parse utils
+-----------
+
+Functionality for tokenizing, featurizing, tagging, padding sequences, and loading taggers
+in a résumé section-agnostic manner. Section subpackages use and build upon these utils
+in their respective ``parse.py`` modules.
+"""
 import importlib
+import logging
 import string
 import sys
 
+import pycrfsuite
 import spacy
 from spacy.tokens import Doc
 
 
+LOGGER = logging.getLogger(__name__)
 _PUNCT_CHARS = set(string.punctuation)
 
 
@@ -40,11 +51,11 @@ def get_token_features_base(token):
     """
     text = token.text
     return {
-        "i": token.i,
+        "idx": token.i,
         "len": len(token),
         "shape": token.shape_,
-        # "prefix": token.prefix_,
-        # "suffix": token.suffix_,
+        "prefix": token.prefix_,
+        "suffix": token.suffix_,
         "is_alpha": token.is_alpha,
         "is_digit": token.is_digit,
         "is_lower": token.is_lower,
@@ -66,6 +77,26 @@ def get_token_features_base(token):
     }
 
 
+def pad_tokens_features(tokens_features, *, n_left=1, n_right=1):
+    """
+    Pad list of tokens' features on the left and/or right with a configurable number of
+    dummy feature dicts.
+
+    Args:
+        tokens_features (List[Dict[str, obj]])
+        n_left (int): Number of dummy feature dicts to prepend.
+        n_right (int): Number of dummy feature dicts to append.
+
+    Returns:
+        List[Dict[str, obj]]
+    """
+    return (
+        [{"_start": True} for _ in range(n_left)]
+        + tokens_features
+        + [{"_end": True} for _ in range(n_right)]
+    )
+
+
 def tag(tokens, features, *, tagger):
     """
     Tag each token in ``tokens`` with a section-specific label based on its features.
@@ -77,26 +108,31 @@ def tag(tokens, features, *, tagger):
 
     Returns:
         List[Tuple[:class:`spacy.tokens.Token`, str]]: Ordered sequence of
-        (token, tag) pairs.
+        (token, tag) pairs, aka "labeled tokens".
     """
     tags = tagger.tag(features)
     return list(zip(tokens, tags))
 
 
-def load_module_from_path(*, name, fpath):
+def load_tagger(fpath):
     """
     Args:
-        name (str)
-        fpath (str of :class:`pathlib.Path`)
+        fpath (str or :class:`pathlib.Path`)
+
+    Returns:
+        :class:`pycrfsuite.Tagger`
     """
-    if name in sys.modules:
-        return sys.modules[name]
-    else:
-        spec = importlib.util.spec_from_file_location(name, fpath)
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[name] = module
-        spec.loader.exec_module(module)
-        return module
+    try:
+        tagger = pycrfsuite.Tagger()
+        tagger.open(str(fpath))
+        return tagger
+    except IOError:
+        LOGGER.warning(
+            "tagger model file '%s' is missing; have you trained one yet? "
+            "if not, use the `label_parser_training_data.py` script to do so.",
+            fpath,
+        )
+        raise
 
 
 class PhoneNumberMerger:

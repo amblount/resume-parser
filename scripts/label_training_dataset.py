@@ -1,11 +1,23 @@
+#!/usr/bin/env python
+"""
+Script to label training examples for a particular résumé section,
+for use in training a parser via the ``train_parser.py`` script.
+
+Examples:
+
+.. code-block::
+
+    $ python scripts/label_training_dataset.py --module_name "msvdd_bloc.resumes.basics" --unlabeled_data /path/to/file.txt
+"""
 import argparse
+import importlib
 import logging
 import pathlib
 import re
 import sys
 
 import msvdd_bloc
-from msvdd_bloc.resumes.parse import utils
+from msvdd_bloc.resumes import parse_utils
 
 
 logging.basicConfig(
@@ -27,13 +39,12 @@ def main():
     args = parser.parse_args()
 
     LOGGER.setLevel(args.loglevel)
+    module = importlib.import_module(args.module_name)
 
-    parser_module = utils.load_module_from_path(
-        name="parser_module", fpath=args.module_filepath.resolve())
-    training_data_fpath = parser_module.TRAINING_DATA_FPATH
-    if training_data_fpath.is_file():
+    fpath_training_data = module.FPATH_TRAINING_DATA
+    if fpath_training_data.is_file():
         labeled_lines = list(msvdd_bloc.fileio.load_json(
-            training_data_fpath, lines=True))
+            fpath_training_data, lines=True))
         seen_tokenized_lines = {
             tuple(tok_text for tok_text, _ in line)
             for line in labeled_lines
@@ -43,9 +54,9 @@ def main():
         seen_tokenized_lines = set()
 
     n_labeled_lines = len(labeled_lines)
-    LOGGER.info("loaded %s labeled lines from %s", n_labeled_lines, training_data_fpath)
+    LOGGER.info("loaded %s labeled lines from %s", n_labeled_lines, fpath_training_data)
 
-    labels = args.labels or parser_module.LABELS
+    labels = args.labels or module.LABELS
     print_help(labels)
 
     unlabeled_lines = list(msvdd_bloc.fileio.load_text(
@@ -54,7 +65,7 @@ def main():
     for i, line in enumerate(unlabeled_lines):
         tokens = tuple(
             tok if isinstance(tok, str) else tok.text
-            for tok in utils.tokenize(line)
+            for tok in parse_utils.tokenize(line)
         )
         if not tokens:
             LOGGER.debug("line \"%s\" doesn't have any tokens; skipping...", line)
@@ -73,10 +84,10 @@ def main():
         labeled_lines.append(labeled_line)
 
     if len(labeled_lines) > n_labeled_lines:
-        msvdd_bloc.fileio.save_json(training_data_fpath, labeled_lines, lines=True)
+        msvdd_bloc.fileio.save_json(fpath_training_data, labeled_lines, lines=True)
         LOGGER.info(
             "saved %s labeled lines to %s",
-            len(labeled_lines), training_data_fpath,
+            len(labeled_lines), fpath_training_data,
         )
     else:
         LOGGER.info("no additional lines labeled")
@@ -95,14 +106,15 @@ def add_arguments(parser):
         "where each line corresponds to a separate item",
     )
     parser.add_argument(
-        "--module_filepath", type=pathlib.Path, required=True,
-        help="path to .py file on disk with the set of valid labels in :obj:`LABELS` "
-        "and the path to training data in :obj:`TRAINING_DATA_FPATH`",
+        "--module_name", type=str, required=True,
+        help="absolute name of module with the set of valid labels in :obj:`LABELS` "
+        "and the path to training data in :obj:`FPATH_TRAINING_DATA, "
+        "e.g. 'msvdd_bloc.resumes.basics'",
     )
     parser.add_argument(
         "--labels", type=str, nargs="+", default=None,
         help="if desired, specify the set of valid labels to be assigned to tokens; "
-        "otherwise, load labels from the module specified in `module_filepath`",
+        "otherwise, load labels from the module specified in `module_name`",
     )
     parser.add_argument(
         "--loglevel", type=int, default=logging.INFO,
