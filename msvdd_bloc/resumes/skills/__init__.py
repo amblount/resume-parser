@@ -16,3 +16,6 @@ LABELS = (
     "bullet",
     "other",
 )
+"""
+Tuple[str]: Collection of labels applied to field values when parsing "skills" section.
+"""

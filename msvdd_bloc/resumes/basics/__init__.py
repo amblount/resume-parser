@@ -20,3 +20,6 @@ LABELS = (
     "item_sep",
     "field_label",
 )
+"""
+Tuple[str]: Collection of labels applied to field values when parsing "basics" section.
+"""

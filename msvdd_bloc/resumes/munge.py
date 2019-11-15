@@ -1,3 +1,10 @@
+"""
+munge
+-----
+
+Munge résumé text data: clean and normalize the text itself,
+and split it into content-bearing lines on a configurable delimiter.
+"""
 import re
 import unicodedata
 

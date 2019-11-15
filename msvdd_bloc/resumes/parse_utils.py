@@ -1,3 +1,11 @@
+"""
+parse utils
+-----------
+
+Functionality for tokenizing, featurizing, tagging, padding sequences, and loading taggers
+in a résumé section-agnostic manner. Section subpackages use and build upon these utils
+in their respective ``parse.py`` modules.
+"""
 import importlib
 import logging
 import string

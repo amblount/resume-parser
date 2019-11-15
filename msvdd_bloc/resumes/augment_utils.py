@@ -1,3 +1,11 @@
+"""
+augment utils
+-------------
+
+Functionality for modifying sequences of labeled tokens for data augmentation purposes
+in a résumé section-agnostic manner. Section subpackages use and build upon these utils
+in their respective ``augment.py`` modules.
+"""
 import random
 
 from toolz import itertoolz

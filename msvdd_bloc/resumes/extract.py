@@ -1,3 +1,9 @@
+"""
+extract
+-------
+
+Extract résumé text from a PDF file, using multiple methods applied in order of confidence.
+"""
 import io
 
 
@@ -14,7 +20,11 @@ def extract_text_from_pdf(filepath, *, min_len=150):
         str
     """
     text = ""
-    funcs = (extract_text_tika, extract_text_pdfminer, extract_text_textract)
+    funcs = (
+        extract_text_from_pdf_tika,
+        extract_text_from_pdf_pdfminer,
+        extract_text_from_pdf_textract,
+    )
     for func in funcs:
         _text = func(filepath)
         if len(_text) >= min_len:
@@ -23,9 +33,9 @@ def extract_text_from_pdf(filepath, *, min_len=150):
     return text
 
 
-def extract_text_textract(filepath):
+def extract_text_from_pdf_tika(filepath):
     """
-    Extract text from a PDF at ``filepath`` using ``textract`` + ``pdftotext``.
+    Extract text from a PDF at ``filepath`` using ``python-tika``.
 
     Args:
         filepath (str)
@@ -34,15 +44,14 @@ def extract_text_textract(filepath):
         str
     """
     # hiding the import so folks don't have to worry about installing it
-    # https://textract.readthedocs.io/en/stable/installation.html
-    import textract
+    # pip install tika
+    from tika import parser
 
-    return textract.process(
-        filepath, method="pdftotext", encoding="utf-8"
-    ).decode("utf-8").strip()
+    result = parser.from_file(filepath)
+    return result["content"].strip()
 
 
-def extract_text_pdfminer(filepath):
+def extract_text_from_pdf_pdfminer(filepath):
     """
     Extract text from a PDF at ``filepath`` using ``yapdfminer``.
 
@@ -83,9 +92,9 @@ def extract_text_pdfminer(filepath):
     return text.strip()
 
 
-def extract_text_tika(filepath):
+def extract_text_from_pdf_textract(filepath):
     """
-    Extract text from a PDF at ``filepath`` using ``python-tika``.
+    Extract text from a PDF at ``filepath`` using ``textract`` + ``pdftotext``.
 
     Args:
         filepath (str)
@@ -94,8 +103,9 @@ def extract_text_tika(filepath):
         str
     """
     # hiding the import so folks don't have to worry about installing it
-    # pip install tika
-    from tika import parser
+    # https://textract.readthedocs.io/en/stable/installation.html
+    import textract
 
-    result = parser.from_file(filepath)
-    return result["content"].strip()
+    return textract.process(
+        filepath, method="pdftotext", encoding="utf-8"
+    ).decode("utf-8").strip()

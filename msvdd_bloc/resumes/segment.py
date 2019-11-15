@@ -1,3 +1,10 @@
+"""
+segment
+-------
+
+Segment résumé text lines into separate sections which (mostly) correspond to
+top-level fields in :class:`schemas.ResumeSchema()`.
+"""
 import collections
 import re
 

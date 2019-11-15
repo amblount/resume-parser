@@ -1,3 +1,11 @@
+"""
+generate utils
+--------------
+
+Functionality for generating fake examples of labeled tokens for training a parser
+in a résumé section-agnostic manner. Section subpackages use and build upon these utils
+in their respective ``generate.py`` modules.
+"""
 import random
 import re
 
