@@ -39,23 +39,23 @@ def parse_lines(lines, tagger=None):
 
     tokens = parse_utils.tokenize("\n".join(lines).strip())
     features = featurize(tokens)
-    tok_labels = parse_utils.tag(tokens, features, tagger=tagger)
-    basics_data = _parse_basics_from_labeled_tokens(tok_labels)
-    return basics_data
+    labeled_tokens = parse_utils.tag(tokens, features, tagger=tagger)
+    data = _parse_labeled_tokens(labeled_tokens)
+    return data
 
 
-def _parse_basics_from_labeled_tokens(tok_labels):
+def _parse_labeled_tokens(labeled_tokens):
     """
     Args:
-        tok_labels (List[Tuple[:class:`spacy.tokens.Token`, str]])
+        labeled_tokens (List[Tuple[:class:`spacy.tokens.Token`, str]])
 
     Returns:
         Dict[str, obj]
     """
     excluded_labels = {"other", "field_sep", "item_sep", "field_label"}
-    basics_data = {}
+    data = {}
     profiles = []
-    for label, tls in itertools.groupby(tok_labels, key=operator.itemgetter(1)):
+    for label, tls in itertools.groupby(labeled_tokens, key=operator.itemgetter(1)):
         field_text = "".join(tok.text_with_ws for tok, _ in tls).strip()
         if label in excluded_labels:
             continue
@@ -71,8 +71,8 @@ def _parse_basics_from_labeled_tokens(tok_labels):
             if location_type == "Street Address":
                 location = dict(location)
                 if "recipient" in location:
-                    basics_data["name"] = location.pop("recipient")
-                basics_data["location"] = location
+                    data["name"] = location.pop("recipient")
+                data["location"] = location
         # HACK: social profiles are not handled well by the parser or this function
         # bc it wasn't clear how best to identify the network and/or url based on
         # the fragments + icons typically included in résumés, *especially* since
@@ -80,10 +80,10 @@ def _parse_basics_from_labeled_tokens(tok_labels):
         elif label == "profile":
             profiles.append({"username": field_text})
         else:
-            basics_data[label] = field_text
+            data[label] = field_text
     if profiles:
-        basics_data["profiles"] = profiles
-    return basics_data
+        data["profiles"] = profiles
+    return data
 
 
 def featurize(tokens):
@@ -104,13 +104,15 @@ def featurize(tokens):
     else:
         feature_sequence = []
         tokens_features = parse_utils.pad_tokens_features(
-            tokens_features, n_left=2, n_right=1)
+            tokens_features, n_left=2, n_right=2)
         idx_last_newline = 0
-        for pprev_tf, prev_tf, curr_tf, next_tf in itertoolz.sliding_window(4, tokens_features):
-            tf = curr_tf.copy()
+        tf_windows = itertoolz.sliding_window(5, tokens_features)
+        for pprev_tf, prev_tf, tf, next_tf, nnext_tf in tf_windows:
+            tf = tf.copy()
             tf["pprev"] = pprev_tf
             tf["prev"] = prev_tf
             tf["next"] = next_tf
+            tf["nnext"] = nnext_tf
             # NOTE: add features here that depend upon tokens elsewhere in the sequence
             # e.g. whether or not a particular word appeared earlier in the sequence
             if all(char == "\n" for char in tf["shape"]):
@@ -147,7 +149,7 @@ def get_token_features(token):
 ## RULES-BASED PARSING ##
 #########################
 
-def parse_basics_section_alt(lines):
+def parse_lines_rules_based_version(lines):
     """
     Parse a sequence of text lines belonging to the "basics" section of a résumé
     to produce structured data in the form of :class:`schemas.ResumeBasicsSchema`
@@ -160,50 +162,50 @@ def parse_basics_section_alt(lines):
     Returns:
         Dict[str, obj]
     """
-    basics_data = {}
+    data = {}
     for line in lines:
         if not line:
             continue
         for line_chunk in regexes.RE_LINE_DELIM.split(line):
             if not line_chunk:
                 continue
-            if "email" not in basics_data:
+            if "email" not in data:
                 match = regexes.RE_EMAIL.search(line_chunk)
                 if match:
-                    basics_data["email"] = match.group()
+                    data["email"] = match.group()
                     start, end = match.span()
                     if start == 0 and end == len(line_chunk):
                         continue
                     else:
                         line_chunk = line_chunk[:start] + line_chunk[end:]
-            if "phone" not in basics_data:
+            if "phone" not in data:
                 match = regexes.RE_PHONE_NUMBER.search(line_chunk)
                 if match:
-                    basics_data["phone"] = match.group()
+                    data["phone"] = match.group()
                     start, end = match.span()
                     if start == 0 and end == len(line_chunk):
                         continue
                     else:
                         line_chunk = line_chunk[:start] + line_chunk[end:]
-            if "website" not in basics_data:
+            if "website" not in data:
                 match = regexes.RE_URL.search(line_chunk)
                 if match:
-                    basics_data["website"] = match.group()
+                    data["website"] = match.group()
                     start, end = match.span()
                     if start == 0 and end == len(line_chunk):
                         continue
                     else:
                         line_chunk = line_chunk[:start] + line_chunk[end:]
-            if "profiles" not in basics_data:
+            if "profiles" not in data:
                 match = regexes.RE_USER_HANDLE.search(line_chunk)
                 if match:
-                    basics_data["profiles"] = [{"username": match.group()}]
+                    data["profiles"] = [{"username": match.group()}]
                     start, end = match.span()
                     if start == 0 and end == len(line_chunk):
                         continue
                     else:
                         line_chunk = line_chunk[:start] + line_chunk[end:]
-            if "location" not in basics_data:
+            if "location" not in data:
                 try:
                     location, location_type = usaddress.tag(
                         line_chunk, tag_mapping=basics.constants.LOCATION_TAG_MAPPING)
@@ -213,14 +215,14 @@ def parse_basics_section_alt(lines):
                 if location_type == "Street Address":
                     location = dict(location)
                     if "recipient" in location:
-                        basics_data["name"] = location.pop("recipient")
-                    basics_data["location"] = location
-            if "name" not in basics_data:
+                        data["name"] = location.pop("recipient")
+                    data["location"] = location
+            if "name" not in data:
                 try:
                     name, name_type = probablepeople.tag(line_chunk)
                 except probablepeople.RepeatedLabelError as e:
                     LOGGER.debug("'name' parsing error:\n%s", e)
                     continue
                 if name_type == "Person":
-                    basics_data["name"] = " ".join(name.values())
-    return basics_data
+                    data["name"] = " ".join(name.values())
+    return data

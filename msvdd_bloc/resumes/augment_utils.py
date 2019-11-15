@@ -86,12 +86,12 @@ class Augmenter:
         return rand_tfs
 
 
-def change_case_token_text(tok_labels, *, case="upper", target_labels=None):
+def change_case_token_text(labeled_tokens, *, case="upper", target_labels=None):
     """
     Change token text to ``case`` case for those whose label is in ``target_labels``.
 
     Args:
-        tok_labels (List[Tuple[str, str]])
+        labeled_tokens (List[Tuple[str, str]])
         case ({"upper", "title", "lower"})
         target_labels (str or Set[str])
 
@@ -101,23 +101,23 @@ def change_case_token_text(tok_labels, *, case="upper", target_labels=None):
     _case_to_func = {"upper": str.upper, "title": str.capitalize, "lower": str.lower}
     func = _case_to_func[case]
     if target_labels is None:
-        return [(func(tok), label) for tok, label in tok_labels]
+        return [(func(tok), label) for tok, label in labeled_tokens]
     else:
         if isinstance(target_labels, str):
             target_labels = {target_labels}
         return [
             (func(tok), label) if label in target_labels else (tok, label)
-            for tok, label in tok_labels
+            for tok, label in labeled_tokens
         ]
 
 
-def delete_token(tok_labels, *, prob=0.01,  target_labels=None):
+def delete_token(labeled_tokens, *, prob=0.01,  target_labels=None):
     """
     Randomly delete any given token with a probability of ``prob`` for those whose
     label is in ``target_labels``.
 
     Args:
-        tok_labels (List[Tuple[str, str]])
+        labeled_tokens (List[Tuple[str, str]])
         prob (float)
         target_labels (str or Set[str])
 
@@ -125,17 +125,18 @@ def delete_token(tok_labels, *, prob=0.01,  target_labels=None):
         List[Tuple[str, str]]
     """
     if target_labels is None:
-        return [tok_label for tok_label in tok_labels if random.random() >= prob]
+        return [tok_label for tok_label in labeled_tokens if random.random() >= prob]
     else:
         return [
             tok_label
-            for tok_label in tok_labels
+            for tok_label in labeled_tokens
             if tok_label[1] in target_labels and random.random() >= prob
         ]
 
 
 def insert_whitespace_token(
-    tok_labels, *,
+    labeled_tokens,
+    *,
     prob=0.01,
     nrange=(1, 2),
     field_labels=("field_sep", "item_sep"),
@@ -145,7 +146,7 @@ def insert_whitespace_token(
     of ``prob``, provided neither token is already whitespace.
 
     Args:
-        tok_labels (List[Tuple[str, str]])
+        labeled_tokens (List[Tuple[str, str]])
         prob (float)
         ngrange (Tuple[int, int])
         field_labels (Tuple[str, str])
@@ -153,10 +154,10 @@ def insert_whitespace_token(
     Returns:
         List[Tuple[str, str]]
     """
-    aug_tok_labels = []
-    for tl1, tl2 in itertoolz.sliding_window(2, tok_labels):
-        aug_tok_labels.append(tl1)
+    aug_labeled_tokens = []
+    for tl1, tl2 in itertoolz.sliding_window(2, labeled_tokens):
+        aug_labeled_tokens.append(tl1)
         if random.random() < prob and not (tl1[0].isspace() or tl2[0].isspace()):
             ws_label = field_labels[tl1[1] == tl2[1]]
-            aug_tok_labels.append((" " * random.randint(*nrange), ws_label))
-    return aug_tok_labels
+            aug_labeled_tokens.append((" " * random.randint(*nrange), ws_label))
+    return aug_labeled_tokens

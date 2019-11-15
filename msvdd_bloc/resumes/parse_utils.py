@@ -100,7 +100,7 @@ def tag(tokens, features, *, tagger):
 
     Returns:
         List[Tuple[:class:`spacy.tokens.Token`, str]]: Ordered sequence of
-        (token, tag) pairs.
+        (token, tag) pairs, aka "labeled tokens".
     """
     tags = tagger.tag(features)
     return list(zip(tokens, tags))

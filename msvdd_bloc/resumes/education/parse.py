@@ -45,24 +45,24 @@ def parse_lines(lines, tagger=None):
 
     tokens = parse_utils.tokenize("\n".join(lines).strip())
     features = featurize(tokens)
-    tok_labels = parse_utils.tag(tokens, features, tagger=tagger)
-    educations_data = _parse_educations_from_labeled_tokens(tok_labels)
-    return educations_data
+    labeled_tokens = parse_utils.tag(tokens, features, tagger=tagger)
+    datas = _parse_labeled_tokens(labeled_tokens)
+    return datas
 
 
-def _parse_educations_from_labeled_tokens(tok_labels):
+def _parse_labeled_tokens(labeled_tokens):
     """
     Args:
-        tok_labels (List[Tuple[:class:`spacy.tokens.Token`, str]])
+        labeled_tokens (List[Tuple[:class:`spacy.tokens.Token`, str]])
 
     Returns:
         List[Dict[str, obj]]
     """
-    excluded_labels = {"other", "field_sep", "item_sep", "field_label"}
-    educations_data = []
-    education_data = {}
+    excluded_labels = {"other", "field_sep", "item_sep", "field_label", "bullet"}
+    datas = []
+    data = {}
     courses = []
-    for label, tls in itertools.groupby(tok_labels, key=operator.itemgetter(1)):
+    for label, tls in itertools.groupby(labeled_tokens, key=operator.itemgetter(1)):
         if label in excluded_labels:
             continue
         field_text = "".join(tok.text_with_ws for tok, _ in tls).strip()
@@ -70,20 +70,21 @@ def _parse_educations_from_labeled_tokens(tok_labels):
             courses.append(field_text)
         # big assumption: only one institution per educational experience
         # and the appearance of a new one indicates another item
-        elif label == "institution" and "institution" in education_data:
+        elif label == "institution" and "institution" in data:
             if courses:
-                education_data["courses"] = courses
-            educations_data.append(education_data)
+                data["courses"] = courses
+            datas.append(data)
             # start a new educational experience
-            education_data = {label: field_text}
+            data = {label: field_text}
             courses = []
         else:
-            education_data[label] = field_text
-    if education_data:
+            data[label] = field_text
+    # add any remaining education experience to the list
+    if data:
         if courses:
-            education_data["courses"] = courses
-        educations_data.append(education_data)
-    return educations_data
+            data["courses"] = courses
+        datas.append(data)
+    return datas
 
 
 def featurize(tokens):
@@ -104,13 +105,15 @@ def featurize(tokens):
     else:
         feature_sequence = []
         tokens_features = parse_utils.pad_tokens_features(
-            tokens_features, n_left=2, n_right=1)
+            tokens_features, n_left=2, n_right=2)
         idx_last_newline = 0
-        for pprev_tf, prev_tf, curr_tf, next_tf in itertoolz.sliding_window(4, tokens_features):
+        tf_windows = itertoolz.sliding_window(5, tokens_features)
+        for pprev_tf, prev_tf, curr_tf, next_tf, nnext_tf in tf_windows:
             tf = curr_tf.copy()
             tf["pprev"] = pprev_tf
             tf["prev"] = prev_tf
             tf["next"] = next_tf
+            tf["nnext"] = nnext_tf
             # NOTE: add features here that depend upon tokens elsewhere in the sequence
             # e.g. whether or not a particular word appeared earlier in the sequence
             if all(char == "\n" for char in tf["shape"]):
