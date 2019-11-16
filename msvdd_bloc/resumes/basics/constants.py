@@ -41,5 +41,5 @@ LOCATION_TAG_MAPPING = {
    'ZipCode': 'postal_code',
 }
 """
-Dict[str, str]: Mapping of ``usaddress` location tag to corresponding résumé schema field.
+Dict[str, str]: Mapping of ``usaddress`` location tag to corresponding résumé schema field.
 """
