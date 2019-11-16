@@ -1,4 +1,5 @@
 import functools as fnc
+import math
 import random as rnd
 
 import faker
@@ -84,6 +85,12 @@ class Provider(faker.providers.BaseProvider):
         template = rnd.choices(
             self._course_templates, weights=[1.0, 0.5, 0.2, 0.1], k=1,
         )[0]
+        # add a course code?
+        if rnd.random() < 0.05:
+            template += " ({dep_code} {num_code})".format(
+                dep_code=self.generator.lexify("?" * rnd.randint(2, 4)).upper(),
+                num_code=self.generator.numerify("#" * rnd.randint(2, 4)),
+            )
         return template.format(
             prefix=rnd.choice(c.COURSE_PREFIXES),
             subject=rnd.choice(c.COURSE_SUBJECTS),
@@ -287,14 +294,43 @@ def generate_group_courses():
     a variable number of course titles separated by appropriate punctuation,
     possibly split over two lines.
     """
-    templates = (
-        "{{label_courses::0.75}} {courses}",
-        "{{label_courses::0.75}} {courses} {{nl}} {courses2}",
-    )
-    template = rnd.choices(templates, weights=[1.0, 0.25], k=1)[0]
+    template = "{{label_courses::0.75}} {course_list}"
+    minn, maxn = (3, 8)
+    newline_idx = rnd.choices(
+        range(maxn),
+        weights=[math.pow(i / maxn, 2) for i in range(maxn)],
+        k=1,
+    )[0]
     return template.format(
-        courses=" {isep} ".join("{course}" for _ in range(rnd.randint(3, 5))),
-        courses2=" {isep} ".join("{course}" for _ in range(rnd.randint(1, 3))),
+        course_list=" {isep} ".join(
+            "{course}" if i != newline_idx else "{nl} {course}"
+            for i in range(rnd.randint(minn, maxn))),
+    )
+
+
+def generate_group_courses_block():
+    """
+    Generate a template for a logical group of course fields formatted as a sub-headered
+    block, consisting of a header (label) and a variable number of course titles,
+    either as an optionally bulletted list split over one or multiple lines.
+    """
+    templates = (
+        "{{label_courses::0.9}} {{nl}} {{bullet::0.5}} {course_list}",
+        "{{label_courses::0.9}} {{nl}} {course_lines}",
+    )
+    template = rnd.choices(templates, weights=[1.0, 0.5], k=1)[0]
+    minn, maxn = (4, 10)
+    newline_idx = rnd.choices(
+        range(maxn),
+        weights=[math.pow(i / maxn, 2) for i in range(maxn)],
+        k=1,
+    )[0]
+    course_list_sep = rnd.choices([" {isep} ", " {ws} "], weights=[1.0, 0.2], k=1)[0]
+    return template.format(
+        course_lines=" {bullet} ".join("{course}" for _ in range(rnd.randint(3, 5))),
+        course_list=course_list_sep.join(
+            "{course}" if i != newline_idx else "{nl} {course}"
+            for i in range(rnd.randint(minn, maxn))),
     )
 
 
@@ -327,6 +363,7 @@ def generate_group_study():
 _EXPERIENCES = [
     lambda: "{uni} {nl}" + generate_group_study() + "{fsep_sm|ws|nl}" + generate_group_date(),
     lambda: "{uni} {fsep_sm|ws}" + generate_group_date() + "{nl}" + generate_group_study(),
+    lambda: "{uni} {fsep_sm|ws}" + generate_group_date() + "{nl}" + generate_group_study() + "{nl}" + rnd.choice([generate_group_courses(), generate_group_courses_block()]),
     lambda: generate_group_study() + "{nl} {uni} {fsep_sm|ws|nl}" + generate_group_date(),
     lambda: (
         "{uni} {fsep_sm|ws}" + generate_group_date() +
@@ -344,6 +381,12 @@ _EXPERIENCES = [
             ["{label_gpa} {gpa}", "{area_detail}", generate_group_study(), generate_group_date(), generate_group_courses()],
             rnd.randint(2, 3)
         )
+    ),
+    lambda: " {nl} ".join(
+        ["{uni}"] + rnd.sample(
+            ["{label_gpa} {gpa}", generate_group_study(), generate_group_date()],
+            rnd.randint(2, 3)
+        ) + [generate_group_courses_block()]
     ),
     lambda: "{school} {fsep_sm|ws} {label_dt::0.5} {dt} {fsep_sm|nl|ws} {deg_school}",
 ]
