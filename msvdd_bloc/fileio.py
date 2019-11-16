@@ -6,8 +6,10 @@ import io
 import json
 import zipfile
 
+from msvdd_bloc import utils
 
-def get_filepaths(dirpath, suffix):
+
+def get_filepaths(dirpath, suffix=None):
     """
     Get full paths to all files under ``dirpath`` with a file type like ``suffix``.
 
@@ -18,11 +20,10 @@ def get_filepaths(dirpath, suffix):
     Returns:
         List[str]
     """
-    if isinstance(suffix, str):
-        suffix = {suffix}
+    suffix = utils.to_collection(suffix, str, set)
     return sorted(
         str(path) for path in dirpath.resolve().iterdir()
-        if path.is_file() and path.suffix in suffix
+        if path.is_file() and (suffix is None or path.suffix in suffix)
     )
 
 
