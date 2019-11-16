@@ -1,3 +1,7 @@
+"""
+file i/o
+--------
+"""
 import io
 import json
 import zipfile
@@ -41,7 +45,7 @@ def save_json(filepath, data, *, lines=False):
 
 def load_json(filepath, *, lines=False):
     """
-    Load JSON data stored to disk at ``filepath`.
+    Load JSON data stored to disk at ``filepath``.
 
     Args:
         filepath (str)
@@ -77,7 +81,7 @@ def save_text(filepath, data, *, lines=False):
 
 def load_text(filepath, *, lines=False):
     """
-    Load text data stored to disk at ``filepath`.
+    Load text data stored to disk at ``filepath``.
 
     Args:
         filepath (str)
@@ -96,9 +100,12 @@ def load_text(filepath, *, lines=False):
 
 def save_text_files_to_zip(filepath, text_files):
     """
+    Save multiple text files directly to a ZIP archive file.
+
     Args:
-        filepath (str)
-        text_files (Sequence[Tuple[str, str]])
+        filepath (str): Full path to ZIP archive file on disk.
+        text_files (Sequence[Tuple[str, str]]): Sequence of (filename, text content) pairs
+            to store at ``filepath``.
     """
     with zipfile.ZipFile(filepath, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
         for fname, text in text_files:
@@ -107,11 +114,13 @@ def save_text_files_to_zip(filepath, text_files):
 
 def load_text_files_from_zip(filepath):
     """
+    Load multiple text files directly from a ZIP archive file.
+
     Args:
-        filepath (str)
+        filepath (str): Full path to ZIP archive file on disk.
 
     Yields:
-        Tuple[str, str]
+        Tuple[str, str]: Next (filename, text content) pair stored at ``filepath``.
     """
     with zipfile.ZipFile(filepath, mode="r") as zf:
         for member in zf.infolist():

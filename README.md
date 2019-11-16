@@ -19,8 +19,8 @@
     msvdd_Bloc(master)$ pyenv shell bloc-env
     ```
 
-1. **Install the `msvdd_bloc` package** in one of two ways.
-   - If you want to use the code as-is without further development, installation is simple:
+1. **Install the package** in one of two ways.
+   - If you want to use the `msvdd_bloc` code as-is without further development, installation is simple:
 
         ```
         (bloc-env) msvdd_Bloc(master)$ pip install .

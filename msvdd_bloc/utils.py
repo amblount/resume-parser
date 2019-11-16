@@ -1,3 +1,9 @@
+"""
+utils
+-----
+"""
+
+
 def dedupe_results(results, dupe_key):
     """
     Filter out items in ``results`` with the same ``dupe_key`` value, keeping only
