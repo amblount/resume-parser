@@ -49,31 +49,14 @@ SECTION_HEADERS = {
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
-    # combining education + courses doesn't seem to parse well
-    # so, let's punt on this and keep them separate
-    # "education": re.compile(
-    #     r"^(?P<text>"
-    #     "academic qualifications|"
-    #     "course ?work|"
-    #     "courses completed|"
-    #     "education|"
-    #     "(recent|related|relevant|undergraduate) courses|"
-    #     "(recent|related|relevant) course ?work"
-    #     ")(?P<end>:?$)",
-    #     flags=re.IGNORECASE,
-    # ),
+    # let's combine education + courses, because it *makes sense*
+    # however, the parser struggles more with this setup
     "education": re.compile(
         r"^(?P<text>"
         "academic qualifications|"
-        "education"
-        ")(?P<end>:?$)",
-        flags=re.IGNORECASE,
-    ),
-    # "courses" section becomes a field in "education" section
-    "courses": re.compile(
-        r"^(?P<text>"
         "course ?work|"
         "courses completed|"
+        "education|"
         "(recent|related|relevant|undergraduate) courses|"
         "(recent|related|relevant) course ?work"
         ")(?P<end>:?$)",
@@ -166,7 +149,7 @@ that matches header lines indicating the start of the corresponding section.
 """
 
 
-def get_section_lines(lines):
+def get_section_lines(lines, keep_subheaders=True):
     """
     Parse a sequence of text lines from a résumé into a mapping of section name
     to corresponding lines.
@@ -174,20 +157,27 @@ def get_section_lines(lines):
     Args:
         List[str]: Cleaned and filtered résumé text lines, as output by
             :func:`resumes.munge.get_filtered_text_lines()`.
+        keep_subheaders (bool): If True, don't remove header text when a section header
+            matches while *already* adding lines for the same section. In this situation,
+            the header is probably a "sub-header", and its text may be meaningful.
 
     Returns:
         Dict[str, List[str]]
     """
     section_lines = collections.defaultdict(list)
+    prev_section = None
     curr_section = "start"
     for line in lines:
         for section, pattern in SECTION_HEADERS.items():
             match = pattern.match(line)
             if match:
-                curr_section = section
+                prev_section, curr_section = curr_section, section
+                # if header is a "sub-header", don't skip its text content
+                if prev_section == curr_section and keep_subheaders is True:
+                    section_lines[curr_section].append(line)
                 # if header is the start of a line with more content
                 # append only the post-header content
-                if match.group("end").endswith(": "):
+                elif match.group("end").endswith(": "):
                     section_lines[curr_section].append(line[match.end():])
                 # if header is a whole line on its own, skip to the next line
                 else:
