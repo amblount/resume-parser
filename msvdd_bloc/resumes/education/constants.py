@@ -253,9 +253,10 @@ COURSE_SUFFIXES = (
 )
 
 FIELD_LABEL_COURSES = (
-    "Courses", "Relevant Courses",
-    "Coursework", "Relevant Coursework",
-    "Course Work", "Relevant Course Work",
+    "Courses", "Coursework", "Course Work",
+    "Relevant Courses", "Relevant Coursework", "Relevant Course Work",
+    "Recent Courses", "Recent Coursework", "Recent Course Work",
+    "Courses Completed",
 )
 FIELD_LABEL_GRAD_DATES = (
     "Graduation", "Graduating",

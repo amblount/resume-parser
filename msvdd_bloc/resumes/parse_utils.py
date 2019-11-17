@@ -6,6 +6,7 @@ Functionality for tokenizing, featurizing, tagging, padding sequences, and loadi
 in a résumé section-agnostic manner. Section subpackages use and build upon these utils
 in their respective ``parse.py`` modules.
 """
+import functools
 import importlib
 import logging
 import string
@@ -18,6 +19,28 @@ from spacy.tokens import Doc
 
 LOGGER = logging.getLogger(__name__)
 _PUNCT_CHARS = set(string.punctuation)
+
+
+@functools.lru_cache(maxsize=16)
+def load_tagger(fpath):
+    """
+    Args:
+        fpath (str or :class:`pathlib.Path`)
+
+    Returns:
+        :class:`pycrfsuite.Tagger`
+    """
+    try:
+        tagger = pycrfsuite.Tagger()
+        tagger.open(str(fpath))
+        return tagger
+    except IOError:
+        LOGGER.warning(
+            "tagger model file '%s' is missing; have you trained one yet? "
+            "if not, use the `label_parser_training_data.py` script to do so.",
+            fpath,
+        )
+        raise
 
 
 def tokenize(line):
@@ -112,27 +135,6 @@ def tag(tokens, features, *, tagger):
     """
     tags = tagger.tag(features)
     return list(zip(tokens, tags))
-
-
-def load_tagger(fpath):
-    """
-    Args:
-        fpath (str or :class:`pathlib.Path`)
-
-    Returns:
-        :class:`pycrfsuite.Tagger`
-    """
-    try:
-        tagger = pycrfsuite.Tagger()
-        tagger.open(str(fpath))
-        return tagger
-    except IOError:
-        LOGGER.warning(
-            "tagger model file '%s' is missing; have you trained one yet? "
-            "if not, use the `label_parser_training_data.py` script to do so.",
-            fpath,
-        )
-        raise
 
 
 class PhoneNumberMerger:

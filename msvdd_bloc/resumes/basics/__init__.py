@@ -1,3 +1,7 @@
+"""
+basics
+------
+"""
 from msvdd_bloc import MODELS_DIR as _MDIR
 from . import augment
 from . import constants
