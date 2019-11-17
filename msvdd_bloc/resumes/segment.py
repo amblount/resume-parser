@@ -103,12 +103,18 @@ SECTION_HEADERS = {
         "activities|"
         "activities (and|&) student groups|"
         "clubs|"
-        "extracurriculars|"
+        "extracurriculars?|"
         "extracurricular activities|"
         "fellowships (and|&) clubs|"
         "(github|other|programming|recent|side|technical) projects|"
         "interests|"
         "projects"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "references": re.compile(
+        r"^(?P<text>"
+        "references"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
@@ -127,6 +133,7 @@ SECTION_HEADERS = {
         "miscellaneous|"
         "organizations|"
         "organizations (and|&) awards|"
+        "professional associations (and|&) activities|"
         "programs (and|&) affiliations|"
         "skills (and|&) activities|"
         "skills (and|&) interests|"
