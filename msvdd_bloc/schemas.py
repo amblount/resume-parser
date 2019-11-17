@@ -4,6 +4,8 @@ schemas
 """
 import marshmallow as ma
 
+from msvdd_bloc import regexes
+
 
 class ResumeSchema(ma.Schema):
     """
@@ -152,7 +154,10 @@ class ResumeBasicsSchema(ma.Schema):
     label = ma.fields.String()
     email = ma.fields.String(validate=ma.validate.Email())
     phone = ma.fields.String()
-    website = ma.fields.String(validate=ma.validate.URL())
+    # marshmallow's built-in URL validation is *strict*
+    website = ma.fields.String(validate=ma.validate.URL(relative=True, require_tld=True))
+    # website = ma.fields.String(
+    #     validate=lambda s: regexes.RE_URL.match(s) is not None or regexes.RE_SHORT_URL.match(s) is not None)
     summary = ma.fields.String()
     location = ma.fields.Nested("ResumeBasicsLocationSchema")
     profiles = ma.fields.Nested("ResumeBasicsProfileSchema", many=True)
@@ -264,7 +269,7 @@ class ResumeEducationSchema(ma.Schema):
     start_date = ma.fields.String()  # not necessarily a date
     end_date = ma.fields.String()  # not necessarily a date
     gpa = ma.fields.String()  # not necessarily a number
-    course = ma.fields.List(ma.fields.String())
+    courses = ma.fields.List(ma.fields.String())
 
 
 class ResumeAwardSchema(ma.Schema):
@@ -299,6 +304,7 @@ class ResumePublicationSchema(ma.Schema):
     name = ma.fields.String()
     publisher = ma.fields.String()
     release_date = ma.fields.Date()
+    # website = ma.fields.String(validate=ma.validate.URL())
     website = ma.fields.String(validate=ma.validate.URL())
     summary = ma.fields.String()
 
