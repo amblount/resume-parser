@@ -6,6 +6,7 @@ FIELD_SEP_SMS = (",", ";")
 
 LEFT_BRACKETS = ("(", "[")
 RIGHT_BRACKETS = (")", "]")
+PUNCT_MID_SENTENCE = (",", ";", ":", "—")
 
 SEASONS = ("Spring", "Summer", "Fall", "Winter")
 

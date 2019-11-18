@@ -1,4 +1,5 @@
 import functools as fnc
+import math
 import random as rnd
 
 import faker
@@ -85,6 +86,9 @@ class Provider(faker.providers.BaseProvider):
     def newline(self):
         return "\n" if rnd.random() < 0.8 else "\n\n"
 
+    def punct_mid_sentence(self):
+        return rnd.choices(c.PUNCT_MID_SENTENCE, weights=[1.0, 0.25, 0.1, 0.1], k=1)[0]
+
     def summary_paragraph(self):
         return " ".join(
             self.generator.sentence(nb_words=15)
@@ -122,9 +126,13 @@ FIELDS = {
     "job": (FAKER.job, "position"),
     "nl": (FAKER.newline, "field_sep"),
     "para": (FAKER.summary_paragraph, "summary"),
+    "punct_mid": (FAKER.punct_mid_sentence, "highlight"),
+    "punct_end": (lambda: ".", "highlight"),
     "rb": (FAKER.right_bracket, "field_sep"),
     "sent": (fnc.partial(FAKER.sentence, nb_words=15, variable_nb_words=True), "highlight"),
     "site": (FAKER.website, "website"),
+    "word": (FAKER.word, "highlight"),
+    "word_title": (lambda: FAKER.word().capitalize(), "highlight"),
     "ws": (FAKER.whitespace, "field_sep"),
 }
 """
@@ -149,12 +157,41 @@ def generate_group_date():
     return rnd.choices(templates, weights=[1.0, 0.5, 0.1], k=1)[0]
 
 
+def generate_group_highlight():
+    """
+    Generate a template for a logical group of highlight fields, consisting of a single
+    sentence spanning one or multiple lines, beginning with a bullet point.
+    """
+    maxn_newline = rnd.randint(15, 30)
+    maxn_punct = rnd.randint(20, 40)
+    n_words = rnd.randint(10, 30)
+
+    all_fks = ["{bullet} {word_title}"]
+    n_since_punct = 0
+    n_since_newline = 0
+    for i in range(n_words):
+        fks = ["{word}"]
+        if i < 0.8 * n_words and rnd.random() < math.pow(n_since_punct / maxn_punct, 2):
+            fks.append("{punct_mid}")
+            n_since_punct = 0
+        else:
+            n_since_punct += 1
+        if i < 0.8 * n_words and rnd.random() < math.pow(n_since_newline / maxn_newline, 2):
+            fks.append("{nl:item_sep}")
+            n_since_newline = 0
+        else:
+            n_since_newline += 1
+        all_fks.extend(fks)
+    all_fks.append("{punct_end::0.25}")
+    return " ".join(all_fks)
+
+
 def generate_group_highlights():
     """
-    Generate a template for a logical group of highlight fields, consisting of 2+
-    sentences as a list spanning multiple lines.
+    Generate a template for a logical group of highlight fields, consisting of one or more
+    sentences as a list spanning multiple lines, each beginning with a bullet point.
     """
-    return " {nl} ".join("{bullet} {sent}" for _ in range(rnd.randint(2, 5)))
+    return " {nl} ".join(generate_group_highlight() for _ in range(rnd.randint(1, 3)))
 
 
 _EXPERIENCES = [
@@ -191,6 +228,22 @@ _EXPERIENCES = [
     ),
     lambda: (
         "{bullet::0.25} {comp} {fsep_sm|ws} {city_state} {nl} {job} {fsep|fsep_sm|ws}" +
+        generate_group_date() + "{nl}" +
+        generate_group_highlights()
+    ),
+    lambda: (
+        "{job} {nl} {comp} {nl}" +
+        " {fsep} ".join(rnd.sample([generate_group_date(), "{city_state}"], 2)) + "{nl}" +
+        generate_group_highlights()
+    ),
+    lambda: "{job} {fsep_sm} {comp} {fsep_sm} {city_state} {nl} {para}",
+    lambda: (
+        " {fsep} ".join(rnd.sample(["{job}", "{comp}", generate_group_date()], 3)) + "{nl}" +
+        rnd.choice([generate_group_highlights(), "{para}"])
+    ),
+    lambda: "{comp} {nl}" + generate_group_highlights(),
+    lambda: (
+        "{comp} {fsep|fsep_sm|ws} {city_state} {nl} {job} {fsep|ws}" +
         generate_group_date() + "{nl}" +
         generate_group_highlights()
     ),
