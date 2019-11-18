@@ -21,6 +21,12 @@ class Provider(faker.providers.BaseProvider):
         "{season} {year}",
         "{year}",
     )
+    _job_title_templates = (
+        "{job}",
+        "{level} {job}",
+        "{job}{sep}{level}",
+        "{level}{sep}{job}",
+    )
 
     def city_state(self):
         template = rnd.choices(
@@ -80,6 +86,16 @@ class Provider(faker.providers.BaseProvider):
             sep=rnd.choice(c.FIELD_SEP_SMS),
         )
 
+    def job_title(self):
+        template = rnd.choices(
+            self._job_title_templates, weights=[1.0, 0.2, 0.2, 0.1], k=1,
+        )[0]
+        return template.format(
+            job=self.generator.job(),
+            level=rnd.choice(c.POSITION_LEVELS),
+            sep=rnd.choices([", ", " - "], weights=[1.0, 0.25], k=1)[0],
+        )
+
     def left_bracket(self):
         return rnd.choice(c.LEFT_BRACKETS)
 
@@ -123,7 +139,7 @@ FIELDS = {
     "fsep_prep": (FAKER.field_sep_prep, "field_sep"),
     "fsep_sm": (FAKER.field_sep_sm, "field_sep"),
     "lb": (FAKER.left_bracket, "field_sep"),
-    "job": (FAKER.job, "position"),
+    "job": (FAKER.job_title, "position"),
     "nl": (FAKER.newline, "field_sep"),
     "para": (FAKER.summary_paragraph, "summary"),
     "punct_mid": (FAKER.punct_mid_sentence, "highlight"),

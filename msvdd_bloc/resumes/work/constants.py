@@ -33,3 +33,23 @@ Sources:
     - https://en.wikipedia.org/wiki/List_of_largest_Internet_companies
     - https://en.wikipedia.org/wiki/List_of_largest_technology_companies_by_revenue
 """
+COMPANY_TYPES = (
+    "Corporation", "Incorporated", "Corp.", "Inc.", "Ltd.",
+    "Company", "Co.", "LLC", "L.L.C.", "LC", "L.C.",
+    "Group",
+)
+POSITION_LEVELS = (
+    "Intern", "Junior", "Associate", "Senior", "Lead",
+    "Manager", "Supervisor", "Director",
+    "Head", "Vice-President", "Chief",
+)
+POSITION_TYPES = (
+    "Accountant", "Administrator", "Advisor", "Agent", "Analyst", "Architect", "Assistant",
+    "Auditor", "Bookkeeper", "Buyer", "Cashier", "Clerk", "Collector", "Consultant",
+    "Contractor", "Coordinator", "Designer", "Developer", "Director", "Editor", "Evaluator",
+    "Engineer", "Examiner", "Executive", "Expert", "Investigator", "Laborer", "Manager",
+    "Merchandiser", "Officer", "Operator", "Planner", "President", "Processor",
+    "Programmer", "Receptionist", "Representative", "Researcher", "Reviewer", "Scientist",
+    "Secretary", "Specialist", "Strategist", "Supervisor", "Support", "Technician",
+    "Trader", "Trainee", "Trainer", "Treasurer", "Trustee", "Underwriter", "Webmaster",
+)

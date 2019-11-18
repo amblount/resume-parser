@@ -5,21 +5,24 @@ import operator
 from toolz import itertoolz
 
 from msvdd_bloc import regexes
-from msvdd_bloc.resumes import education
 from msvdd_bloc.resumes import parse_utils
+from msvdd_bloc.resumes import work
 
 
 LOGGER = logging.getLogger(__name__)
 
 FIELD_SEP_TEXTS = {
     sep for sep in itertoolz.concatv(
-        education.constants.FIELD_SEPS,
-        education.constants.FIELD_SEP_DTS,
-        education.constants.FIELD_SEP_SMS,
-        education.constants.LEFT_BRACKETS,
-        education.constants.RIGHT_BRACKETS,
+        work.constants.FIELD_SEPS,
+        work.constants.FIELD_SEP_DTS,
+        work.constants.FIELD_SEP_SMS,
+        work.constants.LEFT_BRACKETS,
+        work.constants.RIGHT_BRACKETS,
     )
 }
+COMPANY_TYPE_TEXTS = set(work.constants.COMPANY_TYPES)
+POSITION_TEXTS = set(work.constants.POSITION_LEVELS + work.constants.POSITION_TYPES)
+
 
 def parse_lines(lines, tagger=None):
     """
@@ -73,11 +76,13 @@ def featurize(tokens):
     else:
         feature_sequence = []
         tokens_features = parse_utils.pad_tokens_features(
-            tokens_features, n_left=2, n_right=2)
+            tokens_features, n_left=3, n_right=2)
         idx_last_newline = 0
-        tf_windows = itertoolz.sliding_window(5, tokens_features)
-        for pprev_tf, prev_tf, curr_tf, next_tf, nnext_tf in tf_windows:
+        idx_last_bullet = 0
+        tf_windows = itertoolz.sliding_window(6, tokens_features)
+        for ppprev_tf, pprev_tf, prev_tf, curr_tf, next_tf, nnext_tf in tf_windows:
             tf = curr_tf.copy()
+            tf["ppprev"] = ppprev_tf
             tf["pprev"] = pprev_tf
             tf["prev"] = prev_tf
             tf["next"] = next_tf
@@ -87,6 +92,9 @@ def featurize(tokens):
             if all(char == "\n" for char in tf["shape"]):
                 idx_last_newline = tf["idx"]
             tf["n_toks_since_newline"] = tf["idx"] - idx_last_newline
+            if tf["shape"] == "-" and tf["n_toks_since_newline"] == 1:
+                idx_last_bullet = tf["idx"]
+            tf["n_toks_since_bullet"] = tf["idx"] - idx_last_bullet
             feature_sequence.append(tf)
         return feature_sequence
 
@@ -106,6 +114,8 @@ def get_token_features(token):
     features.update(
         {
             "is_field_sep_text": text in FIELD_SEP_TEXTS,
+            "is_company_type_text": text in COMPANY_TYPE_TEXTS,
+            "is_position_text": text in POSITION_TEXTS,
             "like_month_name": regexes.RE_MONTH.match(text) is not None,
             "like_year": regexes.RE_YEAR.match(text) is not None,
         }
