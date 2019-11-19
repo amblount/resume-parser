@@ -21,7 +21,6 @@ LABELS = (
     "highlights",
     "field_sep",
     "item_sep",
-    "field_label",
     "bullet",
     "other",
 )

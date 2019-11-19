@@ -27,6 +27,12 @@ class Provider(faker.providers.BaseProvider):
         "{job}{sep}{level}",
         "{level}{sep}{job}",
     )
+    _subheader_templates = (
+        "{word1}",
+        "{word1} {word2}",
+        "{word1} & {word2}",
+        "{word1} and {word2}",
+    )
 
     def city_state(self):
         template = rnd.choices(
@@ -69,10 +75,14 @@ class Provider(faker.providers.BaseProvider):
         )
 
     def field_sep_dt(self):
-        return "{ws}{sep}{ws}".format(
-            ws=" " * rnd.randint(1, 2),
-            sep=rnd.choices(c.FIELD_SEP_DTS, weights=[1.0, 0.5, 0.1], k=1)[0],
-        )
+        sep = rnd.choices(c.FIELD_SEP_DTS, weights=[1.0, 0.5, 0.1], k=1)[0]
+        # word-like separators need at least 1 space
+        if sep.isalpha():
+            ws = " " * rnd.choices([1, 2], weights=[1.0, 0.25], k=1)[0]
+        # but punct-like separators do not
+        else:
+            ws = " " * rnd.choices([1, 2, 0], weights=[1.0, 0.25, 0.1], k=1)[0]
+        return "{ws}{sep}{ws}".format(ws=ws, sep=sep)
 
     def field_sep_prep(self):
         return "{ws}{sep}{ws}".format(
@@ -114,6 +124,21 @@ class Provider(faker.providers.BaseProvider):
     def right_bracket(self):
         return rnd.choice(c.RIGHT_BRACKETS)
 
+    def subheader(self):
+        template = rnd.choices(
+            self._subheader_templates, weights=[1.0, 0.25, 0.25, 0.1], k=1,
+        )[0]
+        if rnd.random() < 0.75:
+            subheader_string = template.format(
+                word1=self.generator.word(), word2=self.generator.word()
+            ).upper()
+        else:
+            subheader_string = template.format(
+                word1=self.generator.word().capitalize(),
+                word2=self.generator.word().capitalize(),
+            )
+        return subheader_string
+
     def website(self):
         if rnd.random() < 0.5:
             return self.generator.url()
@@ -122,6 +147,24 @@ class Provider(faker.providers.BaseProvider):
 
     def whitespace(self):
         return " " * rnd.randint(1, 4)
+
+    def word_plus(self):
+        if rnd.random() < 0.9:
+            word = self.generator.word()
+            if rnd.random() < 0.01:
+                word = "{}'s".format(word)
+            elif rnd.random() < 0.01:
+                word = "{}-{}".format(word, self.generator.word())
+            elif rnd.random() < 0.01:
+                word = '"{}"'.format(word)
+            return word
+        elif rnd.random() < 0.75:
+            return self.generator.bs()
+        else:
+            return str(self.generator.random_int(min=1, max=100))
+
+    def word_title(self):
+        return self.generator.word().capitalize()
 
 
 FAKER = faker.Faker()
@@ -147,8 +190,10 @@ FIELDS = {
     "rb": (FAKER.right_bracket, "field_sep"),
     "sent": (fnc.partial(FAKER.sentence, nb_words=15, variable_nb_words=True), "highlight"),
     "site": (FAKER.website, "website"),
+    "subheader": (FAKER.subheader, "other"),
     "word": (FAKER.word, "highlight"),
-    "word_title": (lambda: FAKER.word().capitalize(), "highlight"),
+    "word_plus": (FAKER.word_plus, "highlight"),
+    "word_title": (FAKER.word_title, "highlight"),
     "ws": (FAKER.whitespace, "field_sep"),
 }
 """
@@ -167,8 +212,8 @@ def generate_group_date():
     """
     templates = (
         "{dt}",
-        "{dt:start_dt} {fsep_dt} {dt|dt_now}",
-        "{lb} {dt:start_dt} {fsep_dt} {dt|dt_now} {rb}",
+        "{dt:start_date} {fsep_dt} {dt|dt_now}",
+        "{lb} {dt:start_date} {fsep_dt} {dt|dt_now} {rb}",
     )
     return rnd.choices(templates, weights=[1.0, 0.5, 0.1], k=1)[0]
 
@@ -178,15 +223,15 @@ def generate_group_highlight():
     Generate a template for a logical group of highlight fields, consisting of a single
     sentence spanning one or multiple lines, beginning with a bullet point.
     """
-    maxn_newline = rnd.randint(15, 30)
+    maxn_newline = rnd.randint(15, 25)
     maxn_punct = rnd.randint(20, 40)
-    n_words = rnd.randint(10, 30)
+    n_words = rnd.randint(8, 22)
 
     all_fks = ["{bullet} {word_title}"]
     n_since_punct = 0
     n_since_newline = 0
     for i in range(n_words):
-        fks = ["{word}"]
+        fks = ["{word_plus}"]
         if i < 0.8 * n_words and rnd.random() < math.pow(n_since_punct / maxn_punct, 2):
             fks.append("{punct_mid}")
             n_since_punct = 0
@@ -270,12 +315,18 @@ in a variety of formats and with a variety of constituent fields.
 """
 
 
-TEMPLATES = [
-    lambda: " {nl} {nl} ".join(
-        experience()
-        for experience in [rnd.choice(_EXPERIENCES)] * rnd.choices([1, 2, 3], weights=[1.0, 0.5, 0.1], k=1)[0]
-    ),
-]
+def generate_experiences():
+    n_experiences = rnd.choices([1, 2, 3], weights=[1.0, 0.75, 0.25], k=1)[0]
+    experience = rnd.choice(_EXPERIENCES)
+    sep = rnd.choices(
+        [" {nl} {nl::0.5} ", " {nl} {nl::0.5} {subheader} {nl} {nl::0.5} "],
+        weights=[1.0, 0.05],
+        k=1,
+    )[0]
+    return sep.join(experience() for _ in range(n_experiences))
+
+
+TEMPLATES = [generate_experiences]
 """
 List[Callable]: Set of functions that generate one or multiple work experiences with
 the same overall formatting.

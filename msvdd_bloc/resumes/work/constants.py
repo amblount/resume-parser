@@ -1,4 +1,3 @@
-# FIELD_SEPS = ("|", "–", "-", ":", "•", "·", "Ÿ", "�", "⇧")
 FIELD_SEPS = ("–", "-", "|", "�")
 FIELD_SEP_DTS = ("-", "–", "to")
 FIELD_SEP_PREPS = ("for", "at")
@@ -36,7 +35,8 @@ Sources:
 COMPANY_TYPES = (
     "Corporation", "Incorporated", "Corp.", "Inc.", "Ltd.",
     "Company", "Co.", "LLC", "L.L.C.", "LC", "L.C.",
-    "Group",
+    "Group", "Co-Op", "Bank", "Center",
+    "University", "College", "Institute", "Academy", "School",
 )
 POSITION_LEVELS = (
     "Intern", "Junior", "Associate", "Senior", "Lead",
@@ -44,12 +44,18 @@ POSITION_LEVELS = (
     "Head", "Vice-President", "Chief",
 )
 POSITION_TYPES = (
-    "Accountant", "Administrator", "Advisor", "Agent", "Analyst", "Architect", "Assistant",
-    "Auditor", "Bookkeeper", "Buyer", "Cashier", "Clerk", "Collector", "Consultant",
-    "Contractor", "Coordinator", "Designer", "Developer", "Director", "Editor", "Evaluator",
-    "Engineer", "Examiner", "Executive", "Expert", "Investigator", "Laborer", "Manager",
-    "Merchandiser", "Officer", "Operator", "Planner", "President", "Processor",
-    "Programmer", "Receptionist", "Representative", "Researcher", "Reviewer", "Scientist",
-    "Secretary", "Specialist", "Strategist", "Supervisor", "Support", "Technician",
-    "Trader", "Trainee", "Trainer", "Treasurer", "Trustee", "Underwriter", "Webmaster",
+    "Accountant", "Administrator", "Advisor", "Agent", "Analyst", "Apprentice",
+    "Architect", "Assistant", "Associate", "Auditor", "Bookkeeper", "Buyer",
+    "Captain", "Cashier", "Clerk", "Coach", "Coder", "Collector", "Consultant",
+    "Contractor", "Coordinator", "Copywriter", "Counselor", "Designer",
+    "Developer", "Director", "Doctor", "Driver", "Editor", "Educator", "Engineer",
+    "Estimator", "Evaluator", "Examiner", "Executive", "Expert", "Fellow",
+    "Handler", "Inspector", "Instructor", "Intern", "Interviewer", "Investigator",
+    "Laborer", "Leader", "Liaison", "Manager", "Merchandiser", "Nurse", "Officer",
+    "Operator", "Pilot", "Planner", "President", "Processor", "Professor",
+    "Programmer", "Receptionist", "Recruiter", "Representative", "Researcher",
+    "Reviewer", "Salesperson", "Scheduler", "Scientist", "Secretary", "Specialist",
+    "Strategist", "Supervisor", "Support", "Teacher", "Technician", "Technologist",
+    "Therapist", "Trader", "Trainee", "Trainer", "Treasurer", "Trustee", "Tutor",
+    "Underwriter", "Webmaster", "Worker", "Writer",
 )
