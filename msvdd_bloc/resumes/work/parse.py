@@ -78,7 +78,7 @@ def _parse_labeled_tokens(labeled_tokens):
             result_highlights = []
         else:
             result[label] = field_text
-    # add any remaining work experience to the list
+    # add leftover result to the list
     if result:
         if result_highlights:
             result["highlights"] = result_highlights
