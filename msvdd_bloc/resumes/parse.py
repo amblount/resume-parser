@@ -8,7 +8,7 @@ import marshmallow as ma
 
 from msvdd_bloc import schemas
 from msvdd_bloc.resumes import munge, segment
-from msvdd_bloc.resumes import basics, education, skills
+from msvdd_bloc.resumes import basics, education, skills, work
 
 
 LOGGER = logging.getLogger(__name__)
@@ -47,6 +47,11 @@ def parse(text):
     skills_lines = section_lines.get("skills", [])
     skills_data = skills.parse.parse_lines(skills_lines)
     data["skills"] = skills_data
+
+    # work
+    work_lines = section_lines.get("work", [])
+    work_data = work.parse.parse_lines(work_lines)
+    data["work"] = work_data
 
     # TODO: figure out what we want to do here
     # option 1: validate and warn, but return data as-is
