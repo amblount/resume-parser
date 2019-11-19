@@ -25,6 +25,10 @@ FIELD_SEP_TEXTS = {
     )
 }
 ITEM_SEP_TEXTS = set(education.constants.FIELD_SEP_SMS)
+INSTITUTION_TEXTS = {
+    "University", "College", "Institute", "Department", "Dept.",
+    "High", "School", "Academy",
+}
 
 
 def parse_lines(lines, tagger=None):
@@ -105,11 +109,12 @@ def featurize(tokens):
     else:
         feature_sequence = []
         tokens_features = parse_utils.pad_tokens_features(
-            tokens_features, n_left=2, n_right=2)
+            tokens_features, n_left=3, n_right=2)
         idx_last_newline = 0
-        tf_windows = itertoolz.sliding_window(5, tokens_features)
-        for pprev_tf, prev_tf, curr_tf, next_tf, nnext_tf in tf_windows:
+        tf_windows = itertoolz.sliding_window(6, tokens_features)
+        for ppprev_tf, pprev_tf, prev_tf, curr_tf, next_tf, nnext_tf in tf_windows:
             tf = curr_tf.copy()
+            tf["ppprev"] = ppprev_tf
             tf["pprev"] = pprev_tf
             tf["prev"] = prev_tf
             tf["next"] = next_tf
@@ -139,6 +144,7 @@ def get_token_features(token):
         {
             "is_field_sep_text": text in FIELD_SEP_TEXTS,
             "is_item_sep_text": text in ITEM_SEP_TEXTS,
+            "is_institution_text": text in INSTITUTION_TEXTS,
             "like_month_name": regexes.RE_MONTH.match(text) is not None,
             "like_year": regexes.RE_YEAR.match(text) is not None,
         }
