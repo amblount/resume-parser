@@ -6,6 +6,12 @@ Extract résumé text from a PDF file, using multiple methods applied in order o
 """
 import io
 
+import pdfminer.converter
+import pdfminer.layout
+import pdfminer.pdfinterp
+import pdfminer.pdfpage
+from tika import parser as tika_parser
+
 
 def extract_text_from_pdf(filepath, *, min_len=150):
     """
@@ -35,7 +41,7 @@ def extract_text_from_pdf(filepath, *, min_len=150):
 
 def extract_text_from_pdf_tika(filepath):
     """
-    Extract text from a PDF at ``filepath`` using ``python-tika``.
+    Extract text from a PDF at ``filepath`` using ``tika-python``.
 
     Args:
         filepath (str)
@@ -43,11 +49,7 @@ def extract_text_from_pdf_tika(filepath):
     Returns:
         str
     """
-    # hiding the import so folks don't have to worry about installing it
-    # pip install tika
-    from tika import parser
-
-    result = parser.from_file(filepath)
+    result = tika_parser.from_file(filepath)
     return result["content"].strip()
 
 
@@ -60,15 +62,13 @@ def extract_text_from_pdf_pdfminer(filepath):
 
     Returns:
         str
-    """
-    # hiding the yapdfminer import so folks don't have to worry about installing it
-    # note: this is a fork of pdfminer3, which is a fork of pdfminer.six, which is a fork of pdfminer
-    # pip install yapdfminer
-    import pdfminer.converter
-    import pdfminer.layout
-    import pdfminer.pdfinterp
-    import pdfminer.pdfpage
 
+    Note:
+        The external package used here — yapdfminer — has a convoluted provenance.
+        It's a fork of pdfminer3, which is a fork of pdfminer.six, which is a fork
+        of pdfminer. Other forks also exist. Many are still used, but not many are
+        still maintained.
+    """
     laparams = pdfminer.layout.LAParams(
         line_overlap=0.5,
         char_margin=2.0,
