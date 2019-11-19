@@ -38,13 +38,13 @@ def parse_lines(lines, tagger=None):
         List[Dict[str, obj]]
     """
     if tagger is None:
-        tagger = parse_utils.load_tagger(education.FPATH_TAGGER)
+        tagger = parse_utils.load_tagger(work.FPATH_TAGGER)
 
     tokens = parse_utils.tokenize("\n".join(lines).strip())
     features = featurize(tokens)
     labeled_tokens = parse_utils.tag(tokens, features, tagger=tagger)
-    datas = _parse_labeled_tokens(labeled_tokens)
-    return datas
+    results = _parse_labeled_tokens(labeled_tokens)
+    return results
 
 
 def _parse_labeled_tokens(labeled_tokens):
@@ -55,7 +55,35 @@ def _parse_labeled_tokens(labeled_tokens):
     Returns:
         List[Dict[str, obj]]
     """
-    return []
+    one_per_result_labels = {"position", "company", "start_date", "end_date"}
+    excluded_labels = {"field_sep", "item_sep", "bullet", "other"}
+    results = []
+    result = {}
+    result_highlights = []
+    for label, tls in itertools.groupby(labeled_tokens, key=operator.itemgetter(1)):
+        if label in excluded_labels:
+            continue
+        field_text = "".join(tok.text_with_ws for tok, _ in tls).strip()
+        if label == "highlight":
+            result_highlights.append(field_text)
+        # key assumption: results can only have one of certain fields
+        # and the appearance of another such field indicates a new result
+        elif label in one_per_result_labels and result.get(label):
+            # add current result to results list
+            if result_highlights:
+                result["highlights"] = result_highlights
+            results.append(result)
+            # start a new result
+            result = {label: field_text}
+            result_highlights = []
+        else:
+            result[label] = field_text
+    # add any remaining work experience to the list
+    if result:
+        if result_highlights:
+            result["highlights"] = result_highlights
+        results.append(result)
+    return results
 
 
 def featurize(tokens):
@@ -77,8 +105,8 @@ def featurize(tokens):
         feature_sequence = []
         tokens_features = parse_utils.pad_tokens_features(
             tokens_features, n_left=3, n_right=2)
+        follows_bullet = False
         idx_last_newline = 0
-        idx_last_bullet = 0
         tf_windows = itertoolz.sliding_window(6, tokens_features)
         for ppprev_tf, pprev_tf, prev_tf, curr_tf, next_tf, nnext_tf in tf_windows:
             tf = curr_tf.copy()
@@ -91,10 +119,12 @@ def featurize(tokens):
             # e.g. whether or not a particular word appeared earlier in the sequence
             if all(char == "\n" for char in tf["shape"]):
                 idx_last_newline = tf["idx"]
+                follows_bullet = False
             tf["n_toks_since_newline"] = tf["idx"] - idx_last_newline
+            tf["follows_bullet"] = follows_bullet
+            # is this token a bullet? i.e. "- " token starting a new line
             if tf["shape"] == "-" and tf["n_toks_since_newline"] == 1:
-                idx_last_bullet = tf["idx"]
-            tf["n_toks_since_bullet"] = tf["idx"] - idx_last_bullet
+                follows_bullet = True
             feature_sequence.append(tf)
         return feature_sequence
 
