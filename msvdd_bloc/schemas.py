@@ -150,14 +150,13 @@ class ResumeBasicsSchema(ma.Schema):
             }]
         }
     """
-    name = ma.fields.String()
+    name = ma.fields.String(validate=ma.validate.Length(min=4, max=100))
     label = ma.fields.String()
-    email = ma.fields.String(validate=ma.validate.Email())
-    phone = ma.fields.String()
-    # marshmallow's built-in URL validation is *strict*
-    website = ma.fields.String(validate=ma.validate.URL(relative=True, require_tld=True))
-    # website = ma.fields.String(
-    #     validate=lambda s: regexes.RE_URL.match(s) is not None or regexes.RE_SHORT_URL.match(s) is not None)
+    email = ma.fields.String(validate=ma.validate.Regexp(regexes.RE_EMAIL))
+    phone = ma.fields.String(validate=ma.validate.Regexp(regexes.RE_PHONE_NUMBER))
+    # NOTE: marshmallow's built-in URL validation is *too strict*
+    website = ma.fields.String(
+        validate=lambda s: regexes.RE_URL.match(s) or regexes.RE_SHORT_URL.match(s))
     summary = ma.fields.String()
     location = ma.fields.Nested("ResumeBasicsLocationSchema")
     profiles = ma.fields.Nested("ResumeBasicsProfileSchema", many=True)
@@ -169,14 +168,14 @@ class ResumeBasicsLocationSchema(ma.Schema):
 
         {
             "address": "2712 Broadway St",
-            "postalCode": "CA 94115",
+            "postalCode": "94115",
             "city": "San Francisco",
             "countryCode": "US",
             "region": "California"
         }
     """
     address = ma.fields.String()
-    postal_code = ma.fields.String()
+    postal_code = ma.fields.String(validate=ma.validate.Regexp(regexes.RE_POSTAL_CODE))
     city = ma.fields.String()
     country_code = ma.fields.String()
     region = ma.fields.String()
@@ -194,7 +193,9 @@ class ResumeBasicsProfileSchema(ma.Schema):
     """
     network = ma.fields.String()
     username = ma.fields.String()
-    url = ma.fields.String(validate=ma.validate.URL())
+    # NOTE: marshmallow's built-in URL validation is *too strict*
+    url = ma.fields.String(
+        validate=lambda s: regexes.RE_URL.match(s) or regexes.RE_SHORT_URL.match(s))
 
 
 class ResumeWorkSchema(ma.Schema):
@@ -215,10 +216,12 @@ class ResumeWorkSchema(ma.Schema):
     """
     company = ma.fields.String()
     position = ma.fields.String()
-    website = ma.fields.String(validate=ma.validate.URL())
+    # NOTE: marshmallow's built-in URL validation is *too strict*
+    website = ma.fields.String(
+        validate=lambda s: regexes.RE_URL.match(s) or regexes.RE_SHORT_URL.match(s))
     start_date = ma.fields.String()  # not necessarily a date
     end_date = ma.fields.String()  # not necessarily a date
-    summary = ma.fields.String()
+    summary = ma.fields.String(validate=ma.validate.Length(min=40, max=400))
     highlights = ma.fields.List(ma.fields.String())
 
 
@@ -240,7 +243,9 @@ class ResumeVolunteerSchema(ma.Schema):
     """
     organization = ma.fields.String()
     position = ma.fields.String()
-    website = ma.fields.String(validate=ma.validate.URL())
+    # NOTE: marshmallow's built-in URL validation is *too strict*
+    website = ma.fields.String(
+        validate=lambda s: regexes.RE_URL.match(s) or regexes.RE_SHORT_URL.match(s))
     start_date = ma.fields.String()  # not necessarily a date
     end_date = ma.fields.String()  # not necessarily a date
     summary = ma.fields.String()
@@ -304,8 +309,9 @@ class ResumePublicationSchema(ma.Schema):
     name = ma.fields.String()
     publisher = ma.fields.String()
     release_date = ma.fields.Date()
-    # website = ma.fields.String(validate=ma.validate.URL())
-    website = ma.fields.String(validate=ma.validate.URL())
+    # NOTE: marshmallow's built-in URL validation is *too strict*
+    website = ma.fields.String(
+        validate=lambda s: regexes.RE_URL.match(s) or regexes.RE_SHORT_URL.match(s))
     summary = ma.fields.String()
 
 
@@ -381,7 +387,9 @@ class JobPostingSchema(ma.Schema):
     company = ma.fields.String(required=True)
     date_posted = ma.fields.Date(required=True)
     location = ma.fields.List(ma.fields.String(), required=True)
-    url = ma.fields.String(required=True, validate=ma.validate.URL())
+    # NOTE: marshmallow's built-in URL validation is *too strict*
+    url = ma.fields.String(
+        validate=lambda s: regexes.RE_URL.match(s) or regexes.RE_SHORT_URL.match(s))
     start_date = ma.fields.Date()
     employment_type = ma.fields.String(
         validate=ma.validate.OneOf(
