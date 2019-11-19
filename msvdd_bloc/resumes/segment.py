@@ -180,7 +180,7 @@ def get_section_lines(lines, keep_subheaders=True):
             if match:
                 prev_section, curr_section = curr_section, section
                 # if header is a "sub-header", don't skip its text content
-                if prev_section == curr_section and keep_subheaders is True:
+                if keep_subheaders is True and prev_section == curr_section:
                     section_lines[curr_section].append(line)
                 # if header is the start of a line with more content
                 # append only the post-header content
@@ -194,4 +194,4 @@ def get_section_lines(lines, keep_subheaders=True):
         # no new match, so add line to current section
         else:
             section_lines[curr_section].append(line)
-    return section_lines
+    return dict(section_lines)
