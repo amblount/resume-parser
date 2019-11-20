@@ -93,7 +93,7 @@ class TestTransforms:
     def test_delete_token_targeted(self, labeled_tokens):
         for target_label in ["institution", "field_label"]:
             aug_lts = augment_utils.delete_token(
-                labeled_tokens, prob=0.5, target_labels=target_label)
+                labeled_tokens, prob=0.75, target_labels=target_label)
             assert (
                 sum(1 for tok, label in aug_lts if label == target_label) <
                 sum(1 for tok, label in labeled_tokens if label == target_label)
