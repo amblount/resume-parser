@@ -214,6 +214,7 @@ LINES = {
     "langs": fnc.partial(generate_line_fields, key="lang", nrange=(2, 4)),
     "langs_bulleted": fnc.partial(generate_line_fields, key="lang", nrange=(2, 4), bullet=True),
     "langs_grped": fnc.partial(generate_line_fields_grped, key="lang", nrange=(2, 4)),
+    "langs_level": fnc.partial(generate_line_fields_levels, key="lang", nrange=(2, 4)),
     "hobbies": fnc.partial(generate_line_fields, key="hobby", nrange=(2, 6)),
     "hobbies_grped": fnc.partial(generate_line_fields_grped, key="hobby", nrange=(2, 6)),
 }
@@ -221,6 +222,34 @@ LINES = {
 Dict[str, Callable]: Intermediate mapping of line type name to a function that generates
 a random corresponding value.
 """
+
+
+def generate_multiline_singletons(*, keys, nrange, bullet_prob=0.25):
+    """
+    Generate a newline-delimited list of singleton skills, with a key from ``keys``
+    and optional leading bullet, for n items within ``nrange``, formatted like
+    ``{bullet} {key1|key2} {lb} {level} {rb} {nl} ...``.
+
+    Args:
+        keys (List[str])
+        nrange (Tuple[int, int])
+        bullet_prob (float)
+
+    Returns:
+        str
+    """
+    templates = (
+        "{blt} {{{keys}}}",
+        "{blt} {{{keys}}} {{ws}} {{level}}",
+        "{blt} {{{keys}}} {{lb}} {{level}} {{rb}}",
+    )
+    bullet = True if rnd.random() < bullet_prob else False
+    template = rnd.choices(templates, weights=[1.0, 0.5, 0.5], k=1)[0]
+    template_fmt = template.format(
+        blt="" if bullet is False else "{bullet}",
+        keys="|".join(keys),
+    ).strip()
+    return " {nl} ".join(template_fmt for _ in range(rnd.randint(*nrange)))
 
 
 TEMPLATES = [
@@ -238,6 +267,7 @@ TEMPLATES = [
     lambda: " {nl} ".join(" {nl} ".join("{dev_mix}" for _ in range(rnd.randint(3, 10))) for _ in range(rnd.randint(1, 2))),
     lambda: "{bullet::0.25} " + LINES["dev_mixes_level_grped"]() + " {grp_sep} " + LINES["dev_mixes_level_grped"](),
     lambda: "{bullet} " + LINES["dev_mixes_grped"]() + " {nl} ".join("{bullet} {sent}" for i in range(rnd.randint(1, 3))),
+    lambda: generate_multiline_singletons(keys=["db", "dev_mix", "plang", "lang"], nrange=(3, 8), bullet_prob=0.25),
 ]
 """
 List[Callable]: Collection of functions that generate random skills section templates,
