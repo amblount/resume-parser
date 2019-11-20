@@ -4,9 +4,10 @@ import random as rnd
 import faker
 
 from msvdd_bloc.resumes.basics import constants as c
+from msvdd_bloc.resumes import generate_utils
 
 
-class Provider(faker.providers.BaseProvider):
+class Provider(generate_utils.ResumeProvider):
     """Class for providing randomly-generated field values."""
 
     _address_city_state_templates = (
@@ -25,10 +26,6 @@ class Provider(faker.providers.BaseProvider):
         "{scheme}linkedin.com/in/{slug}",
         "{scheme}github.com/{user}",
     )
-
-    def address_inline(self):
-        sep = rnd.choice([", ", " "])
-        return self.generator.address().replace("\n", sep)
 
     def address_city_state(self):
         template = rnd.choices(
@@ -50,42 +47,40 @@ class Provider(faker.providers.BaseProvider):
         )
 
     def field_sep(self):
-        return "{ws}{sep}{ws}".format(
-            ws=" " * rnd.randint(1, 4),
-            sep=rnd.choices(
-                c.FIELD_SEPS,
-                weights=[1.0, 0.5, 0.5, 0.25, 0.1, 0.05, 0.05, 0.05, 0.05],
-                k=1,
-            )[0],
+        return self.generator.sep_with_ws(
+            c.FIELD_SEPS,
+            weights=[1.0, 0.5, 0.5, 0.25, 0.1, 0.05, 0.05, 0.05, 0.05],
+            ws_nrange=(1, 4),
         )
 
     def item_sep(self):
-        return "{sep}{ws}".format(
-            sep=rnd.choices(c.ITEM_SEPS, weights=[1.0, 0.2], k=1)[0],
-            ws=" " * rnd.randint(1, 2),
-        )
-
-    def _label_field(self, label_values, label_weights):
-        return "{label}{ws}{sep}".format(
-            label=rnd.choices(label_values , weights=label_weights, k=1)[0],
-            ws="" if rnd.random() < 0.9 else " ",
-            sep=rnd.choices(c.FIELD_LABEL_SEPS, weights=[1.0, 0.2], k=1)[0] if rnd.random() < 0.9 else "",
+        return self.generator.sep_with_ws_right(
+            c.ITEM_SEPS, weights=[1.0, 0.2], ws_nrange=(1, 2),
         )
 
     def label_addr(self):
-        return self._label_field(c.FIELD_LABEL_ADDRS, [1.0, 0.1])
+        return self.generator.field_label(
+            c.FIELD_LABEL_ADDRS, c.FIELD_LABEL_SEPS,
+            label_weights=[1.0, 0.1], sep_weights=[1.0, 0.2],
+        )
 
     def label_email(self):
-        return self._label_field(c.FIELD_LABEL_EMAILS, [1.0, 0.5])
+        return self.generator.field_label(
+            c.FIELD_LABEL_EMAILS, c.FIELD_LABEL_SEPS,
+            label_weights=[1.0, 0.5], sep_weights=[1.0, 0.2],
+        )
 
     def label_phone(self):
-        return self._label_field(c.FIELD_LABEL_PHONES, None)
+        return self.generator.field_label(
+            c.FIELD_LABEL_PHONES, c.FIELD_LABEL_SEPS,
+            label_weights=None, sep_weights=[1.0, 0.2],
+        )
 
     def label_profile(self):
-        return self._label_field(c.FIELD_LABEL_PROFILES, None)
-
-    def newline(self):
-        return "\n" if rnd.random() < 0.8 else "\n\n"
+        return self.generator.field_label(
+            c.FIELD_LABEL_PROFILES, c.FIELD_LABEL_SEPS,
+            label_weights=None, sep_weights=[1.0, 0.2],
+        )
 
     def phone(self):
         if rnd.random() < 0.25:
@@ -103,12 +98,6 @@ class Provider(faker.providers.BaseProvider):
         template = rnd.choices(self._user_name_templates, weights=[1.0, 0.33], k=1)[0]
         return template.format(user_name=self.generator.user_name())
 
-    def website(self):
-        if rnd.random() < 0.5:
-            return self.generator.url()
-        else:
-            return self.generator.domain_name(levels=rnd.randint(1, 2))
-
     def website_profile(self):
         template = rnd.choice(self._website_profile_templates)
         return template.format(
@@ -116,9 +105,6 @@ class Provider(faker.providers.BaseProvider):
             slug=self.generator.slug(value=self.generator.name()),
             user=self.generator.user_name(),
         )
-
-    def whitespace(self):
-        return " " * rnd.randint(1, 4)
 
 
 FAKER = faker.Faker()
@@ -277,3 +263,7 @@ TEMPLATES = [
         ]
     ),
 ]
+"""
+List[Callable]: Collection of functions that generate randomized "basics" résumé sections
+when passed with :obj:`FIELDS` into :func:`msvdd_bloc.resumes.generate_utils.generate_labeled_tokens()`.
+"""

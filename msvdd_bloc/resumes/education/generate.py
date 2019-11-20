@@ -111,31 +111,22 @@ class Provider(generate_utils.ResumeProvider):
             year=self.generator.year(),
         )
 
-    def date_present(self):
-        return rnd.choices(["Present", "Current"], weights=[1.0, 0.25], k=1)[0]
-
     def field_sep(self):
-        return "{ws}{sep}{ws}".format(
-            ws=" " * rnd.randint(1, 3),
-            sep=rnd.choice(c.FIELD_SEPS),
-        )
+        return self.generator.sep_with_ws(c.FIELD_SEPS, weights=None, ws_nrange=(1, 3))
 
     def field_sep_dt(self):
-        return "{ws}{sep}{ws}".format(
-            ws=" " * rnd.randint(1, 2),
-            sep=rnd.choices(c.FIELD_SEP_DTS, weights=[1.0, 0.5, 0.1], k=1)[0],
+        return self.generator.sep_with_ws(
+            c.FIELD_SEP_DTS, weights=[1.0, 0.5, 0.1], ws_nrange=(1, 2),
         )
 
     def field_sep_prep(self):
-        return "{ws}{sep}{ws}".format(
-            ws=" " * rnd.randint(1, 2),
-            sep=rnd.choice(c.FIELD_SEP_PREPS),
+        return self.generator.sep_with_ws(
+            c.FIELD_SEP_PREPS, weights=None, ws_nrange=(1, 2),
         )
 
     def field_sep_sm(self):
-        return "{sep}{ws}".format(
-            ws=" " * rnd.randint(1, 2),
-            sep=rnd.choices(c.FIELD_SEP_SMS, weights=[1.0, 0.5], k=1)[0],
+        return self.generator.sep_with_ws_right(
+            c.FIELD_SEP_SMS, weights=[1.0, 0.5], ws_nrange=(1, 2),
         )
 
     def gpa(self):
@@ -149,26 +140,27 @@ class Provider(generate_utils.ResumeProvider):
         )
 
     def item_sep(self):
-        return "{sep}{ws}".format(
-            ws=" " * rnd.randint(1, 2),
-            sep=rnd.choices(c.FIELD_SEP_SMS, weights=[1.0, 0.25], k=1)[0],
-        )
-
-    def _label_field(self, label_values, label_weights):
-        return "{label}{ws}{sep}".format(
-            label=rnd.choices(label_values , weights=label_weights, k=1)[0],
-            ws="" if rnd.random() < 0.9 else " ",
-            sep=rnd.choices(c.FIELD_LABEL_SEPS, weights=[1.0, 0.2], k=1)[0] if rnd.random() < 0.9 else "",
+        return self.generator.sep_with_ws_right(
+            c.FIELD_SEP_SMS, weights=[1.0, 0.25], ws_nrange=(1, 2),
         )
 
     def label_courses(self):
-        return self._label_field(c.FIELD_LABEL_COURSES, None)
+        return self.generator.field_label(
+            c.FIELD_LABEL_COURSES, c.FIELD_LABEL_SEPS,
+            label_weights=None, sep_weights=[1.0, 0.2],
+        )
 
     def label_grad_date(self):
-        return self._label_field(c.FIELD_LABEL_GRAD_DATES, None)
+        return self.generator.field_label(
+            c.FIELD_LABEL_GRAD_DATES, c.FIELD_LABEL_SEPS,
+            label_weights=None, sep_weights=[1.0, 0.2],
+        )
 
     def label_gpa(self):
-        return self._label_field(c.FIELD_LABEL_GPAS, [1.0, 0.2, 0.2, 0.1])
+        return self.generator.field_label(
+            c.FIELD_LABEL_GPAS, c.FIELD_LABEL_SEPS,
+            label_weights=[1.0, 0.2, 0.2, 0.1], sep_weights=[1.0, 0.2],
+        )
 
     def school(self):
         template = rnd.choices(self._school_templates, weights=[1.0, 0.5, 0.25], k=1)[0]

@@ -35,13 +35,12 @@ class Provider(generate_utils.ResumeProvider):
         return rnd.choice(c.HUMAN_LANGUAGES)
 
     def item_sep(self):
-        return "{sep}{ws}".format(
-            sep=rnd.choices(c.ITEM_SEPS, weights=[1.0, 0.2], k=1)[0],
-            ws=" " * rnd.randint(1, 2),
+        return self.generator.sep_with_ws_right(
+            c.ITEM_SEPS, weights=[1.0, 0.2], ws_nrange=(1, 2),
         )
 
     def item_sep_and(self):
-        return rnd.choices(c.ITEM_SEP_ANDS, weights=[1.0, 0.2], k=1)[0]
+        return self.generator.and_rand(weights=[1.0, 0.2])
 
     def level(self):
         return rnd.choice(c.LEVELS)

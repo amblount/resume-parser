@@ -48,17 +48,9 @@ class Provider(generate_utils.ResumeProvider):
             year=self.generator.year(),
         )
 
-    def date_present(self):
-        return rnd.choices(["Present", "Current"], weights=[1.0, 0.25], k=1)[0]
-
     def field_sep(self):
-        return "{ws}{sep}{ws}".format(
-            ws=" " * rnd.randint(1, 4),
-            sep=rnd.choices(
-                c.FIELD_SEPS,
-                weights=[1.0, 1.0, 0.5, 0.1],
-                k=1,
-            )[0],
+        return self.generator.sep_with_ws(
+            c.FIELD_SEPS, weights=[1.0, 1.0, 0.5, 0.1], ws_nrange=(1, 4),
         )
 
     def field_sep_dt(self):
@@ -72,15 +64,13 @@ class Provider(generate_utils.ResumeProvider):
         return "{ws}{sep}{ws}".format(ws=ws, sep=sep)
 
     def field_sep_prep(self):
-        return "{ws}{sep}{ws}".format(
-            ws=" " * rnd.randint(1, 2),
-            sep=rnd.choice(c.FIELD_SEP_PREPS),
+        return self.generator.sep_with_ws(
+            c.FIELD_SEP_PREPS, weights=None, ws_nrange=(1, 2),
         )
 
     def field_sep_sm(self):
-        return "{sep}{ws}".format(
-            ws=" " * rnd.randint(1, 2),
-            sep=rnd.choice(c.FIELD_SEP_SMS),
+        return self.generator.sep_with_ws_right(
+            c.FIELD_SEP_SMS, weights=None, ws_nrange=(1, 2),
         )
 
     def job_title(self):
