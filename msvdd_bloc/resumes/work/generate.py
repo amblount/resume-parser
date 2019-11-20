@@ -5,9 +5,10 @@ import random as rnd
 import faker
 
 from msvdd_bloc.resumes.work import constants as c
+from msvdd_bloc.resumes import generate_utils
 
 
-class Provider(faker.providers.BaseProvider):
+class Provider(generate_utils.ResumeProvider):
     """Class for providing randomly-generated field values."""
 
     _location_templates = (
@@ -27,12 +28,6 @@ class Provider(faker.providers.BaseProvider):
         "{level} {job}",
         "{job}{sep}{level}",
         "{level}{sep}{job}",
-    )
-    _subheader_templates = (
-        "{word1}",
-        "{word1} {word2}",
-        "{word1} & {word2}",
-        "{word1} and {word2}",
     )
 
     def company_name(self):
@@ -98,9 +93,6 @@ class Provider(faker.providers.BaseProvider):
             sep=rnd.choices([", ", " - "], weights=[1.0, 0.25], k=1)[0],
         )
 
-    def left_bracket(self):
-        return rnd.choice(c.LEFT_BRACKETS)
-
     def location(self):
         template = rnd.choices(
             self._location_templates, weights=[1.0, 0.25, 0.1], k=1)[0]
@@ -110,9 +102,6 @@ class Provider(faker.providers.BaseProvider):
             state_abbr=self.generator.state_abbr(),
         )
 
-    def newline(self):
-        return "\n" if rnd.random() < 0.8 else "\n\n"
-
     def punct_mid_sentence(self):
         return rnd.choices(c.PUNCT_MID_SENTENCE, weights=[1.0, 0.25, 0.1, 0.1], k=1)[0]
 
@@ -121,33 +110,6 @@ class Provider(faker.providers.BaseProvider):
             self.generator.sentence(nb_words=15)
             for _ in range(rnd.randint(2, 4))
         )
-
-    def right_bracket(self):
-        return rnd.choice(c.RIGHT_BRACKETS)
-
-    def subheader(self):
-        template = rnd.choices(
-            self._subheader_templates, weights=[1.0, 0.25, 0.25, 0.1], k=1,
-        )[0]
-        if rnd.random() < 0.75:
-            subheader_string = template.format(
-                word1=self.generator.word(), word2=self.generator.word()
-            ).upper()
-        else:
-            subheader_string = template.format(
-                word1=self.generator.word().capitalize(),
-                word2=self.generator.word().capitalize(),
-            )
-        return subheader_string
-
-    def website(self):
-        if rnd.random() < 0.5:
-            return self.generator.url()
-        else:
-            return self.generator.domain_name(levels=rnd.randint(1, 2))
-
-    def whitespace(self):
-        return " " * rnd.randint(1, 4)
 
     def word_plus(self):
         if rnd.random() < 0.9:
@@ -258,14 +220,14 @@ def generate_group_highlights():
 
 _EXPERIENCES = [
     lambda: (
-        "{comp} {fsep_sm|nl|ws} {job} {nl} {city_state} {fsep|ws}" +
+        "{comp} {fsep_sm|nl|ws} {job} {nl} {location} {fsep|ws}" +
         generate_group_date() + "{nl}" +
         generate_group_highlights()
     ),
     lambda: (
         "{job} {fsep_sm|ws} {lb} {comp} {rb} {nl}" +
         generate_group_date() + "{fsep|ws}" +
-        "{city_state} {nl}" +
+        "{location} {nl}" +
         generate_group_highlights()
     ),
     lambda: (
@@ -289,23 +251,23 @@ _EXPERIENCES = [
         generate_group_highlights()
     ),
     lambda: (
-        "{bullet::0.25} {comp} {fsep_sm|ws} {city_state} {nl} {job} {fsep|fsep_sm|ws}" +
+        "{bullet::0.25} {comp} {fsep_sm|ws} {location} {nl} {job} {fsep|fsep_sm|ws}" +
         generate_group_date() + "{nl}" +
         generate_group_highlights()
     ),
     lambda: (
         "{job} {nl} {comp} {nl}" +
-        " {fsep} ".join(rnd.sample([generate_group_date(), "{city_state}"], 2)) + "{nl}" +
+        " {fsep} ".join(rnd.sample([generate_group_date(), "{location}"], 2)) + "{nl}" +
         generate_group_highlights()
     ),
-    lambda: "{job} {fsep_sm} {comp} {fsep_sm} {city_state} {nl} {para}",
+    lambda: "{job} {fsep_sm} {comp} {fsep_sm} {location} {nl} {para}",
     lambda: (
         " {fsep} ".join(rnd.sample(["{job}", "{comp}", generate_group_date()], 3)) + "{nl}" +
         rnd.choice([generate_group_highlights(), "{para}"])
     ),
     lambda: "{comp} {nl}" + generate_group_highlights(),
     lambda: (
-        "{comp} {fsep|fsep_sm|ws} {city_state} {nl} {job} {fsep|ws}" +
+        "{comp} {fsep|fsep_sm|ws} {location} {nl} {job} {fsep|ws}" +
         generate_group_date() + "{nl}" +
         generate_group_highlights()
     ),

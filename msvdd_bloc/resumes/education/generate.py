@@ -5,9 +5,10 @@ import random as rnd
 import faker
 
 from msvdd_bloc.resumes.education import constants as c
+from msvdd_bloc.resumes import generate_utils
 
 
-class Provider(faker.providers.BaseProvider):
+class Provider(generate_utils.ResumeProvider):
     """Class for providing randomly-generated field values."""
 
     _area_detail_templates = (
@@ -169,15 +170,6 @@ class Provider(faker.providers.BaseProvider):
     def label_gpa(self):
         return self._label_field(c.FIELD_LABEL_GPAS, [1.0, 0.2, 0.2, 0.1])
 
-    def left_bracket(self):
-        return rnd.choice(c.LEFT_BRACKETS)
-
-    def newline(self):
-        return "\n" if rnd.random() < 0.8 else "\n\n"
-
-    def right_bracket(self):
-        return rnd.choice(c.RIGHT_BRACKETS)
-
     def school(self):
         template = rnd.choices(self._school_templates, weights=[1.0, 0.5, 0.25], k=1)[0]
         return template.format(
@@ -244,9 +236,6 @@ class Provider(faker.providers.BaseProvider):
                 k=1,
             )[0],
         )
-
-    def whitespace(self):
-        return " " * rnd.randint(1, 4)
 
 
 FAKER = faker.Faker()

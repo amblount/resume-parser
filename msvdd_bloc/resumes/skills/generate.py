@@ -4,9 +4,10 @@ import random as rnd
 import faker
 
 from msvdd_bloc.resumes.skills import constants as c
+from msvdd_bloc.resumes import generate_utils
 
 
-class Provider(faker.providers.BaseProvider):
+class Provider(generate_utils.ResumeProvider):
     """Class for providing randomly-generated field values."""
 
     def database(self):
@@ -42,29 +43,17 @@ class Provider(faker.providers.BaseProvider):
     def item_sep_and(self):
         return rnd.choices(c.ITEM_SEP_ANDS, weights=[1.0, 0.2], k=1)[0]
 
-    def left_bracket(self):
-        return rnd.choice(c.LEFT_BRACKETS)
-
     def level(self):
         return rnd.choice(c.LEVELS)
 
     def level_prep(self):
         return rnd.choices(c.LEVEL_PREPS, weights=[1.0, 0.4, 0.2, 0.1], k=1)[0]
 
-    def newline(self):
-        return "\n" if rnd.random() < 0.8 else "\n\n"
-
     def programming_language(self):
         return rnd.choice(c.PROGRAMMING_LANGUAGES)
 
-    def right_bracket(self):
-        return rnd.choice(c.RIGHT_BRACKETS)
-
     def software(self):
         return rnd.choice(c.SOFTWARE)
-
-    def whitespace(self):
-        return " " * rnd.randint(0, 3)
 
 
 FAKER = faker.Faker()
