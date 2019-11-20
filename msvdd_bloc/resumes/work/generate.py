@@ -10,9 +10,10 @@ from msvdd_bloc.resumes.work import constants as c
 class Provider(faker.providers.BaseProvider):
     """Class for providing randomly-generated field values."""
 
-    _city_state_templates = (
+    _location_templates = (
         "{city}, {state_abbr}",
         "{city}, {state}",
+        "{city}",
     )
     _date_approx_templates = (
         "{month} {year}",
@@ -33,15 +34,6 @@ class Provider(faker.providers.BaseProvider):
         "{word1} & {word2}",
         "{word1} and {word2}",
     )
-
-    def city_state(self):
-        template = rnd.choices(
-            self._city_state_templates, weights=[0.9, 0.1], k=1)[0]
-        return template.format(
-            city=self.generator.city(),
-            state=self.generator.state(),
-            state_abbr=self.generator.state_abbr(),
-        )
 
     def company_name(self):
         if rnd.random() < 0.75:
@@ -109,6 +101,15 @@ class Provider(faker.providers.BaseProvider):
     def left_bracket(self):
         return rnd.choice(c.LEFT_BRACKETS)
 
+    def location(self):
+        template = rnd.choices(
+            self._location_templates, weights=[1.0, 0.25, 0.1], k=1)[0]
+        return template.format(
+            city=self.generator.city(),
+            state=self.generator.state(),
+            state_abbr=self.generator.state_abbr(),
+        )
+
     def newline(self):
         return "\n" if rnd.random() < 0.8 else "\n\n"
 
@@ -172,7 +173,6 @@ FAKER.add_provider(Provider)
 
 
 FIELDS = {
-    "city_state": (FAKER.city_state, "other"),
     "bullet": (lambda : "- ", "bullet"),
     "comp": (FAKER.company_name, "company"),
     "dt": (FAKER.date_approx, "end_date"),
@@ -182,6 +182,7 @@ FIELDS = {
     "fsep_prep": (FAKER.field_sep_prep, "field_sep"),
     "fsep_sm": (FAKER.field_sep_sm, "field_sep"),
     "lb": (FAKER.left_bracket, "field_sep"),
+    "location": (FAKER.location, "location"),
     "job": (FAKER.job_title, "position"),
     "nl": (FAKER.newline, "field_sep"),
     "para": (FAKER.summary_paragraph, "summary"),

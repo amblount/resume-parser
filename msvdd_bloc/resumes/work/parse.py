@@ -56,7 +56,7 @@ def _parse_labeled_tokens(labeled_tokens):
         List[Dict[str, obj]]
     """
     one_per_result_labels = {"position", "company", "start_date", "end_date"}
-    excluded_labels = {"field_sep", "item_sep", "bullet", "other"}
+    excluded_labels = {"field_sep", "item_sep", "location", "bullet", "other"}
     results = []
     result = {}
     result_highlights = []
