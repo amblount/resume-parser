@@ -3,6 +3,8 @@ RIGHT_BRACKETS = (")", "]")
 
 ANDS = ("and", "&")
 
+DATE_PRESENTS = ("Present", "Current")
+
 SUBHEADERS = (
     # basics section
     "about", "contact", "contacts", "info", "personal",

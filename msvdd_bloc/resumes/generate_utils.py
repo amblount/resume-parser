@@ -33,8 +33,28 @@ class ResumeProvider(faker.providers.BaseProvider):
         sep = rnd.choice([", ", " "])
         return self.generator.address().replace("\n", sep)
 
-    def and_rand(self):
-        return rnd.choice(c.ANDS)
+    def and_rand(self, weights=None):
+        return (
+            rnd.choices(c.ANDS, weights=weights, k=1)[0] if weights else
+            rnd.choice(c.ANDS)
+        )
+
+    def date_present(self):
+        return rnd.choices(c.DATE_PRESENTS, weights=[1.0, 0.25], k=1)[0]
+
+    def field_label(self, labels, seps, label_weights=None, sep_weights=None):
+        # TODO: figure out if this is actually how we want to structure field labels...
+        # specifically: do we *want* to tag the separator as part of the field label??
+        label = (
+            rnd.choices(labels, weights=label_weights, k=1)[0] if label_weights else
+            rnd.choice(labels)
+        )
+        return "{label}{ws}{sep}".format(
+            label=label,
+            # TODO: figure out if this ws matters, if we want two spaces, etc.
+            ws="" if rnd.random() < 0.9 else " ",
+            sep=rnd.choices(seps, weights=sep_weights, k=1)[0] if rnd.random() < 0.9 else "",
+        ).strip()
 
     def left_bracket(self):
         return rnd.choice(c.LEFT_BRACKETS)
@@ -44,6 +64,20 @@ class ResumeProvider(faker.providers.BaseProvider):
 
     def right_bracket(self):
         return rnd.choice(c.RIGHT_BRACKETS)
+
+    def sep_with_ws(self, seps, weights=None, ws_nrange=(1, 4)):
+        sep = (
+            rnd.choices(seps, weights=weights, k=1)[0] if weights else
+            rnd.choice(seps)
+        )
+        return "{ws}{sep}{ws}".format(sep=sep, ws=self.whitespace(nrange=ws_nrange))
+
+    def sep_with_ws_right(self, seps, weights=None, ws_nrange=(1, 2)):
+        sep = (
+            rnd.choices(seps, weights=weights, k=1)[0] if weights else
+            rnd.choice(seps)
+        )
+        return "{sep}{ws}".format(sep=sep, ws=self.whitespace(nrange=ws_nrange))
 
     def subheader(self):
         template = rnd.choices(
@@ -70,8 +104,8 @@ class ResumeProvider(faker.providers.BaseProvider):
         else:
             return self.generator.domain_name(levels=rnd.randint(1, 2))
 
-    def whitespace(self):
-        return " " * rnd.randint(1, 4)
+    def whitespace(self, nrange=(1, 4)):
+        return " " * rnd.randint(*nrange)
 
 
 def generate_labeled_tokens(templates, fields, *, n=1, fixed_val_field_keys=None):
