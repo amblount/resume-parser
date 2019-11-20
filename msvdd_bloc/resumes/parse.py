@@ -29,6 +29,11 @@ def parse(text):
     text_lines = munge.get_filtered_text_lines(norm_text)
     section_lines = segment.get_section_lines(text_lines)
 
+    # if we don't get any sections besides the default, something's gone wrong
+    if set(section_lines.keys()) == {"start"}:
+        LOGGER.warning("unable to parse résumé text\n%s ...", text[:500])
+        return data
+
     # basics section
     basics_lines = section_lines.get("start", []) + section_lines.get("basics", [])
     basics_data = basics.parse.parse_lines(basics_lines)
