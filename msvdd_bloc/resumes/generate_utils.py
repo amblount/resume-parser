@@ -6,6 +6,8 @@ Functionality for generating fake examples of labeled tokens for training a pars
 in a résumé section-agnostic manner. Section subpackages use and build upon these utils
 in their respective ``generate.py`` modules.
 """
+import collections
+import logging
 import random as rnd
 import re
 
@@ -15,6 +17,9 @@ from msvdd_bloc import regexes
 from msvdd_bloc import utils
 from msvdd_bloc.resumes import constants as c
 from msvdd_bloc.resumes.parse_utils import TOKENIZER
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class ResumeProvider(faker.providers.BaseProvider):
@@ -106,6 +111,62 @@ class ResumeProvider(faker.providers.BaseProvider):
 
     def whitespace(self, nrange=(1, 4)):
         return " " * rnd.randint(*nrange)
+
+
+class MarkovModel:
+    """
+    Class to generate fake text using a Markov model trained on data. It's not fancy,
+    but it's a big improvement over totally-random "lorem ipsum"!
+    """
+
+    def __init__(self, state_len=4):
+        self.state_len = state_len
+        self.model = None
+
+    def train(self, text):
+        """
+        Args:
+            text (str)
+        """
+        model = collections.defaultdict(collections.Counter)
+        state_len = self.state_len
+        for i in range(len(text) - state_len):
+            state = text[i : i + state_len]
+            next_char = text[i + state_len]
+            model[state][next_char] += 1
+        LOGGER.debug("trained markov model has %s states", len(model))
+        self.model = model
+
+    def generate(self, n_chars, state=None):
+        """
+        Args:
+            n_chars (int)
+            state (str)
+
+        Returns:
+            str
+        """
+        if self.model is None:
+            raise Exception("model has not yet been trained")
+        if state and len(state) != self.state_len:
+            raise ValueError("invalid state; must be of length {}".format(self.state_len))
+        elif state is None:
+            state = rnd.choice(list(self.model))
+
+        chars = list(state)
+        for _ in range(n_chars):
+            next_chars = self.model[state]
+            if not next_chars:
+                LOGGER.warning(
+                    "markov model state '%s' only occurred once at the end of training, "
+                    "so no next chars available; bailing...", state,
+                )
+                break
+            next_char = rnd.choices(list(next_chars), weights=next_chars.values())
+            chars.extend(next_char)
+            state = state[1:] + next_char[0]
+
+        return "".join(chars)
 
 
 def generate_labeled_tokens(templates, fields, *, n=1, fixed_val_field_keys=None):
