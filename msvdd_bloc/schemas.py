@@ -89,10 +89,6 @@ class ResumeSchema(ma.Schema):
                     "Javascript"
                 ]
             }],
-            "languages": [{
-                "language": "English",
-                "fluency": "Native speaker"
-            }],
             "interests": [{
                 "name": "Wildlife",
                 "keywords": [
@@ -116,7 +112,6 @@ class ResumeSchema(ma.Schema):
     awards = ma.fields.Nested("ResumeAwardSchema", many=True)
     publications = ma.fields.Nested("ResumePublicationSchema", many=True)
     skills = ma.fields.Nested("ResumeSkillSchema", many=True)
-    languages = ma.fields.Nested("ResumeLanguageSchema", many=True)
     interests = ma.fields.Nested("ResumeInterestSchema", many=True)
     references = ma.fields.Nested("ResumeReferenceSchema", many=True)
 
@@ -332,19 +327,6 @@ class ResumeSkillSchema(ma.Schema):
     name = ma.fields.String()
     level = ma.fields.String()
     keywords = ma.fields.List(ma.fields.String())
-
-
-class ResumeLanguageSchema(ma.Schema):
-    """
-    Example::
-
-        {
-            "language": "English",
-            "fluency": "Native speaker"
-        }
-    """
-    language = ma.fields.String()
-    fluency = ma.fields.String()
 
 
 class ResumeInterestSchema(ma.Schema):

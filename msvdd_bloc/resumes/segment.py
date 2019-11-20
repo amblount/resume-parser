@@ -67,6 +67,7 @@ SECTION_HEADERS = {
         "achievements|"
         "awards|"
         "awards (and|&) certifications|"
+        "awards (and|&) honors|"
         "fellowships (and|&) awards|"
         "honors|"
         "honors (and|&) awards|"
@@ -82,6 +83,7 @@ SECTION_HEADERS = {
     ),
     "skills": re.compile(
         r"^(?P<text>"
+        "languages|"
         "languages? (and|&) technologies|"
         "programming languages|"
         "skills|"
@@ -89,12 +91,6 @@ SECTION_HEADERS = {
         "(relevant|soft|special|technical|technological) skills(et)?|"
         "technical strengths|"
         "tools"
-        ")(?P<end>:?$)",
-        flags=re.IGNORECASE,
-    ),
-    "languages": re.compile(
-        r"^(?P<text>"
-        "languages"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
