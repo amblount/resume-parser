@@ -5,12 +5,18 @@ regexes
 import re
 
 
+RE_TEMPLATE_FIELD = re.compile(
+    r"{(?P<key>[\w|]+)(?::(?P<label>\w+)?(?::(?P<prob>\d\.\d+)?)?)?}",
+    flags=re.UNICODE,
+)
+
 RE_BULLETS = re.compile(
     r"[\u00a7\u2022\u2023\u2043\u204C\u204D\u2219\u25aa\u25CF\u25E6\u29BE\u29BF\u30fb]",
     flags=re.UNICODE,
 )
 
 RE_BREAKING_SPACE = re.compile(r"(\r\n|[\n\v])", flags=re.UNICODE)
+
 RE_MANY_SPACES = re.compile(r" {5,}")
 
 RE_NONBREAKING_SPACE = re.compile(r"[^\S\n\v]", flags=re.UNICODE)

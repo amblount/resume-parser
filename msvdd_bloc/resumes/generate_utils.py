@@ -9,14 +9,8 @@ in their respective ``generate.py`` modules.
 import random
 import re
 
-from msvdd_bloc import utils
+from msvdd_bloc import regexes, utils
 from msvdd_bloc.resumes.parse_utils import TOKENIZER
-
-
-RE_TEMPLATE_FIELD = re.compile(
-    r"{(?P<key>[\w|]+)(?::(?P<label>\w+)?(?::(?P<prob>\d\.\d+)?)?)?}",
-    flags=re.UNICODE,
-)
 
 
 def generate_labeled_tokens(templates, fields, *, n=1, fixed_val_field_keys=None):
@@ -38,7 +32,7 @@ def generate_labeled_tokens(templates, fields, *, n=1, fixed_val_field_keys=None
     for template in random.choices(templates, k=n):
         if callable(template):
             template = template()
-        template_fields = RE_TEMPLATE_FIELD.findall(template)
+        template_fields = regexes.RE_TEMPLATE_FIELD.findall(template)
         field_keys = []
         field_labels = []
         field_vals = []
