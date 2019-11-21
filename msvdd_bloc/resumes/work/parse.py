@@ -20,7 +20,7 @@ FIELD_SEP_TEXTS = {
         work.constants.RIGHT_BRACKETS,
     )
 }
-COMPANY_TYPE_TEXTS = set(work.constants.COMPANY_TYPES)
+COMPANY_TEXTS = set(work.constants.COMPANY_TYPES + work.constants.COMPANY_MODIFIERS)
 POSITION_TEXTS = set(work.constants.POSITION_LEVELS + work.constants.POSITION_TYPES)
 
 
@@ -144,7 +144,7 @@ def get_token_features(token):
     features.update(
         {
             "is_field_sep_text": text in FIELD_SEP_TEXTS,
-            "is_company_type_text": text in COMPANY_TYPE_TEXTS,
+            "is_company_text": text in COMPANY_TEXTS,
             "is_position_text": text in POSITION_TEXTS,
             "like_month_name": regexes.RE_MONTH.match(text) is not None,
             "like_year": regexes.RE_YEAR.match(text) is not None,

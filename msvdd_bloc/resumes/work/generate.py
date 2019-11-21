@@ -30,6 +30,21 @@ class Provider(generate_utils.ResumeProvider):
         "{level}{sep}{job}",
     )
 
+    _markov_model = None
+
+    @property
+    def markov_model(self):
+        """
+        :class:`generate_utils.MarkovModel`: Markov model used to generate text in
+        :meth:`Provider.text_lines()` and :meth:`Provider.text_lines_trailing()`.
+        It's trained and assigned at the instance- rather than class-level to avoid
+        having to train the model every time this module is imported. It's fast, but
+        not *that* fast.
+        """
+        if self._markov_model is None:
+            self._markov_model = generate_utils.MarkovModel(state_len=4).fit(c.TEXT_SAMPLES)
+        return self._markov_model
+
     def company_name(self):
         if rnd.random() < 0.75:
             return rnd.choice(c.COMPANY_NAMES)
@@ -92,32 +107,13 @@ class Provider(generate_utils.ResumeProvider):
             state_abbr=self.generator.state_abbr(),
         )
 
-    def punct_mid_sentence(self):
-        return rnd.choices(c.PUNCT_MID_SENTENCE, weights=[1.0, 0.25, 0.1, 0.1], k=1)[0]
-
-    def summary_paragraph(self):
-        return " ".join(
-            self.generator.sentence(nb_words=15)
-            for _ in range(rnd.randint(2, 4))
-        )
-
-    def word_plus(self):
-        if rnd.random() < 0.9:
-            word = self.generator.word()
-            if rnd.random() < 0.01:
-                word = "{}'s".format(word)
-            elif rnd.random() < 0.01:
-                word = "{}-{}".format(word, self.generator.word())
-            elif rnd.random() < 0.01:
-                word = '"{}"'.format(word)
-            return word
-        elif rnd.random() < 0.75:
-            return self.generator.bs()
-        else:
-            return str(self.generator.random_int(min=1, max=100))
-
-    def word_title(self):
-        return self.generator.word().capitalize()
+    def text_line(self, nrange=(50, 100), prob_capitalize=0.9):
+        n_chars = rnd.randint(*nrange)
+        # text_line = self._markov_model.generate(n_chars)
+        text_line = self.markov_model.generate(n_chars)
+        if rnd.random() < prob_capitalize:
+            text_line = text_line[0].capitalize() + text_line[1:]
+        return text_line.strip()
 
 
 FAKER = faker.Faker()
@@ -137,16 +133,12 @@ FIELDS = {
     "location": (FAKER.location, "location"),
     "job": (FAKER.job_title, "position"),
     "nl": (FAKER.newline, "field_sep"),
-    "para": (FAKER.summary_paragraph, "summary"),
-    "punct_mid": (FAKER.punct_mid_sentence, "highlight"),
     "punct_end": (lambda: ".", "highlight"),
     "rb": (FAKER.right_bracket, "field_sep"),
-    "sent": (fnc.partial(FAKER.sentence, nb_words=15, variable_nb_words=True), "highlight"),
     "site": (FAKER.website, "website"),
     "subheader": (FAKER.subheader, "other"),
-    "word": (FAKER.word, "highlight"),
-    "word_plus": (FAKER.word_plus, "highlight"),
-    "word_title": (FAKER.word_title, "highlight"),
+    "text_line": (FAKER.text_line, "highlight"),
+    "text_line_trailing": (fnc.partial(FAKER.text_line, nrange=(25, 75), prob_capitalize=0.25), "highlight"),
     "ws": (FAKER.whitespace, "field_sep"),
 }
 """
@@ -171,41 +163,36 @@ def generate_group_date():
     return rnd.choices(templates, weights=[1.0, 0.5, 0.1], k=1)[0]
 
 
-def generate_group_highlight():
+def generate_group_summary():
     """
-    Generate a template for a logical group of highlight fields, consisting of a single
-    sentence spanning one or multiple lines, beginning with a bullet point.
+    Generate a template for a logical group of text lines labeled as a "summary",
+    consisting of one or more text lines separated by newlines and optionally
+    ending with a period.
     """
-    maxn_newline = rnd.randint(15, 25)
-    maxn_punct = rnd.randint(20, 40)
-    n_words = rnd.randint(8, 22)
-
-    all_fks = ["{bullet} {word_title}"]
-    n_since_punct = 0
-    n_since_newline = 0
-    for i in range(n_words):
-        fks = ["{word_plus}"]
-        if i < 0.8 * n_words and rnd.random() < math.pow(n_since_punct / maxn_punct, 2):
-            fks.append("{punct_mid}")
-            n_since_punct = 0
-        else:
-            n_since_punct += 1
-        if i < 0.8 * n_words and rnd.random() < math.pow(n_since_newline / maxn_newline, 2):
-            fks.append("{nl:item_sep}")
-            n_since_newline = 0
-        else:
-            n_since_newline += 1
-        all_fks.extend(fks)
-    all_fks.append("{punct_end::0.25}")
-    return " ".join(all_fks)
+    n_lines = rnd.randint(1, 3)
+    if n_lines == 1:
+        return "{text_line:summary} {punct_end:summary:0.33}"
+    else:
+        return (
+            " {nl:item_sep} ".join("{text_line:summary}" for _ in range(n_lines - 1)) +
+            " {nl:item_sep} {text_line_trailing:summary} {punct_end:summary:0.33}"
+        )
 
 
 def generate_group_highlights():
     """
-    Generate a template for a logical group of highlight fields, consisting of one or more
-    sentences as a list spanning multiple lines, each beginning with a bullet point.
+    Generate a template for a logical group of bulleted text lines labeled as "highlights",
+    consisting of 1 or 2 text lines separated by newlines and optionally
+    ending with a period.
     """
-    return " {nl} ".join(generate_group_highlight() for _ in range(rnd.randint(1, 3)))
+    templates = (
+        "{bullet} {text_line} {punct_end::0.25}",
+        "{bullet} {text_line} {nl:item_sep} {text_line_trailing} {punct_end::0.25}",
+    )
+    return " {nl} ".join(
+        template
+        for template in rnd.choices(templates, weights=[1.0, 0.33], k=rnd.randint(1, 3))
+    )
 
 
 _EXPERIENCES = [
@@ -250,10 +237,10 @@ _EXPERIENCES = [
         " {fsep} ".join(rnd.sample([generate_group_date(), "{location}"], 2)) + "{nl}" +
         generate_group_highlights()
     ),
-    lambda: "{job} {fsep_sm} {comp} {fsep_sm} {location} {nl} {para}",
+    lambda: "{job} {fsep_sm} {comp} {fsep_sm} {location} {nl}" + generate_group_summary(),
     lambda: (
         " {fsep} ".join(rnd.sample(["{job}", "{comp}", generate_group_date()], 3)) + "{nl}" +
-        rnd.choice([generate_group_highlights(), "{para}"])
+        rnd.choice([generate_group_highlights(), generate_group_summary()])
     ),
     lambda: "{comp} {nl}" + generate_group_highlights(),
     lambda: (
