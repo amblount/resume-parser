@@ -10,6 +10,21 @@ from msvdd_bloc.resumes import generate_utils
 class Provider(generate_utils.ResumeProvider):
     """Class for providing randomly-generated field values."""
 
+    _markov_model = None
+
+    @property
+    def markov_model(self):
+        """
+        :class:`generate_utils.MarkovModel`: Markov model used to generate text in
+        :meth:`Provider.text_lines()` and :meth:`Provider.text_lines_trailing()`.
+        It's trained and assigned at the instance- rather than class-level to avoid
+        having to train the model every time this module is imported. It's fast, but
+        not *that* fast.
+        """
+        if self._markov_model is None:
+            self._markov_model = generate_utils.MarkovModel(state_len=4).fit(c.TEXT_SAMPLES)
+        return self._markov_model
+
     _address_city_state_templates = (
         "{city}, {state_abbr}",
         "{city}, {state}",
@@ -94,6 +109,13 @@ class Provider(generate_utils.ResumeProvider):
         else:
             return self.generator.catch_phrase()
 
+    def text_line(self, nrange=(70, 110), prob_capitalize=0.5):
+        n_chars = rnd.randint(*nrange)
+        text_line = self.markov_model.generate(n_chars)
+        if rnd.random() < prob_capitalize:
+            text_line = text_line[0].capitalize() + text_line[1:]
+        return text_line.strip()
+
     def user_name_rand_at(self):
         template = rnd.choices(self._user_name_templates, weights=[1.0, 0.33], k=1)[0]
         return template.format(user_name=self.generator.user_name())
@@ -129,6 +151,8 @@ FIELDS = {
     "phone": (FAKER.phone, "phone"),
     "profile": (FAKER.website_profile, "website"),  # TODO: improve this?
     "sent": (fnc.partial(FAKER.sentence, nb_words=10, variable_nb_words=True), "other"),
+    "text_line": (FAKER.text_line, "summary"),
+    "text_line_trailing": (fnc.partial(FAKER.text_line, nrange=(20, 70), prob_capitalize=0.25), "summary"),
     "user_name": (FAKER.user_name_rand_at, "profile"),
     "website": (FAKER.website, "website"),
     "ws": (FAKER.whitespace, "field_sep"),
