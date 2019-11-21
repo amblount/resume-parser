@@ -11,6 +11,21 @@ from msvdd_bloc.resumes import generate_utils
 class Provider(generate_utils.ResumeProvider):
     """Class for providing randomly-generated field values."""
 
+    _markov_model = None
+
+    @property
+    def markov_model(self):
+        """
+        :class:`generate_utils.MarkovModel`: Markov model used to generate text in
+        :meth:`Provider.text_lines()` and :meth:`Provider.text_lines_trailing()`.
+        It's trained and assigned at the instance- rather than class-level to avoid
+        having to train the model every time this module is imported. It's fast, but
+        not *that* fast.
+        """
+        if self._markov_model is None:
+            self._markov_model = generate_utils.MarkovModel(state_len=4).fit(c.TEXT_SAMPLES)
+        return self._markov_model
+
     _location_templates = (
         "{city}, {state_abbr}",
         "{city}, {state}",
@@ -29,21 +44,6 @@ class Provider(generate_utils.ResumeProvider):
         "{job}{sep}{level}",
         "{level}{sep}{job}",
     )
-
-    _markov_model = None
-
-    @property
-    def markov_model(self):
-        """
-        :class:`generate_utils.MarkovModel`: Markov model used to generate text in
-        :meth:`Provider.text_lines()` and :meth:`Provider.text_lines_trailing()`.
-        It's trained and assigned at the instance- rather than class-level to avoid
-        having to train the model every time this module is imported. It's fast, but
-        not *that* fast.
-        """
-        if self._markov_model is None:
-            self._markov_model = generate_utils.MarkovModel(state_len=4).fit(c.TEXT_SAMPLES)
-        return self._markov_model
 
     def company_name(self):
         if rnd.random() < 0.75:
@@ -109,7 +109,6 @@ class Provider(generate_utils.ResumeProvider):
 
     def text_line(self, nrange=(50, 100), prob_capitalize=0.9):
         n_chars = rnd.randint(*nrange)
-        # text_line = self._markov_model.generate(n_chars)
         text_line = self.markov_model.generate(n_chars)
         if rnd.random() < prob_capitalize:
             text_line = text_line[0].capitalize() + text_line[1:]

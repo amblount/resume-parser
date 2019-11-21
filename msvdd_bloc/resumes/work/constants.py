@@ -130,5 +130,5 @@ TEXT_SAMPLES = (
 )
 """
 str: Samples of text taken from real résumés' work sections (with any PII removed/changed),
-for use in training a Markov model in fake data generation
+for use in training a Markov model in fake data generation.
 """
