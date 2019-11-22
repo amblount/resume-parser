@@ -55,6 +55,7 @@ def _parse_labeled_tokens(labeled_tokens):
     excluded_labels = {"other", "field_sep", "item_sep", "field_label"}
     data = {}
     profiles = []
+    summary_lines = []
     for label, tls in itertools.groupby(labeled_tokens, key=operator.itemgetter(1)):
         field_text = "".join(tok.text_with_ws for tok, _ in tls).strip()
         if label in excluded_labels:
@@ -79,16 +80,20 @@ def _parse_labeled_tokens(labeled_tokens):
         # the PDF extractor can't turn those social icons into unicode chars
         elif label == "profile":
             profiles.append({"username": field_text})
+        elif label == "summary":
+            summary_lines.append(field_text)
         else:
             data[label] = field_text
     if profiles:
         data["profiles"] = profiles
+    if summary_lines:
+        data["summary"] = "\n".join(summary_lines)
     return data
 
 
 def featurize(tokens):
     """
-    Extract features from individual tokens as well as those that are dependent on
+    Get features from individual tokens as well as those that are dependent on
     the sequence thereof.
 
     Args:
@@ -106,6 +111,7 @@ def featurize(tokens):
         tokens_features = parse_utils.pad_tokens_features(
             tokens_features, n_left=2, n_right=2)
         idx_last_newline = 0
+        follows_bullet = False
         tf_windows = itertoolz.sliding_window(5, tokens_features)
         for pprev_tf, prev_tf, tf, next_tf, nnext_tf in tf_windows:
             tf = tf.copy()
@@ -117,7 +123,12 @@ def featurize(tokens):
             # e.g. whether or not a particular word appeared earlier in the sequence
             if all(char == "\n" for char in tf["shape"]):
                 idx_last_newline = tf["idx"]
+                follows_bullet = False
             tf["n_toks_since_newline"] = tf["idx"] - idx_last_newline
+            tf["follows_bullet"] = follows_bullet
+            # is this token a bullet? i.e. "- " token starting a new line
+            if tf["shape"] == "-" and tf["n_toks_since_newline"] == 1:
+                follows_bullet = True
             feature_sequence.append(tf)
         return feature_sequence
 

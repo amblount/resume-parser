@@ -152,7 +152,7 @@ class ResumeBasicsSchema(ma.Schema):
     # NOTE: marshmallow's built-in URL validation is *too strict*
     website = ma.fields.String(
         validate=lambda s: regexes.RE_URL.match(s) or regexes.RE_SHORT_URL.match(s))
-    summary = ma.fields.String()
+    summary = ma.fields.String(validate=ma.validate.Length(min=40, max=1000))
     location = ma.fields.Nested("ResumeBasicsLocationSchema")
     profiles = ma.fields.Nested("ResumeBasicsProfileSchema", many=True)
 

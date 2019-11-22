@@ -15,18 +15,11 @@ SECTION_HEADERS = {
         r"^(?P<text>"
         "about|"
         "contacts?|"
-        "(contact|personal) info"
-        ")(?P<end>:?$)",
-        flags=re.IGNORECASE,
-    ),
-    # "summary" section becomes a field in "basics" section
-    "summary": re.compile(
-        r"^(?P<text>"
-        "career objective|"
-        "(career|professional) summary|"
+        "(career|professional) (objective|summary)|"
+        "(contact|personal) info|"
         "objective|"
         "summary"
-        ")(?P<end>: |:?$)",
+        ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
     "work": re.compile(
@@ -41,16 +34,6 @@ SECTION_HEADERS = {
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
-    "volunteer": re.compile(
-        r"^(?P<text>"
-        "community service|"
-        "volunteer experiences?|"
-        "volunteering"
-        ")(?P<end>:?$)",
-        flags=re.IGNORECASE,
-    ),
-    # let's combine education + courses, because it *makes sense*
-    # however, the parser struggles more with this setup
     "education": re.compile(
         r"^(?P<text>"
         "academic qualifications|"
@@ -59,6 +42,28 @@ SECTION_HEADERS = {
         "education|"
         "(recent|related|relevant|undergraduate) courses|"
         "(recent|related|relevant) course ?work"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "skills": re.compile(
+        r"^(?P<text>"
+        "languages|"
+        "languages? (and|&) technologies|"
+        "programming languages|"
+        "skills|"
+        "skills (and|&) expertise|"
+        "(relevant|soft|special|technical|technological) skills(et)?|"
+        "technical strengths|"
+        "tools"
+        # ")(?P<end>:?$)",
+        ")(?P<end>: |:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "volunteer": re.compile(
+        r"^(?P<text>"
+        "community service|"
+        "volunteer experiences?|"
+        "volunteering"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
@@ -75,25 +80,6 @@ SECTION_HEADERS = {
         ")(?P<end>: |:?$)",
         flags=re.IGNORECASE,
     ),
-    "publications": re.compile(
-        r"^(?P<text>"
-        "publications"
-        ")(?P<end>:?$)",
-        flags=re.IGNORECASE,
-    ),
-    "skills": re.compile(
-        r"^(?P<text>"
-        "languages|"
-        "languages? (and|&) technologies|"
-        "programming languages|"
-        "skills|"
-        "skills (and|&) expertise|"
-        "(relevant|soft|special|technical|technological) skills(et)?|"
-        "technical strengths|"
-        "tools"
-        ")(?P<end>:?$)",
-        flags=re.IGNORECASE,
-    ),
     "interests": re.compile(
         r"^(?P<text>"
         "activities|"
@@ -105,6 +91,12 @@ SECTION_HEADERS = {
         "(github|other|programming|recent|side|technical) projects|"
         "interests|"
         "projects"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "publications": re.compile(
+        r"^(?P<text>"
+        "publications"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),

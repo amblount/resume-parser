@@ -47,7 +47,7 @@ Dict[str, str]: Mapping of ``usaddress`` location tag to corresponding résumé 
 TEXT_SAMPLES = (
     "I am currently an undergraduate senior at Georgia University pursuing an honors, dual degree in Physics & Electrical Engineering. I will graduate in June of 2017. My work experience includes a year's worth of internship between Foogle and Gacebook as a Project Manager and a Back-end Engineer. My skills include communication, resourcefulness, work ethic, adaptability, and attention to detail. I am looking for a full-time position at a company with a challenging, dynamic, and fast-paced environment with a strong team connection. "
     "3+ years of experience in HTML/CSS language "
-    "Strong ability to work in and lead group projects"
+    "Strong ability to work in and lead group projects "
     "Knowledge in computer architecture, including digital systems and computer organization "
     "Skilled at working under pressure and communicating ideas effectively "
     "Strong interest in field of Design and Computer Architecture "
@@ -61,6 +61,18 @@ TEXT_SAMPLES = (
     "To obtain an back-end or mobile engineering internship granting me the opportunity to utilize and enhance technical and leadership skills, becoming a successful contributor and asset to the organization. "
     "Seeking a position as a Software Intern at ABC Corporation utilizing exceptional software engineering skills, and abilities and experiences gained through relevant education, projects, and internships to contribute to the ongoing success of company. "
     "Result-oriented engineering undergrad who is interested in Data Science and Machine Learning and would like to obtain a Software Engineering role that will allow me to utilize my technical and leadership skills to develop efficient technological solutions for the company. "
+    "Obtaining placement in a suitable setting. "
+    "Obtain a position in the healthcare field where I may contribute my training in Health Services Administration as well as my outstanding administrative and analytical methods experience. "
+    "I am an enthusiastic, team oriented research worker with degree in industrial pharmacy, seeking a challenging scientist position in the pharmaceutical/cosmetic development firm. "
+    "Highly creative individual and self-starter with 9 year's experience in the pharmaceutical industry. Very motivated and committed to professional standards and meeting deadlines/goals. Excellent communication skills and a remarkable talent for creating productive working relationships between all levels within an organization. Excellent leadership skills with proven ability to motivate and work effectively with others. "
+    "5+ years of experience in data analysis, statistical techniques and software tools (SAS, R, Matlab, Minitab), time series analysis and forecasting models, Data Mining, Machine Learning methodologies and analysis. 2+ years of experience in extensive software development in Java, C++, SQL, Visual C#. "
+    "Advanced SAS professionals with many years of SAS Programming experience in health "
+    "Associate Scientist with a background in mechanical engineering seeking an opportunity to utilize all major principles and interested areas of engineering where my knowledge and professional expertise is highly valuable. "
+    "Experienced, self-motivated, Scientist I work well with minimum supervision and with strong ability to work in multiple cross-functional teams. Able to set up, operate and maintain lab instruments, monitor experiments, make observations, calculate and record results and develop conclusions. "
+    "Intelligent, hard-working and ambitious laboratory professional seeks supervisory, quality management, managerial and administrative career advancement opportunities "
+    "Research and Development Scientist with 10 years' experience in Analytical R&D, Compliance, Quality Control and Quality Assurance of Pharmaceutical Products. "
+    "Highly talented and educated in biochemistry with enthusiasm for contributing to research and discovery within laboratory environments as a Laboratory Technician. "
+    "Smart, motivated individual looking to lead a company. "
 )
 """
 str: Samples of text taken from real résumés' summary sections (with any PII removed/changed),
