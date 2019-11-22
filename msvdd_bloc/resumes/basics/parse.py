@@ -109,12 +109,13 @@ def featurize(tokens):
     else:
         feature_sequence = []
         tokens_features = parse_utils.pad_tokens_features(
-            tokens_features, n_left=2, n_right=2)
+            tokens_features, n_left=3, n_right=2)
         idx_last_newline = 0
         follows_bullet = False
-        tf_windows = itertoolz.sliding_window(5, tokens_features)
-        for pprev_tf, prev_tf, tf, next_tf, nnext_tf in tf_windows:
+        tf_windows = itertoolz.sliding_window(6, tokens_features)
+        for ppprev_tf, pprev_tf, prev_tf, tf, next_tf, nnext_tf in tf_windows:
             tf = tf.copy()
+            tf["ppprev"] = ppprev_tf
             tf["pprev"] = pprev_tf
             tf["prev"] = prev_tf
             tf["next"] = next_tf
