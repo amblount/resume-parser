@@ -28,10 +28,10 @@ class ResumeProvider(faker.providers.BaseProvider):
     """
 
     _subheader_templates = (
-        "{word1}",
-        "{word1} {word2}",
-        "{word1} {sep} {word2}",
-        "{word1} {word2} {sep} {word3}",
+        "{word1} {punct}",
+        "{word1} {word2} {punct}",
+        "{word1} {sep} {word2} {punct}",
+        "{word1} {word2} {sep} {word3} {punct}",
     )
 
     def address_inline(self):
@@ -64,6 +64,12 @@ class ResumeProvider(faker.providers.BaseProvider):
     def left_bracket(self):
         return rnd.choice(c.LEFT_BRACKETS)
 
+    # def newline(self, nrange=(1, 2), weights=None):
+    #     return (
+    #         "\n" * rnd.choices(range(nrange[0], nrange[1] + 1), weights=weights, k=1) if weights else
+    #         "\n" * rnd.randint(*nrange)
+    #     )
+
     def newline(self):
         return "\n" if rnd.random() < 0.8 else "\n\n"
 
@@ -89,10 +95,11 @@ class ResumeProvider(faker.providers.BaseProvider):
             self._subheader_templates, weights=[1.0, 0.5, 0.25, 0.1], k=1,
         )[0]
         word1, word2, word3 = rnd.sample(c.SUBHEADERS, 3)
+        punct = ":" if rnd.random() < 0.75 else ""
         sep = self.and_rand()
         if rnd.random() < 0.75:
             template_fmt = template.format(
-                word1=word1, word2=word2, word3=word3, sep=sep,
+                word1=word1, word2=word2, word3=word3, sep=sep, punct=punct,
             ).upper()
         else:
             template_fmt = template.format(
@@ -100,6 +107,7 @@ class ResumeProvider(faker.providers.BaseProvider):
                 word2=word2.capitalize(),
                 word3=word3.capitalize(),
                 sep=sep,
+                punct=punct,
             )
         return template_fmt
 
@@ -108,6 +116,12 @@ class ResumeProvider(faker.providers.BaseProvider):
             return self.generator.url()
         else:
             return self.generator.domain_name(levels=rnd.randint(1, 2))
+
+    # def whitespace(self, nrange=(1, 4), weights=None):
+    #     return (
+    #         " " * rnd.choices(range(nrange[0], nrange[1] + 1), weights=weights, k=1) if weights else
+    #         " " * rnd.randint(*nrange)
+    #     )
 
     def whitespace(self, nrange=(1, 4)):
         return " " * rnd.randint(*nrange)
