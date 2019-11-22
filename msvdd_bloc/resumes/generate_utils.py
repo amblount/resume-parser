@@ -123,10 +123,13 @@ class MarkovModel:
         self.state_len = state_len
         self.model = None
 
-    def train(self, text):
+    def fit(self, text):
         """
         Args:
             text (str)
+
+        Returns:
+            :class:`MarkovModel`: The instantiated Markov model, trained.
         """
         model = collections.defaultdict(collections.Counter)
         state_len = self.state_len
@@ -136,6 +139,7 @@ class MarkovModel:
             model[state][next_char] += 1
         LOGGER.debug("trained markov model has %s states", len(model))
         self.model = model
+        return self
 
     def generate(self, n_chars, state=None):
         """
