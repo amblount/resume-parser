@@ -99,6 +99,12 @@ class Provider(generate_utils.ResumeProvider):
             label_weights=None, sep_weights=[1.0, 0.2],
         )
 
+    def label_summary(self):
+        return self.generator.field_label(
+            c.FIELD_LABEL_SUMMARIES, c.FIELD_LABEL_SEPS,
+            label_weights=None, sep_weights=[1.0, 0.2],
+        )
+
     def phone(self):
         if rnd.random() < 0.25:
             return self.generator.phone_number()
@@ -149,11 +155,13 @@ FIELDS = {
     "label_email": (FAKER.label_email, "field_label"),
     "label_phone": (FAKER.label_phone, "field_label"),
     "label_profile": (FAKER.label_profile, "field_label"),
+    "label_summary": (FAKER.label_summary, "field_label"),
     "name": (FAKER.name, "name"),
     "nl": (FAKER.newline, "field_sep"),
     "phone": (FAKER.phone, "phone"),
     "profile": (FAKER.website_profile, "website"),  # TODO: improve this?
     "punct_end": (lambda: ".", "summary"),
+    "subheader": (FAKER.subheader, "field_label"),
     "text_line": (FAKER.text_line, "summary"),
     "text_line_trailing": (fnc.partial(FAKER.text_line, nrange=(20, 70), prob_capitalize=0.25), "summary"),
     "user_name": (FAKER.user_name_rand_at, "profile"),
@@ -207,11 +215,17 @@ def summary_block_template():
     Generate a template for a group of text lines labeled as a "summary", consisting of
     one or more text lines separated by newlines and optionally ending with a period.
     """
+    lead_template = (
+        rnd.choice(
+            ["{label_summary}", "{subheader:field_label} {nl}"]
+        ) if rnd.random() < 0.5 else ""
+    )
     n_lines = rnd.randint(1, 4)
     if n_lines == 1:
-        return "{text_line} {punct_end:summary:0.5}"
+        return lead_template + "{subheader::0.25} {text_line} {punct_end:summary:0.5}"
     else:
         return (
+            lead_template +
             " {nl:item_sep} ".join("{text_line}" for _ in range(n_lines - 1)) +
             " {nl:item_sep} {text_line_trailing} {punct_end:summary:0.5}"
         )
@@ -223,13 +237,17 @@ def summary_list_template():
     one or more text lines separated by newlines and optionally ending with a period,
     each starting with a bullet.
     """
+    lead_template = "{subheader:field_label} {nl}" if rnd.random() < 0.5 else ""
     templates = (
         "{bullet:summary} {text_line} {punct_end::0.25}",
         "{bullet:summary} {text_line} {nl:item_sep} {text_line_trailing} {punct_end::0.25}",
     )
-    return " {nl:item_sep} ".join(
-        template
-        for template in rnd.choices(templates, weights=[1.0, 0.33], k=rnd.randint(2, 4))
+    return (
+        lead_template +
+        " {nl:item_sep} ".join(
+            template
+            for template in rnd.choices(templates, weights=[1.0, 0.33], k=rnd.randint(2, 4))
+        )
     )
 
 

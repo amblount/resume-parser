@@ -6,6 +6,11 @@ FIELD_LABEL_ADDRS = ("Address", "Current Address")
 FIELD_LABEL_EMAILS = ("Email", "E-mail")
 FIELD_LABEL_PHONES = ("Phone", "Mobile", "Cell", "Tel.")
 FIELD_LABEL_PROFILES = ("GitHub", "Twitter", "LinkedIn", "Portfolio")
+FIELD_LABEL_SUMMARIES = (
+    "Objective", "Summary",
+    "Career Objective", "Career Summary",
+    "Professional Objective", "Professional Summary",
+)
 
 PHONE_FORMATS = (
     "###-###-####", "###.###.####", "(###) ###-####", "### ###-####",
