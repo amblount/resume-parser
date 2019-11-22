@@ -168,4 +168,5 @@ def insert_whitespace_token(
         if random.random() < prob and not (tl1[0].isspace() or tl2[0].isspace()):
             ws_label = field_labels[tl1[1] == tl2[1]]
             aug_labeled_tokens.append((" " * random.randint(*nrange), ws_label))
+    aug_labeled_tokens.append(labeled_tokens[-1])
     return aug_labeled_tokens
