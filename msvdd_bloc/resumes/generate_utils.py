@@ -28,32 +28,45 @@ class ResumeProvider(faker.providers.BaseProvider):
     """
 
     _subheader_templates = (
-        "{word1} {punct}",
-        "{word1} {word2} {punct}",
-        "{word1} {sep} {word2} {punct}",
-        "{word1} {word2} {sep} {word3} {punct}",
+        ("{word1}{punct}", 1.0),
+        ("{word1} {word2}{punct}", 0.5),
+        ("{word1} {sep} {word2}{punct}", 0.25),
+        ("{word1} {word2} {sep} {word3}{punct}", 0.1),
     )
+
+    def random_element_weighted(self, elements, weights):
+        return (
+            rnd.choice(elements) if not weights else
+            rnd.choices(elements, weights=weights, k=1)[0]
+        )
+
+    def random_n_weighted(self, nrange, weights):
+        return (
+            rnd.randrange(*nrange) if not weights else
+            rnd.choices(range(*nrange), weights=weights, k=1)[0]
+        )
+
+    def random_template_weighted(self, templates_weights):
+        templates, weights = zip(*templates_weights)
+        return rnd.choices(templates, weights=weights, k=1)[0]
 
     def address_inline(self):
         sep = rnd.choice([", ", " "])
         return self.generator.address().replace("\n", sep)
 
     def and_rand(self, weights=None):
-        return (
-            rnd.choices(c.ANDS, weights=weights, k=1)[0] if weights else
-            rnd.choice(c.ANDS)
-        )
+        return self.random_element_weighted(c.ANDS, weights)
 
-    def date_present(self):
-        return rnd.choices(c.DATE_PRESENTS, weights=[1.0, 0.25], k=1)[0]
+    def bullet_point(self):
+        return "- "
+
+    def date_present(self, weights=None):
+        return self.random_element_weighted(c.DATE_PRESENTS, weights)
 
     def field_label(self, labels, seps, label_weights=None, sep_weights=None):
         # TODO: figure out if this is actually how we want to structure field labels...
         # specifically: do we *want* to tag the separator as part of the field label??
-        label = (
-            rnd.choices(labels, weights=label_weights, k=1)[0] if label_weights else
-            rnd.choice(labels)
-        )
+        label = self.random_element_weighted(labels, label_weights)
         return "{label}{ws}{sep}".format(
             label=label,
             # TODO: figure out if this ws matters, if we want two spaces, etc.
@@ -61,42 +74,34 @@ class ResumeProvider(faker.providers.BaseProvider):
             sep=rnd.choices(seps, weights=sep_weights, k=1)[0] if rnd.random() < 0.9 else "",
         ).strip()
 
-    def left_bracket(self):
-        return rnd.choice(c.LEFT_BRACKETS)
+    def left_bracket(self, weights=None):
+        return self.random_element_weighted(c.LEFT_BRACKETS, weights)
 
-    # def newline(self, nrange=(1, 2), weights=None):
-    #     return (
-    #         "\n" * rnd.choices(range(nrange[0], nrange[1] + 1), weights=weights, k=1) if weights else
-    #         "\n" * rnd.randint(*nrange)
-    #     )
+    def newline(self, nrange=(1, 3), weights=None):
+        return "\n" * self.random_n_weighted(nrange, weights)
 
-    def newline(self):
-        return "\n" if rnd.random() < 0.8 else "\n\n"
+    def right_bracket(self, weights=None):
+        return self.random_element_weighted(c.RIGHT_BRACKETS, weights)
 
-    def right_bracket(self):
-        return rnd.choice(c.RIGHT_BRACKETS)
-
-    def sep_with_ws(self, seps, weights=None, ws_nrange=(1, 4)):
-        sep = (
-            rnd.choices(seps, weights=weights, k=1)[0] if weights else
-            rnd.choice(seps)
+    def sep_with_ws(self, seps, weights=None, ws_nrange=(1, 5), ws_weights=None):
+        sep = self.random_element_weighted(seps, weights)
+        return "{ws}{sep}{ws}".format(
+            sep=sep,
+            ws=self.whitespace(nrange=ws_nrange, weights=ws_weights),
         )
-        return "{ws}{sep}{ws}".format(sep=sep, ws=self.whitespace(nrange=ws_nrange))
 
-    def sep_with_ws_right(self, seps, weights=None, ws_nrange=(1, 2)):
-        sep = (
-            rnd.choices(seps, weights=weights, k=1)[0] if weights else
-            rnd.choice(seps)
+    def sep_with_ws_right(self, seps, weights=None, ws_nrange=(1, 3), ws_weights=None):
+        sep = self.random_element_weighted(seps, weights)
+        return "{sep}{ws}".format(
+            sep=sep,
+            ws=self.whitespace(nrange=ws_nrange, weights=ws_weights),
         )
-        return "{sep}{ws}".format(sep=sep, ws=self.whitespace(nrange=ws_nrange))
 
     def subheader(self):
-        template = rnd.choices(
-            self._subheader_templates, weights=[1.0, 0.5, 0.25, 0.1], k=1,
-        )[0]
+        template = self.random_template_weighted(self._subheader_templates)
         word1, word2, word3 = rnd.sample(c.SUBHEADERS, 3)
-        punct = ":" if rnd.random() < 0.75 else ""
         sep = self.and_rand()
+        punct = ":" if rnd.random() < 0.75 else ""
         if rnd.random() < 0.75:
             template_fmt = template.format(
                 word1=word1, word2=word2, word3=word3, sep=sep, punct=punct,
@@ -117,14 +122,8 @@ class ResumeProvider(faker.providers.BaseProvider):
         else:
             return self.generator.domain_name(levels=rnd.randint(1, 2))
 
-    # def whitespace(self, nrange=(1, 4), weights=None):
-    #     return (
-    #         " " * rnd.choices(range(nrange[0], nrange[1] + 1), weights=weights, k=1) if weights else
-    #         " " * rnd.randint(*nrange)
-    #     )
-
-    def whitespace(self, nrange=(1, 4)):
-        return " " * rnd.randint(*nrange)
+    def whitespace(self, nrange=(1, 5), weights=None):
+        return " " * self.random_n_weighted(nrange, weights)
 
 
 class MarkovModel:
@@ -155,11 +154,11 @@ class MarkovModel:
         self.model = model
         return self
 
-    def generate(self, n_chars, state=None):
+    def generate(self, n, state=None):
         """
         Args:
-            n_chars (int)
-            state (str)
+            n (int): Number of characters to generate.
+            state (str): Initial state from which to start generating characters.
 
         Returns:
             str
@@ -172,7 +171,7 @@ class MarkovModel:
             state = rnd.choice(list(self.model))
 
         chars = list(state)
-        for _ in range(n_chars):
+        for _ in range(n):
             next_chars = self.model[state]
             if not next_chars:
                 LOGGER.warning(
