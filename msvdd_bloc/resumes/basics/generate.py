@@ -28,16 +28,16 @@ class Provider(generate_utils.ResumeProvider):
         return self._markov_model
 
     _address_city_state_templates = (
-        "{city}, {state_abbr}",
-        "{city}, {state}",
+        ("{city}, {state_abbr}", 1.0),
+        ("{city}, {state}", 0.1),
     )
     _address_city_state_zip_templates = (
-        "{city}, {state_abbr} {postcode}",
-        "{city}, {state} {postcode}",
+        ("{city}, {state_abbr} {postcode}", 1.0),
+        ("{city}, {state} {postcode}", 0.1),
     )
     _user_name_templates = (
-        "{user_name}",
-        "@{user_name}",
+        ("{user_name}", 1.0),
+        ("@{user_name}", 0.33),
     )
     _website_profile_templates = (
         "{scheme}linkedin.com/in/{slug}",
@@ -45,8 +45,7 @@ class Provider(generate_utils.ResumeProvider):
     )
 
     def address_city_state(self):
-        template = rnd.choices(
-            self._address_city_state_templates, weights=[0.9, 0.1], k=1)[0]
+        template = self.generator.random_template_weighted(self._address_city_state_templates)
         return template.format(
             city=self.generator.city(),
             state=self.generator.state(),
@@ -54,8 +53,7 @@ class Provider(generate_utils.ResumeProvider):
         )
 
     def address_city_state_zip(self):
-        template = rnd.choices(
-            self._address_city_state_zip_templates, weights=[0.9, 0.1], k=1)[0]
+        template = self.generator.random_template_weighted(self._address_city_state_zip_templates)
         return template.format(
             city=self.generator.city(),
             state=self.generator.state(),
@@ -67,12 +65,12 @@ class Provider(generate_utils.ResumeProvider):
         return self.generator.sep_with_ws(
             c.FIELD_SEPS,
             weights=[1.0, 0.5, 0.5, 0.25, 0.1, 0.05, 0.05, 0.05, 0.05],
-            ws_nrange=(1, 4),
+            ws_nrange=(1, 5),
         )
 
     def item_sep(self):
         return self.generator.sep_with_ws_right(
-            c.ITEM_SEPS, weights=[1.0, 0.2], ws_nrange=(1, 2),
+            c.ITEM_SEPS, weights=[1.0, 0.2], ws_nrange=(1, 3),
         )
 
     def label_addr(self):
@@ -118,14 +116,14 @@ class Provider(generate_utils.ResumeProvider):
             return self.generator.catch_phrase()
 
     def text_line(self, nrange=(70, 110), prob_capitalize=0.5):
-        n_chars = rnd.randint(*nrange)
+        n_chars = rnd.randrange(*nrange)
         text_line = self.markov_model.generate(n_chars)
         if rnd.random() < prob_capitalize:
             text_line = text_line[0].capitalize() + text_line[1:]
         return text_line.strip()
 
     def user_name_rand_at(self):
-        template = rnd.choices(self._user_name_templates, weights=[1.0, 0.33], k=1)[0]
+        template = self.generator.random_template_weighted(self._user_name_templates)
         return template.format(user_name=self.generator.user_name())
 
     def website_profile(self):
@@ -146,7 +144,7 @@ FIELDS = {
     "addr_city_state": (FAKER.address_city_state, "location"),
     "addr_city_state_zip": (FAKER.address_city_state_zip, "location"),
     "addr_street": (FAKER.street_address, "location"),
-    "bullet": (lambda : "- ", "summary"),
+    "bullet": (FAKER.bullet_point, "summary"),
     "email": (FAKER.email, "email"),
     "fsep": (FAKER.field_sep, "field_sep"),
     "isep": (FAKER.item_sep, "item_sep"),
@@ -157,7 +155,8 @@ FIELDS = {
     "label_profile": (FAKER.label_profile, "field_label"),
     "label_summary": (FAKER.label_summary, "field_label"),
     "name": (FAKER.name, "name"),
-    "nl": (FAKER.newline, "field_sep"),
+    "nl": (fnc.partial(FAKER.newline, nrange=(1, 3), weights=[1.0, 0.1]), "field_sep"),
+    "nls": (fnc.partial(FAKER.newline, nrange=(1, 3), weights=[0.1, 1.0]), "field_sep"),
     "phone": (FAKER.phone, "phone"),
     "profile": (FAKER.website_profile, "website"),  # TODO: improve this?
     "punct_end": (lambda: ".", "summary"),
@@ -220,7 +219,7 @@ def summary_block_template():
             ["{label_summary}", "{subheader:field_label} {nl}"]
         ) if rnd.random() < 0.5 else ""
     )
-    n_lines = rnd.randint(1, 4)
+    n_lines = rnd.randrange(1, 5)
     if n_lines == 1:
         return lead_template + "{subheader::0.25} {text_line} {punct_end:summary:0.5}"
     else:
@@ -246,7 +245,7 @@ def summary_list_template():
         lead_template +
         " {nl:item_sep} ".join(
             template
-            for template in rnd.choices(templates, weights=[1.0, 0.33], k=rnd.randint(2, 4))
+            for template in rnd.choices(templates, weights=[1.0, 0.33], k=rnd.randrange(2, 5))
         )
     )
 
@@ -281,10 +280,12 @@ TEMPLATES = [
         fields_shuffled_template(
             field_keys=["addr|addr_city_state|addr_city_state_zip", "email", "phone", "profile", "user_name", "website"],
             sep_key=rnd.choice(["fsep", "nl", "ws"]),
-            n=rnd.randint(1, 5),
+            n=rnd.randrange(1, 6),
         ),
-        rnd.choice([summary_block_template, summary_list_template])() if rnd.random() < 0.025 else None,
         sep_key="nl",
+    ) + (
+        "" if rnd.random() > 0.025 else
+        "{nls}" + rnd.choice([summary_block_template, summary_list_template])()
     ),
     lambda: _template_from_items(
         "{name}",
@@ -297,10 +298,12 @@ TEMPLATES = [
         fields_shuffled_template(
             field_keys=["email", "user_name", "website", "profile"],
             sep_key="fsep",
-            n=rnd.randint(2, 4),
+            n=rnd.randrange(2, 5),
         ),
-        rnd.choice([summary_block_template, summary_list_template])() if rnd.random() < 0.025 else None,
         sep_key="nl",
+    ) + (
+        "" if rnd.random() > 0.025 else
+        "{nls}" + rnd.choice([summary_block_template, summary_list_template])()
     ),
     lambda: _template_from_items(
         "{addr|addr_city_state|addr_city_state_zip}",
@@ -308,7 +311,7 @@ TEMPLATES = [
         fields_shuffled_template(
             field_keys=["email", "profile", "user_name", "website"],
             sep_key="fsep|nl",
-            n=rnd.randint(2, 4),
+            n=rnd.randrange(2, 5),
         ),
         rnd.choice([summary_block_template, summary_list_template])() if rnd.random() < 0.025 else None,
         sep_key="nl",
@@ -319,10 +322,12 @@ TEMPLATES = [
         fields_labeled_shuffled_template(
             field_keys=["addr", "email", "phone", "profile"],
             sep_key="fsep",
-            n=rnd.randint(2, 4),
+            n=rnd.randrange(2, 5),
         ),
-        rnd.choice([summary_block_template, summary_list_template])() if rnd.random() < 0.025 else None,
         sep_key="nl",
+    ) + (
+        "" if rnd.random() > 0.025 else
+        "{nls}" + rnd.choice([summary_block_template, summary_list_template])()
     ),
     lambda: _template_from_items(
         "{name}",
@@ -330,7 +335,7 @@ TEMPLATES = [
         fields_shuffled_template(
             field_keys=["email", "phone", "profile", "website"],
             sep_key="fsep",
-            n=rnd.randint(2, 4),
+            n=rnd.randrange(2, 5),
         ),
         sep_key="nl|fsep",
     ),
