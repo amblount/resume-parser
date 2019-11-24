@@ -15,8 +15,11 @@ LOGGER = logging.getLogger(__name__)
 _RESUME_SCHEMA = schemas.ResumeSchema()
 
 
-def parse(text):
+def parse_text(text):
     """
+    Parse raw extracted résumé ``text`` into structured data conforming to the schema
+    specified in :class:`schemas.ResumeSchema()`.
+
     Args:
         text (str)
 
