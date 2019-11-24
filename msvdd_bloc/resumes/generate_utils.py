@@ -164,14 +164,14 @@ class MarkovModel:
             str
         """
         if self.model is None:
-            raise Exception("model has not yet been trained")
+            raise RuntimeError("model has not yet been trained")
         if state and len(state) != self.state_len:
             raise ValueError("invalid state; must be of length {}".format(self.state_len))
         elif state is None:
             state = rnd.choice(list(self.model))
 
         chars = list(state)
-        for _ in range(n):
+        for _ in range(n - len(state)):
             next_chars = self.model[state]
             if not next_chars:
                 LOGGER.warning(
