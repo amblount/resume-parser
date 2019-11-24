@@ -82,7 +82,7 @@ def _parse_labeled_tokens(labeled_tokens):
         # get rid of leading / trailing field_seps and item_seps
         if tok_labels[0][1] in ("item_sep", "field_sep"):
             tok_labels = tok_labels[1:]
-        if tok_labels[-1][1] in ("item_sep", "field_sep"):
+        if tok_labels[-1][1] == "item_sep":
             tok_labels = tok_labels[:-1]
         # get rid of all "other" tokens
         tok_labels = [(tok, label) for tok, label in tok_labels if label != "other"]
