@@ -7,6 +7,8 @@ import faker
 from msvdd_bloc.resumes.work import constants as c
 from msvdd_bloc.resumes import generate_utils
 
+###################################
+## random field value generators ##
 
 class Provider(generate_utils.ResumeProvider):
     """Class for providing randomly-generated field values."""
@@ -26,23 +28,23 @@ class Provider(generate_utils.ResumeProvider):
             self._markov_model = generate_utils.MarkovModel(state_len=4).fit(c.TEXT_SAMPLES)
         return self._markov_model
 
-    _location_templates = (
-        "{city}, {state_abbr}",
-        "{city}, {state}",
-        "{city}",
-    )
     _date_approx_templates = (
-        "{month} {year}",
-        "{month_abbr} {year}",
-        "{month_abbr}. {year}",
-        "{season} {year}",
-        "{year}",
+        ("{month} {year}", 1.0),
+        ("{month_abbr} {year}", 1.0),
+        ("{month_abbr}. {year}", 0.5),
+        ("{season} {year}", 0.25),
+        ("{year}", 0.25),
     )
     _job_title_templates = (
-        "{job}",
-        "{level} {job}",
-        "{job}{sep}{level}",
-        "{level}{sep}{job}",
+        ("{job}", 1.0),
+        ("{level} {job}", 0.2),
+        ("{job}{sep}{level}", 0.2),
+        ("{level}{sep}{job}", 0.1),
+    )
+    _location_templates = (
+        ("{city}, {state_abbr}", 1.0),
+        ("{city}, {state}", 0.25),
+        ("{city}", 0.1),
     )
 
     def company_name(self):
@@ -52,9 +54,7 @@ class Provider(generate_utils.ResumeProvider):
             return self.generator.company()
 
     def date_approx(self):
-        template = rnd.choices(
-            self._date_approx_templates, weights=[1.0, 1.0, 0.5, 0.25, 0.25], k=1,
-        )[0]
+        template = self.generator.random_template_weighted(self._date_approx_templates)
         month = self.generator.month_name()
         return template.format(
             month=month,
@@ -69,13 +69,13 @@ class Provider(generate_utils.ResumeProvider):
         )
 
     def field_sep_dt(self):
-        sep = rnd.choices(c.FIELD_SEP_DTS, weights=[1.0, 0.5, 0.1], k=1)[0]
+        sep = self.generator.random_element_weighted(c.FIELD_SEP_DTS, [1.0, 0.5, 0.1])
         # word-like separators need at least 1 space
         if sep.isalpha():
-            ws = " " * rnd.choices([1, 2], weights=[1.0, 0.25], k=1)[0]
+            ws = self.generator.whitespace(nrange=(1, 3), weights=[1.0, 0.25])
         # but punct-like separators do not
         else:
-            ws = " " * rnd.choices([1, 2, 0], weights=[1.0, 0.25, 0.1], k=1)[0]
+            ws = self.generator.whitespace(nrange=(0, 3), weights=[0.1, 1.0, 0.25])
         return "{ws}{sep}{ws}".format(ws=ws, sep=sep)
 
     def field_sep_prep(self):
@@ -85,22 +85,20 @@ class Provider(generate_utils.ResumeProvider):
 
     def field_sep_sm(self):
         return self.generator.sep_with_ws_right(
-            c.FIELD_SEP_SMS, weights=None, ws_nrange=(1, 2),
+            c.FIELD_SEP_SMS, weights=None, ws_nrange=(1, 3),
         )
 
     def job_title(self):
-        template = rnd.choices(
-            self._job_title_templates, weights=[1.0, 0.2, 0.2, 0.1], k=1,
-        )[0]
+        template = self.generator.random_template_weighted(self._job_title_templates)
+        sep = self.generator.random_element_weighted([", ", " - "], [1.0, 0.25])
         return template.format(
             job=self.generator.job(),
             level=rnd.choice(c.POSITION_LEVELS),
-            sep=rnd.choices([", ", " - "], weights=[1.0, 0.25], k=1)[0],
+            sep=sep,
         )
 
     def location(self):
-        template = rnd.choices(
-            self._location_templates, weights=[1.0, 0.25, 0.1], k=1)[0]
+        template = self.generator.random_template_weighted(self._location_templates)
         return template.format(
             city=self.generator.city(),
             state=self.generator.state(),
@@ -108,7 +106,7 @@ class Provider(generate_utils.ResumeProvider):
         )
 
     def text_line(self, nrange=(50, 100), prob_capitalize=0.9):
-        n_chars = rnd.randint(*nrange)
+        n_chars = rnd.randrange(*nrange)
         text_line = self.markov_model.generate(n_chars)
         if rnd.random() < prob_capitalize:
             text_line = text_line[0].capitalize() + text_line[1:]
@@ -120,7 +118,7 @@ FAKER.add_provider(Provider)
 
 
 FIELDS = {
-    "bullet": (lambda : "- ", "bullet"),
+    "bullet": (FAKER.bullet_point, "field_sep"),
     "comp": (FAKER.company_name, "company"),
     "dt": (FAKER.date_approx, "end_date"),
     "dt_now": (FAKER.date_present, "end_date"),
@@ -131,7 +129,8 @@ FIELDS = {
     "lb": (FAKER.left_bracket, "field_sep"),
     "location": (FAKER.location, "location"),
     "job": (FAKER.job_title, "position"),
-    "nl": (FAKER.newline, "field_sep"),
+    "nl": (fnc.partial(FAKER.newline, nrange=(1, 3), weights=[1.0, 0.1]), "field_sep"),
+    "nls": (fnc.partial(FAKER.newline, nrange=(1, 3), weights=[0.1, 1.0]), "field_sep"),
     "punct_end": (lambda: ".", "highlight"),
     "rb": (FAKER.right_bracket, "field_sep"),
     "site": (FAKER.website, "website"),
@@ -139,19 +138,19 @@ FIELDS = {
     "text_line": (FAKER.text_line, "highlight"),
     "text_line_trailing": (fnc.partial(FAKER.text_line, nrange=(25, 75), prob_capitalize=0.25), "highlight"),
     "ws": (FAKER.whitespace, "field_sep"),
+    "ws_lg": (fnc.partial(FAKER.whitespace, nrange=(1, 5), weights=[0.4, 0.6, 0.8, 1.0]), "field_sep"),
 }
 """
 Dict[str, Tuple[Callable, str]]: Mapping of field key string to a function that generates
 a random field value and the default field label assigned to the value.
 """
 
-#############################
-## random group generators ##
-#############################
+######################################
+## random field template generators ##
 
-def generate_group_date():
+def date_group_template():
     """
-    Generate a template for a logical group of date fields, consisting of an end date,
+    Generate a template for a group of date fields, consisting of an end date,
     possibly preceded by a start date.
     """
     templates = (
@@ -162,13 +161,13 @@ def generate_group_date():
     return rnd.choices(templates, weights=[1.0, 0.5, 0.1], k=1)[0]
 
 
-def generate_group_summary():
+def summary_group_template():
     """
-    Generate a template for a logical group of text lines labeled as a "summary",
+    Generate a template for a group of text lines labeled as a "summary",
     consisting of one or more text lines separated by newlines and optionally
     ending with a period.
     """
-    n_lines = rnd.randint(1, 3)
+    n_lines = rnd.randrange(1, 4)
     if n_lines == 1:
         return "{text_line:summary} {punct_end:summary:0.33}"
     else:
@@ -178,7 +177,7 @@ def generate_group_summary():
         )
 
 
-def generate_group_highlights():
+def highlights_group_template():
     """
     Generate a template for a logical group of bulleted text lines labeled as "highlights",
     consisting of 1 or 2 text lines separated by newlines and optionally
@@ -190,62 +189,62 @@ def generate_group_highlights():
     )
     return " {nl} ".join(
         template
-        for template in rnd.choices(templates, weights=[1.0, 0.33], k=rnd.randint(1, 3))
+        for template in rnd.choices(templates, weights=[1.0, 0.33], k=rnd.randrange(1, 4))
     )
 
 
 _EXPERIENCES = [
     lambda: (
-        "{comp} {fsep_sm|nl|ws} {job} {nl} {location} {fsep|ws}" +
-        generate_group_date() + "{nl}" +
-        generate_group_highlights()
+        "{comp} {fsep_sm|nl|ws_lg} {job} {nl} {location} {fsep|ws_lg}" +
+        date_group_template() + "{nl}" +
+        highlights_group_template()
     ),
     lambda: (
-        "{job} {fsep_sm|ws} {lb} {comp} {rb} {nl}" +
-        generate_group_date() + "{fsep|ws}" +
+        "{job} {fsep_sm|ws_lg} {lb} {comp} {rb} {nl}" +
+        date_group_template() + "{fsep|ws_lg}" +
         "{location} {nl}" +
-        generate_group_highlights()
+        highlights_group_template()
     ),
     lambda: (
-        "{comp} {fsep|fsep_sm|nl|ws} {job} {fsep|ws}" +
-        generate_group_date() + "{nl}" +
-        generate_group_highlights()
+        "{comp} {fsep|fsep_sm|nl|ws_lg} {job} {fsep|ws_lg}" +
+        date_group_template() + "{nl}" +
+        highlights_group_template()
     ),
     lambda: (
-        "{comp} {fsep_sm|ws} {job} {fsep|nl|ws}" +
-        generate_group_date()
+        "{comp} {fsep_sm|ws_lg} {job} {fsep|nl|ws_lg}" +
+        date_group_template()
     ),
     lambda: (
-        "{comp} {fsep|ws}" +
-        generate_group_date() + "{nl}" +
+        "{comp} {fsep|ws_lg}" +
+        date_group_template() + "{nl}" +
         "{job} {nl}" +
-        generate_group_highlights()
+        highlights_group_template()
     ),
     lambda: (
-        "{job} {fsep_prep} {comp} {fsep|ws}" +
-        generate_group_date() + "{nl}" +
-        generate_group_highlights()
+        "{job} {fsep_prep} {comp} {fsep|ws_lg}" +
+        date_group_template() + "{nl}" +
+        highlights_group_template()
     ),
     lambda: (
-        "{bullet::0.25} {comp} {fsep_sm|ws} {location} {nl} {job} {fsep|fsep_sm|ws}" +
-        generate_group_date() + "{nl}" +
-        generate_group_highlights()
+        "{bullet::0.25} {comp} {fsep_sm|ws_lg} {location} {nl} {job} {fsep|fsep_sm|ws_lg}" +
+        date_group_template() + "{nl}" +
+        highlights_group_template()
     ),
     lambda: (
         "{job} {nl} {comp} {nl}" +
-        " {fsep} ".join(rnd.sample([generate_group_date(), "{location}"], 2)) + "{nl}" +
-        generate_group_highlights()
+        " {fsep} ".join(rnd.sample([date_group_template(), "{location}"], 2)) + "{nl}" +
+        highlights_group_template()
     ),
-    lambda: "{job} {fsep_sm} {comp} {fsep_sm} {location} {nl}" + generate_group_summary(),
+    lambda: "{job} {fsep_sm} {comp} {fsep_sm} {location} {nl}" + summary_group_template(),
     lambda: (
-        " {fsep} ".join(rnd.sample(["{job}", "{comp}", generate_group_date()], 3)) + "{nl}" +
-        rnd.choice([generate_group_highlights(), generate_group_summary()])
+        " {fsep} ".join(rnd.sample(["{job}", "{comp}", date_group_template()], 3)) + "{nl}" +
+        rnd.choice([highlights_group_template(), summary_group_template()])
     ),
-    lambda: "{comp} {nl}" + generate_group_highlights(),
+    lambda: "{comp} {nl}" + highlights_group_template(),
     lambda: (
-        "{comp} {fsep|fsep_sm|ws} {location} {nl} {job} {fsep|ws}" +
-        generate_group_date() + "{nl}" +
-        generate_group_highlights()
+        "{comp} {fsep|fsep_sm|ws_lg} {location} {nl} {job} {fsep|ws_lg}" +
+        date_group_template() + "{nl}" +
+        highlights_group_template()
     ),
 ]
 """
@@ -254,18 +253,22 @@ in a variety of formats and with a variety of constituent fields.
 """
 
 
-def generate_experiences():
+def _multiple_experiences_template():
+    """
+    Generate a template for 1–3 work experiences, delimited by newlines and (optionally)
+    a subheader.
+    """
     n_experiences = rnd.choices([1, 2, 3], weights=[1.0, 0.75, 0.25], k=1)[0]
     experience = rnd.choice(_EXPERIENCES)
     sep = rnd.choices(
-        [" {nl} {nl::0.5} ", " {nl} {nl::0.5} {subheader} {nl} {nl::0.5} "],
+        [" {nls} {nl::0.5} ", " {nl} {nl::0.5} {subheader} {nl} {nl::0.5} "],
         weights=[1.0, 0.05],
         k=1,
     )[0]
     return sep.join(experience() for _ in range(n_experiences))
 
 
-TEMPLATES = [generate_experiences]
+TEMPLATES = [_multiple_experiences_template]
 """
 List[Callable]: Set of functions that generate one or multiple work experiences with
 the same overall formatting.

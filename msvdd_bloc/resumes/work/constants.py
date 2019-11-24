@@ -3,8 +3,6 @@ FIELD_SEP_DTS = ("-", "–", "to")
 FIELD_SEP_PREPS = ("for", "at")
 FIELD_SEP_SMS = (",", ";")
 
-LEFT_BRACKETS = ("(", "[")
-RIGHT_BRACKETS = (")", "]")
 PUNCT_MID_SENTENCE = (",", ";", ":", "—")
 
 SEASONS = ("Spring", "Summer", "Fall", "Winter")
@@ -36,13 +34,13 @@ COMPANY_TYPES = (
     "Corporation", "Incorporated", "Corp.", "Inc.", "Ltd.",
     "Company", "Co.", "LLC", "L.L.C.", "LC", "L.C.",
     "Group", "Co-Op", "Bank", "Center", "Association", "Chapter",
-    "University", "College", "Institute", "Academy", "School", "Lab",
+    "University", "College", "Institute", "Academy", "School", "Lab", "Hospital",
 )
 COMPANY_MODIFIERS = (
     "U.S.", "National", "Regional", "Professional",
 )
 POSITION_LEVELS = (
-    "Intern", "Junior", "Associate", "Senior", "Lead",
+    "Intern", "Junior", "Associate", "Senior", "Lead", "Sr.", "Jr.",
     "Manager", "Supervisor", "Director",
     "Head", "Vice-President", "Chief",
 )
@@ -59,8 +57,8 @@ POSITION_TYPES = (
     "Programmer", "Receptionist", "Recruiter", "Representative", "Researcher",
     "Reviewer", "Salesperson", "Scheduler", "Scientist", "Secretary", "Specialist",
     "Strategist", "Supervisor", "Support", "Teacher", "Technician", "Technologist",
-    "Therapist", "Trader", "Trainee", "Trainer", "Treasurer", "Trustee", "Tutor",
-    "Underwriter", "Webmaster", "Worker", "Writer",
+    "Temp", "Therapist", "Trader", "Trainee", "Trainer", "Treasurer", "Trustee", "Tutor",
+    "Underwriter", "Webmaster", "Worker", "Writer", "Volunteer",
 )
 
 TEXT_SAMPLES = (

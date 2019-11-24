@@ -5,6 +5,7 @@ import operator
 from toolz import itertoolz
 
 from msvdd_bloc import regexes
+from msvdd_bloc.resumes import constants
 from msvdd_bloc.resumes import parse_utils
 from msvdd_bloc.resumes import work
 
@@ -16,8 +17,8 @@ FIELD_SEP_TEXTS = {
         work.constants.FIELD_SEPS,
         work.constants.FIELD_SEP_DTS,
         work.constants.FIELD_SEP_SMS,
-        work.constants.LEFT_BRACKETS,
-        work.constants.RIGHT_BRACKETS,
+        constants.LEFT_BRACKETS,
+        constants.RIGHT_BRACKETS,
     )
 }
 COMPANY_TEXTS = set(work.constants.COMPANY_TYPES + work.constants.COMPANY_MODIFIERS)
@@ -56,7 +57,7 @@ def _parse_labeled_tokens(labeled_tokens):
         List[Dict[str, obj]]
     """
     one_per_result_labels = {"position", "company", "start_date", "end_date"}
-    excluded_labels = {"field_sep", "item_sep", "location", "bullet", "other"}
+    excluded_labels = {"field_sep", "item_sep", "location", "other"}
     results = []
     result = {}
     result_highlights = []
@@ -117,10 +118,11 @@ def featurize(tokens):
             tf["nnext"] = nnext_tf
             # NOTE: add features here that depend upon tokens elsewhere in the sequence
             # e.g. whether or not a particular word appeared earlier in the sequence
+            tok_idx = tf["idx"]
             if all(char == "\n" for char in tf["shape"]):
-                idx_last_newline = tf["idx"]
+                idx_last_newline = tok_idx
                 follows_bullet = False
-            tf["n_toks_since_newline"] = tf["idx"] - idx_last_newline
+            tf["n_toks_since_newline"] = tok_idx - idx_last_newline
             tf["follows_bullet"] = follows_bullet
             # is this token a bullet? i.e. "- " token starting a new line
             if tf["shape"] == "-" and tf["n_toks_since_newline"] == 1:
