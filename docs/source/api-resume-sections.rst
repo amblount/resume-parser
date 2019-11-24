@@ -1,3 +1,5 @@
+.. _api-reference-resumes:
+
 résumé sections
 ===============
 

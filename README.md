@@ -2,7 +2,7 @@
 
 (Microsoft + DataKind AI in Cities Virtual Accelerator - DataDive) + (Bloc)
 
-## getting started
+## setup
 
 1. **Clone this repository** to a directory on your local machine:
 
@@ -20,13 +20,13 @@
     ```
 
 1. **Install the package** in one of two ways.
-   - If you want to use the `msvdd_bloc` code as-is without further development, installation is simple:
+   - To use the `msvdd_bloc` code as-is without further development, installation is simple:
 
         ```
         (bloc-env) msvdd_Bloc(master)$ pip install .
         ```
 
-   - If you need to further develop the code, install the package in locally-editable (aka develop) mode, plus a few additional dependencies:
+   - To further develop the code, install the package in locally-editable (aka develop) mode, plus a few additional dependencies:
 
         ```
         (bloc-env) msvdd_Bloc(master)$ pip install -e .

@@ -6,6 +6,7 @@ contents
 .. toctree::
    :maxdepth: 3
 
+   getting-started
    api-reference
 
 
