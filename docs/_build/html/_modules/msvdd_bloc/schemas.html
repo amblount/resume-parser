@@ -1,0 +1,497 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>msvdd_bloc.schemas &#8212; msvdd_bloc 0.1.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for msvdd_bloc.schemas</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">schemas</span>
+<span class="sd">-------</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">marshmallow</span> <span class="k">as</span> <span class="nn">ma</span>
+
+<span class="kn">from</span> <span class="nn">msvdd_bloc</span> <span class="k">import</span> <span class="n">regexes</span>
+
+
+<div class="viewcode-block" id="ResumeSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.ResumeSchema">[docs]</a><span class="k">class</span> <span class="nc">ResumeSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Standard schema for representing résumés as structured JSON data.</span>
+
+<span class="sd">    Example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;basics&quot;: {</span>
+<span class="sd">                &quot;name&quot;: &quot;John Doe&quot;,</span>
+<span class="sd">                &quot;label&quot;: &quot;Programmer&quot;,</span>
+<span class="sd">                &quot;email&quot;: &quot;john@gmail.com&quot;,</span>
+<span class="sd">                &quot;phone&quot;: &quot;(912) 555-4321&quot;,</span>
+<span class="sd">                &quot;website&quot;: &quot;http://johndoe.com&quot;,</span>
+<span class="sd">                &quot;summary&quot;: &quot;A summary of John Doe...&quot;,</span>
+<span class="sd">                &quot;location&quot;: {</span>
+<span class="sd">                    &quot;address&quot;: &quot;2712 Broadway St&quot;,</span>
+<span class="sd">                    &quot;postalCode&quot;: &quot;CA 94115&quot;,</span>
+<span class="sd">                    &quot;city&quot;: &quot;San Francisco&quot;,</span>
+<span class="sd">                    &quot;countryCode&quot;: &quot;US&quot;,</span>
+<span class="sd">                    &quot;region&quot;: &quot;California&quot;</span>
+<span class="sd">                },</span>
+<span class="sd">                &quot;profiles&quot;: [{</span>
+<span class="sd">                    &quot;network&quot;: &quot;Twitter&quot;,</span>
+<span class="sd">                    &quot;username&quot;: &quot;john&quot;,</span>
+<span class="sd">                    &quot;url&quot;: &quot;http://twitter.com/john&quot;</span>
+<span class="sd">                }]</span>
+<span class="sd">            },</span>
+<span class="sd">            &quot;work&quot;: [{</span>
+<span class="sd">                &quot;company&quot;: &quot;Company&quot;,</span>
+<span class="sd">                &quot;position&quot;: &quot;President&quot;,</span>
+<span class="sd">                &quot;website&quot;: &quot;http://company.com&quot;,</span>
+<span class="sd">                &quot;startDate&quot;: &quot;2013-01-01&quot;,</span>
+<span class="sd">                &quot;endDate&quot;: &quot;2014-01-01&quot;,</span>
+<span class="sd">                &quot;summary&quot;: &quot;Description...&quot;,</span>
+<span class="sd">                &quot;highlights&quot;: [</span>
+<span class="sd">                    &quot;Started the company&quot;</span>
+<span class="sd">                ]</span>
+<span class="sd">            }],</span>
+<span class="sd">            &quot;volunteer&quot;: [{</span>
+<span class="sd">                &quot;organization&quot;: &quot;Organization&quot;,</span>
+<span class="sd">                &quot;position&quot;: &quot;Volunteer&quot;,</span>
+<span class="sd">                &quot;website&quot;: &quot;http://organization.com/&quot;,</span>
+<span class="sd">                &quot;startDate&quot;: &quot;2012-01-01&quot;,</span>
+<span class="sd">                &quot;endDate&quot;: &quot;2013-01-01&quot;,</span>
+<span class="sd">                &quot;summary&quot;: &quot;Description...&quot;,</span>
+<span class="sd">                &quot;highlights&quot;: [</span>
+<span class="sd">                    &quot;Awarded &#39;Volunteer of the Month&#39;&quot;</span>
+<span class="sd">                ]</span>
+<span class="sd">            }],</span>
+<span class="sd">            &quot;education&quot;: [{</span>
+<span class="sd">                &quot;institution&quot;: &quot;University&quot;,</span>
+<span class="sd">                &quot;area&quot;: &quot;Software Development&quot;,</span>
+<span class="sd">                &quot;studyType&quot;: &quot;Bachelor&quot;,</span>
+<span class="sd">                &quot;startDate&quot;: &quot;2011-01-01&quot;,</span>
+<span class="sd">                &quot;endDate&quot;: &quot;2013-01-01&quot;,</span>
+<span class="sd">                &quot;gpa&quot;: &quot;4.0&quot;,</span>
+<span class="sd">                &quot;courses&quot;: [</span>
+<span class="sd">                    &quot;DB1101 - Basic SQL&quot;</span>
+<span class="sd">                ]</span>
+<span class="sd">            }],</span>
+<span class="sd">            &quot;awards&quot;: [{</span>
+<span class="sd">                &quot;title&quot;: &quot;Award&quot;,</span>
+<span class="sd">                &quot;date&quot;: &quot;2014-11-01&quot;,</span>
+<span class="sd">                &quot;awarder&quot;: &quot;Company&quot;,</span>
+<span class="sd">                &quot;summary&quot;: &quot;There is no spoon.&quot;</span>
+<span class="sd">            }],</span>
+<span class="sd">            &quot;publications&quot;: [{</span>
+<span class="sd">                &quot;name&quot;: &quot;Publication&quot;,</span>
+<span class="sd">                &quot;publisher&quot;: &quot;Company&quot;,</span>
+<span class="sd">                &quot;releaseDate&quot;: &quot;2014-10-01&quot;,</span>
+<span class="sd">                &quot;website&quot;: &quot;http://publication.com&quot;,</span>
+<span class="sd">                &quot;summary&quot;: &quot;Description...&quot;</span>
+<span class="sd">            }],</span>
+<span class="sd">            &quot;skills&quot;: [{</span>
+<span class="sd">                &quot;name&quot;: &quot;Web Development&quot;,</span>
+<span class="sd">                &quot;level&quot;: &quot;Master&quot;,</span>
+<span class="sd">                &quot;keywords&quot;: [</span>
+<span class="sd">                    &quot;HTML&quot;,</span>
+<span class="sd">                    &quot;CSS&quot;,</span>
+<span class="sd">                    &quot;Javascript&quot;</span>
+<span class="sd">                ]</span>
+<span class="sd">            }],</span>
+<span class="sd">            &quot;interests&quot;: [{</span>
+<span class="sd">                &quot;name&quot;: &quot;Wildlife&quot;,</span>
+<span class="sd">                &quot;keywords&quot;: [</span>
+<span class="sd">                    &quot;Ferrets&quot;,</span>
+<span class="sd">                    &quot;Unicorns&quot;</span>
+<span class="sd">                ]</span>
+<span class="sd">            }],</span>
+<span class="sd">            &quot;references&quot;: [{</span>
+<span class="sd">                &quot;name&quot;: &quot;Jane Doe&quot;,</span>
+<span class="sd">                &quot;reference&quot;: &quot;Reference...&quot;</span>
+<span class="sd">            }]</span>
+<span class="sd">        }</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        Based on https://jsonresume.org/schema/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">basics</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Nested</span><span class="p">(</span><span class="s2">&quot;ResumeBasicsSchema&quot;</span><span class="p">)</span>
+    <span class="n">work</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Nested</span><span class="p">(</span><span class="s2">&quot;ResumeWorkSchema&quot;</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">volunteer</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Nested</span><span class="p">(</span><span class="s2">&quot;ResumeVolunteerSchema&quot;</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">education</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Nested</span><span class="p">(</span><span class="s2">&quot;ResumeEducationSchema&quot;</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">awards</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Nested</span><span class="p">(</span><span class="s2">&quot;ResumeAwardSchema&quot;</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">publications</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Nested</span><span class="p">(</span><span class="s2">&quot;ResumePublicationSchema&quot;</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">skills</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Nested</span><span class="p">(</span><span class="s2">&quot;ResumeSkillSchema&quot;</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">interests</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Nested</span><span class="p">(</span><span class="s2">&quot;ResumeInterestSchema&quot;</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">references</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Nested</span><span class="p">(</span><span class="s2">&quot;ResumeReferenceSchema&quot;</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="c1"># ignore any unknown keys</span>
+        <span class="n">unknown</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">EXCLUDE</span></div>
+
+
+<div class="viewcode-block" id="ResumeBasicsSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.ResumeBasicsSchema">[docs]</a><span class="k">class</span> <span class="nc">ResumeBasicsSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;name&quot;: &quot;John Doe&quot;,</span>
+<span class="sd">            &quot;label&quot;: &quot;Programmer&quot;,</span>
+<span class="sd">            &quot;email&quot;: &quot;john@gmail.com&quot;,</span>
+<span class="sd">            &quot;phone&quot;: &quot;(912) 555-4321&quot;,</span>
+<span class="sd">            &quot;website&quot;: &quot;http://johndoe.com&quot;,</span>
+<span class="sd">            &quot;summary&quot;: &quot;A summary of John Doe...&quot;,</span>
+<span class="sd">            &quot;location&quot;: {</span>
+<span class="sd">                &quot;address&quot;: &quot;2712 Broadway St&quot;,</span>
+<span class="sd">                &quot;postalCode&quot;: &quot;CA 94115&quot;,</span>
+<span class="sd">                &quot;city&quot;: &quot;San Francisco&quot;,</span>
+<span class="sd">                &quot;countryCode&quot;: &quot;US&quot;,</span>
+<span class="sd">                &quot;region&quot;: &quot;California&quot;</span>
+<span class="sd">            },</span>
+<span class="sd">            &quot;profiles&quot;: [{</span>
+<span class="sd">                &quot;network&quot;: &quot;Twitter&quot;,</span>
+<span class="sd">                &quot;username&quot;: &quot;john&quot;,</span>
+<span class="sd">                &quot;url&quot;: &quot;http://twitter.com/john&quot;</span>
+<span class="sd">            }]</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">validate</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">validate</span><span class="o">.</span><span class="n">Length</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">100</span><span class="p">))</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">validate</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">validate</span><span class="o">.</span><span class="n">Regexp</span><span class="p">(</span><span class="n">regexes</span><span class="o">.</span><span class="n">RE_EMAIL</span><span class="p">))</span>
+    <span class="n">phone</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">validate</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">validate</span><span class="o">.</span><span class="n">Regexp</span><span class="p">(</span><span class="n">regexes</span><span class="o">.</span><span class="n">RE_PHONE_NUMBER</span><span class="p">))</span>
+    <span class="c1"># NOTE: marshmallow&#39;s built-in URL validation is *too strict*</span>
+    <span class="n">website</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span>
+        <span class="n">validate</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_URL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="ow">or</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_SHORT_URL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">validate</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">validate</span><span class="o">.</span><span class="n">Length</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
+    <span class="n">location</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Nested</span><span class="p">(</span><span class="s2">&quot;ResumeBasicsLocationSchema&quot;</span><span class="p">)</span>
+    <span class="n">profiles</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Nested</span><span class="p">(</span><span class="s2">&quot;ResumeBasicsProfileSchema&quot;</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ResumeBasicsLocationSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.ResumeBasicsLocationSchema">[docs]</a><span class="k">class</span> <span class="nc">ResumeBasicsLocationSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;address&quot;: &quot;2712 Broadway St&quot;,</span>
+<span class="sd">            &quot;postalCode&quot;: &quot;94115&quot;,</span>
+<span class="sd">            &quot;city&quot;: &quot;San Francisco&quot;,</span>
+<span class="sd">            &quot;countryCode&quot;: &quot;US&quot;,</span>
+<span class="sd">            &quot;region&quot;: &quot;California&quot;</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">postal_code</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">validate</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">validate</span><span class="o">.</span><span class="n">Regexp</span><span class="p">(</span><span class="n">regexes</span><span class="o">.</span><span class="n">RE_POSTAL_CODE</span><span class="p">))</span>
+    <span class="n">city</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">country_code</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ResumeBasicsProfileSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.ResumeBasicsProfileSchema">[docs]</a><span class="k">class</span> <span class="nc">ResumeBasicsProfileSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;network&quot;: &quot;Twitter&quot;,</span>
+<span class="sd">            &quot;username&quot;: &quot;john&quot;,</span>
+<span class="sd">            &quot;url&quot;: &quot;http://twitter.com/john&quot;</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">network</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">username</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="c1"># NOTE: marshmallow&#39;s built-in URL validation is *too strict*</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span>
+        <span class="n">validate</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_URL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="ow">or</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_SHORT_URL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ResumeWorkSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.ResumeWorkSchema">[docs]</a><span class="k">class</span> <span class="nc">ResumeWorkSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;company&quot;: &quot;Company&quot;,</span>
+<span class="sd">            &quot;position&quot;: &quot;President&quot;,</span>
+<span class="sd">            &quot;website&quot;: &quot;http://company.com&quot;,</span>
+<span class="sd">            &quot;startDate&quot;: &quot;2013-01-01&quot;,</span>
+<span class="sd">            &quot;endDate&quot;: &quot;2014-01-01&quot;,</span>
+<span class="sd">            &quot;summary&quot;: &quot;Description...&quot;,</span>
+<span class="sd">            &quot;highlights&quot;: [</span>
+<span class="sd">                &quot;Started the company&quot;</span>
+<span class="sd">            ]</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">company</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="c1"># NOTE: marshmallow&#39;s built-in URL validation is *too strict*</span>
+    <span class="n">website</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span>
+        <span class="n">validate</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_URL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="ow">or</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_SHORT_URL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>  <span class="c1"># not necessarily a date</span>
+    <span class="n">end_date</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>  <span class="c1"># not necessarily a date</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">validate</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">validate</span><span class="o">.</span><span class="n">Length</span><span class="p">(</span><span class="nb">min</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">400</span><span class="p">))</span>
+    <span class="n">highlights</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="ResumeVolunteerSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.ResumeVolunteerSchema">[docs]</a><span class="k">class</span> <span class="nc">ResumeVolunteerSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;organization&quot;: &quot;Organization&quot;,</span>
+<span class="sd">            &quot;position&quot;: &quot;Volunteer&quot;,</span>
+<span class="sd">            &quot;website&quot;: &quot;http://organization.com/&quot;,</span>
+<span class="sd">            &quot;startDate&quot;: &quot;2012-01-01&quot;,</span>
+<span class="sd">            &quot;endDate&quot;: &quot;2013-01-01&quot;,</span>
+<span class="sd">            &quot;summary&quot;: &quot;Description...&quot;,</span>
+<span class="sd">            &quot;highlights&quot;: [</span>
+<span class="sd">                &quot;Awarded &#39;Volunteer of the Month&#39;&quot;</span>
+<span class="sd">            ]</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">organization</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="c1"># NOTE: marshmallow&#39;s built-in URL validation is *too strict*</span>
+    <span class="n">website</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span>
+        <span class="n">validate</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_URL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="ow">or</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_SHORT_URL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>  <span class="c1"># not necessarily a date</span>
+    <span class="n">end_date</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>  <span class="c1"># not necessarily a date</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">highlights</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="ResumeEducationSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.ResumeEducationSchema">[docs]</a><span class="k">class</span> <span class="nc">ResumeEducationSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;institution&quot;: &quot;University&quot;,</span>
+<span class="sd">            &quot;area&quot;: &quot;Software Development&quot;,</span>
+<span class="sd">            &quot;studyType&quot;: &quot;Bachelor&quot;,</span>
+<span class="sd">            &quot;startDate&quot;: &quot;2011-01-01&quot;,</span>
+<span class="sd">            &quot;endDate&quot;: &quot;2013-01-01&quot;,</span>
+<span class="sd">            &quot;gpa&quot;: &quot;4.0&quot;,</span>
+<span class="sd">            &quot;courses&quot;: [</span>
+<span class="sd">                &quot;DB1101 - Basic SQL&quot;</span>
+<span class="sd">            ]</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">institution</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">area</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">study_type</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>  <span class="c1"># not necessarily a date</span>
+    <span class="n">end_date</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>  <span class="c1"># not necessarily a date</span>
+    <span class="n">gpa</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>  <span class="c1"># not necessarily a number</span>
+    <span class="n">courses</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="ResumeAwardSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.ResumeAwardSchema">[docs]</a><span class="k">class</span> <span class="nc">ResumeAwardSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;title&quot;: &quot;Award&quot;,</span>
+<span class="sd">            &quot;date&quot;: &quot;2014-11-01&quot;,</span>
+<span class="sd">            &quot;awarder&quot;: &quot;Company&quot;,</span>
+<span class="sd">            &quot;summary&quot;: &quot;There is no spoon.&quot;</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">date</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Date</span><span class="p">()</span>
+    <span class="n">awarder</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ResumePublicationSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.ResumePublicationSchema">[docs]</a><span class="k">class</span> <span class="nc">ResumePublicationSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;name&quot;: &quot;Publication&quot;,</span>
+<span class="sd">            &quot;publisher&quot;: &quot;Company&quot;,</span>
+<span class="sd">            &quot;releaseDate&quot;: &quot;2014-10-01&quot;,</span>
+<span class="sd">            &quot;website&quot;: &quot;http://publication.com&quot;,</span>
+<span class="sd">            &quot;summary&quot;: &quot;Description...&quot;</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">publisher</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">release_date</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Date</span><span class="p">()</span>
+    <span class="c1"># NOTE: marshmallow&#39;s built-in URL validation is *too strict*</span>
+    <span class="n">website</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span>
+        <span class="n">validate</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_URL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="ow">or</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_SHORT_URL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ResumeSkillSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.ResumeSkillSchema">[docs]</a><span class="k">class</span> <span class="nc">ResumeSkillSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;name&quot;: &quot;Web Development&quot;,</span>
+<span class="sd">            &quot;level&quot;: &quot;Master&quot;,</span>
+<span class="sd">            &quot;keywords&quot;: [</span>
+<span class="sd">                &quot;HTML&quot;,</span>
+<span class="sd">                &quot;CSS&quot;,</span>
+<span class="sd">                &quot;Javascript&quot;</span>
+<span class="sd">            ]</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">level</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">keywords</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="ResumeInterestSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.ResumeInterestSchema">[docs]</a><span class="k">class</span> <span class="nc">ResumeInterestSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;name&quot;: &quot;Wildlife&quot;,</span>
+<span class="sd">            &quot;keywords&quot;: [</span>
+<span class="sd">                &quot;Ferrets&quot;,</span>
+<span class="sd">                &quot;Unicorns&quot;</span>
+<span class="sd">            ]</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">keywords</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="ResumeReferenceSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.ResumeReferenceSchema">[docs]</a><span class="k">class</span> <span class="nc">ResumeReferenceSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example::</span>
+
+<span class="sd">        {</span>
+<span class="sd">            &quot;name&quot;: &quot;Jane Doe&quot;,</span>
+<span class="sd">            &quot;reference&quot;: &quot;Reference...&quot;</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">reference</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="JobPostingSchema"><a class="viewcode-back" href="../../api-reference.html#msvdd_bloc.schemas.JobPostingSchema">[docs]</a><span class="k">class</span> <span class="nc">JobPostingSchema</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">Schema</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Standard schema for representing job postings as structured JSON data.</span>
+
+<span class="sd">    References:</span>
+<span class="sd">        Based on https://schema.org/JobPosting</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">company</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">date_posted</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">location</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(),</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># NOTE: marshmallow&#39;s built-in URL validation is *too strict*</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span>
+        <span class="n">validate</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_URL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="ow">or</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_SHORT_URL</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+    <span class="n">start_date</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Date</span><span class="p">()</span>
+    <span class="n">employment_type</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">(</span>
+        <span class="n">validate</span><span class="o">=</span><span class="n">ma</span><span class="o">.</span><span class="n">validate</span><span class="o">.</span><span class="n">OneOf</span><span class="p">(</span>
+            <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;full-time&quot;</span><span class="p">,</span> <span class="s2">&quot;part-time&quot;</span><span class="p">,</span> <span class="s2">&quot;contract&quot;</span><span class="p">,</span> <span class="s2">&quot;temporary&quot;</span><span class="p">,</span> <span class="s2">&quot;seasonal&quot;</span><span class="p">,</span> <span class="s2">&quot;internship&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">responsibilities</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">education_requirements</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">experience_requirements</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">skills_requirements</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">industry</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">benefits</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">special_commitments</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">work_hours</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+    <span class="n">base_salary</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Number</span><span class="p">()</span>
+    <span class="n">expected_salary</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">Number</span><span class="p">()</span>
+    <span class="n">salary_currency</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
+
+    <span class="k">class</span> <span class="nc">Meta</span><span class="p">:</span>
+        <span class="c1"># ignore any unknown keys</span>
+        <span class="n">unknown</span> <span class="o">=</span> <span class="n">ma</span><span class="o">.</span><span class="n">EXCLUDE</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">msvdd_bloc</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-reference.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  <li><a href="../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

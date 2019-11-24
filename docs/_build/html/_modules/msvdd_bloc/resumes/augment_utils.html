@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>msvdd_bloc.resumes.augment_utils &#8212; msvdd_bloc 0.1.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for msvdd_bloc.resumes.augment_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">augment utils</span>
+<span class="sd">-------------</span>
+
+<span class="sd">Functionality for modifying sequences of labeled tokens for data augmentation purposes</span>
+<span class="sd">in a résumé section-agnostic manner. Section subpackages use and build upon these utils</span>
+<span class="sd">in their respective ``augment.py`` modules.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">random</span>
+
+<span class="kn">from</span> <span class="nn">toolz</span> <span class="k">import</span> <span class="n">itertoolz</span>
+
+
+<div class="viewcode-block" id="Augmenter"><a class="viewcode-back" href="../../../api-reference.html#msvdd_bloc.resumes.augment_utils.Augmenter">[docs]</a><span class="k">class</span> <span class="nc">Augmenter</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Randomly apply one or many data-augmentation transform functions to labeled tokens</span>
+<span class="sd">    to produce new sequences with additional variety and/or noise in the data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        transforms (Sequence[Callable]): Ordered sequence of callables that must take</span>
+<span class="sd">            List[Tuple[str, str]] as their first positional argument and return a new</span>
+<span class="sd">            List[Tuple[str, str]].</span>
+
+<span class="sd">            .. note:: Although the particular transforms applied may vary per call,</span>
+<span class="sd">               they are applied *in order* as listed here.</span>
+
+<span class="sd">        num (int or float or List[float]): If int, number of transforms to randomly select</span>
+<span class="sd">            from ``transforms`` each time :meth:`Augmenter.apply()` is called. If float,</span>
+<span class="sd">            probability that any given transform will be selected. If List[float],</span>
+<span class="sd">            probability that the corresponding transform in ``transforms`` will be</span>
+<span class="sd">            selected (these must be the same length). If None (default), num is set to</span>
+<span class="sd">            ``len(transforms)``, which means that all transforms are always applied.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transforms</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tfs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_transforms</span><span class="p">(</span><span class="n">transforms</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_num</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Augmenter.apply"><a class="viewcode-back" href="../../../api-reference.html#msvdd_bloc.resumes.augment_utils.Augmenter.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labeled_tokens</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sequentially apply some subset of augmentation transforms to ``labeled_tokens``,</span>
+<span class="sd">        returning a new, modified sequence of labeled tokens.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            labeled_tokens (List[Tuple[str, str]])</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Tuple[str, str]]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">transform</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_random_transforms</span><span class="p">():</span>
+            <span class="n">labeled_tokens</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">labeled_tokens</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">labeled_tokens</span></div>
+
+    <span class="k">def</span> <span class="nf">_validate_transforms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transforms</span><span class="p">):</span>
+        <span class="n">transforms</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">transforms</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">transforms</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;at least one transform callable must be specified&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">callable</span><span class="p">(</span><span class="n">transform</span><span class="p">)</span> <span class="k">for</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">transforms</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;all transforms must be callable&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">transforms</span>
+
+    <span class="k">def</span> <span class="nf">_validate_num</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">num</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tfs</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">num</span> <span class="o">&lt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tfs</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">num</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">num</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">num</span>
+        <span class="k">elif</span> <span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">))</span> <span class="ow">and</span>
+            <span class="nb">len</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tfs</span><span class="p">)</span> <span class="ow">and</span>
+            <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">n</span> <span class="o">&lt;=</span> <span class="mf">1.0</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">num</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;num=</span><span class="si">{}</span><span class="s2"> is invalid; must be an int &gt;= 1, a float in [0.0, 1.0], &quot;</span>
+                <span class="s2">&quot;or a list of floats of length equal to given transforms&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_random_transforms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="n">rand_idxs</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tfs</span><span class="p">)),</span> <span class="nb">min</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tfs</span><span class="p">)))</span>
+            <span class="n">rand_tfs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">tfs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rand_idxs</span><span class="p">)]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="n">rand_tfs</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span> <span class="k">for</span> <span class="n">tf</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tfs</span> <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">num</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">rand_tfs</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">tf</span> <span class="k">for</span> <span class="n">tf</span><span class="p">,</span> <span class="n">tf_num</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tfs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">tf_num</span>
+            <span class="p">]</span>
+        <span class="k">return</span> <span class="n">rand_tfs</span></div>
+
+
+<div class="viewcode-block" id="change_case_token_text"><a class="viewcode-back" href="../../../api-reference.html#msvdd_bloc.resumes.augment_utils.change_case_token_text">[docs]</a><span class="k">def</span> <span class="nf">change_case_token_text</span><span class="p">(</span><span class="n">labeled_tokens</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">case</span><span class="o">=</span><span class="s2">&quot;upper&quot;</span><span class="p">,</span> <span class="n">target_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Change token text to ``case`` case for those whose label is in ``target_labels``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        labeled_tokens (List[Tuple[str, str]])</span>
+<span class="sd">        case ({&quot;upper&quot;, &quot;title&quot;, &quot;lower&quot;})</span>
+<span class="sd">        target_labels (str or Set[str])</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[Tuple[str, str]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_case_to_func</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;upper&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="o">.</span><span class="n">upper</span><span class="p">,</span> <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="o">.</span><span class="n">capitalize</span><span class="p">,</span> <span class="s2">&quot;lower&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="o">.</span><span class="n">lower</span><span class="p">}</span>
+    <span class="n">func</span> <span class="o">=</span> <span class="n">_case_to_func</span><span class="p">[</span><span class="n">case</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">target_labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[(</span><span class="n">func</span><span class="p">(</span><span class="n">tok</span><span class="p">),</span> <span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labeled_tokens</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_labels</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">target_labels</span> <span class="o">=</span> <span class="p">{</span><span class="n">target_labels</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">tok</span><span class="p">),</span> <span class="n">label</span><span class="p">)</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">target_labels</span> <span class="k">else</span> <span class="p">(</span><span class="n">tok</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labeled_tokens</span>
+        <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="delete_token"><a class="viewcode-back" href="../../../api-reference.html#msvdd_bloc.resumes.augment_utils.delete_token">[docs]</a><span class="k">def</span> <span class="nf">delete_token</span><span class="p">(</span><span class="n">labeled_tokens</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prob</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>  <span class="n">target_labels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Randomly delete any given token with a probability of ``prob`` for those whose</span>
+<span class="sd">    label is in ``target_labels``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        labeled_tokens (List[Tuple[str, str]])</span>
+<span class="sd">        prob (float)</span>
+<span class="sd">        target_labels (str or Set[str])</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[Tuple[str, str]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">target_labels</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">tok_label</span> <span class="k">for</span> <span class="n">tok_label</span> <span class="ow">in</span> <span class="n">labeled_tokens</span> <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">prob</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">tok_label</span>
+            <span class="k">for</span> <span class="n">tok_label</span> <span class="ow">in</span> <span class="n">labeled_tokens</span>
+            <span class="k">if</span> <span class="n">tok_label</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">target_labels</span> <span class="ow">and</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="n">prob</span>
+        <span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="insert_whitespace_token"><a class="viewcode-back" href="../../../api-reference.html#msvdd_bloc.resumes.augment_utils.insert_whitespace_token">[docs]</a><span class="k">def</span> <span class="nf">insert_whitespace_token</span><span class="p">(</span>
+    <span class="n">labeled_tokens</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">prob</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">nrange</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="n">field_labels</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;field_sep&quot;</span><span class="p">,</span> <span class="s2">&quot;item_sep&quot;</span><span class="p">),</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Randomly insert a whitespace token between any given two tokens with a probability</span>
+<span class="sd">    of ``prob``, provided neither token is already whitespace.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        labeled_tokens (List[Tuple[str, str]])</span>
+<span class="sd">        prob (float)</span>
+<span class="sd">        ngrange (Tuple[int, int])</span>
+<span class="sd">        field_labels (Tuple[str, str])</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[Tuple[str, str]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">aug_labeled_tokens</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">tl1</span><span class="p">,</span> <span class="n">tl2</span> <span class="ow">in</span> <span class="n">itertoolz</span><span class="o">.</span><span class="n">sliding_window</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">labeled_tokens</span><span class="p">):</span>
+        <span class="n">aug_labeled_tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tl1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">prob</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">tl1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isspace</span><span class="p">()</span> <span class="ow">or</span> <span class="n">tl2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isspace</span><span class="p">()):</span>
+            <span class="n">ws_label</span> <span class="o">=</span> <span class="n">field_labels</span><span class="p">[</span><span class="n">tl1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">tl2</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
+            <span class="n">aug_labeled_tokens</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="o">*</span><span class="n">nrange</span><span class="p">),</span> <span class="n">ws_label</span><span class="p">))</span>
+    <span class="n">aug_labeled_tokens</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">labeled_tokens</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">aug_labeled_tokens</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">msvdd_bloc</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-reference.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

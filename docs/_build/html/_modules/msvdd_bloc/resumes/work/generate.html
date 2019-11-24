@@ -1,0 +1,376 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>msvdd_bloc.resumes.work.generate &#8212; msvdd_bloc 0.1.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for msvdd_bloc.resumes.work.generate</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">functools</span> <span class="k">as</span> <span class="nn">fnc</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">random</span> <span class="k">as</span> <span class="nn">rnd</span>
+
+<span class="kn">import</span> <span class="nn">faker</span>
+
+<span class="kn">from</span> <span class="nn">msvdd_bloc.resumes.work</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">c</span>
+<span class="kn">from</span> <span class="nn">msvdd_bloc.resumes</span> <span class="k">import</span> <span class="n">generate_utils</span>
+
+<span class="c1">###################################</span>
+<span class="c1">## random field value generators ##</span>
+
+<div class="viewcode-block" id="Provider"><a class="viewcode-back" href="../../../../api-resume-sections.html#msvdd_bloc.resumes.work.generate.Provider">[docs]</a><span class="k">class</span> <span class="nc">Provider</span><span class="p">(</span><span class="n">generate_utils</span><span class="o">.</span><span class="n">ResumeProvider</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Class for providing randomly-generated field values.&quot;&quot;&quot;</span>
+
+    <span class="n">_markov_model</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">markov_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :class:`generate_utils.MarkovModel`: Markov model used to generate text in</span>
+<span class="sd">        :meth:`Provider.text_lines()` and :meth:`Provider.text_lines_trailing()`.</span>
+<span class="sd">        It&#39;s trained and assigned at the instance- rather than class-level to avoid</span>
+<span class="sd">        having to train the model every time this module is imported. It&#39;s fast, but</span>
+<span class="sd">        not *that* fast.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_markov_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_markov_model</span> <span class="o">=</span> <span class="n">generate_utils</span><span class="o">.</span><span class="n">MarkovModel</span><span class="p">(</span><span class="n">state_len</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">TEXT_SAMPLES</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_markov_model</span>
+
+    <span class="n">_date_approx_templates</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;</span><span class="si">{month}</span><span class="s2"> </span><span class="si">{year}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;</span><span class="si">{month_abbr}</span><span class="s2"> </span><span class="si">{year}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;</span><span class="si">{month_abbr}</span><span class="s2">. </span><span class="si">{year}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;</span><span class="si">{season}</span><span class="s2"> </span><span class="si">{year}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;</span><span class="si">{year}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">_job_title_templates</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;</span><span class="si">{job}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;</span><span class="si">{level}</span><span class="s2"> </span><span class="si">{job}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;</span><span class="si">{job}{sep}{level}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;</span><span class="si">{level}{sep}{job}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">_location_templates</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s2">&quot;</span><span class="si">{city}</span><span class="s2">, </span><span class="si">{state_abbr}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;</span><span class="si">{city}</span><span class="s2">, </span><span class="si">{state}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">),</span>
+        <span class="p">(</span><span class="s2">&quot;</span><span class="si">{city}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">company_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">rnd</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.75</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">rnd</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">COMPANY_NAMES</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">company</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">date_approx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">random_template_weighted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_date_approx_templates</span><span class="p">)</span>
+        <span class="n">month</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">month_name</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">month</span><span class="o">=</span><span class="n">month</span><span class="p">,</span>
+            <span class="n">month_abbr</span><span class="o">=</span><span class="n">month</span><span class="p">[:</span><span class="mi">3</span><span class="p">],</span>
+            <span class="n">season</span><span class="o">=</span><span class="n">rnd</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">SEASONS</span><span class="p">),</span>
+            <span class="n">year</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">year</span><span class="p">(),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">field_sep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">sep_with_ws</span><span class="p">(</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">FIELD_SEPS</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="n">ws_nrange</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">field_sep_dt</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">sep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">random_element_weighted</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">FIELD_SEP_DTS</span><span class="p">,</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">])</span>
+        <span class="c1"># word-like separators need at least 1 space</span>
+        <span class="k">if</span> <span class="n">sep</span><span class="o">.</span><span class="n">isalpha</span><span class="p">():</span>
+            <span class="n">ws</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">whitespace</span><span class="p">(</span><span class="n">nrange</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">])</span>
+        <span class="c1"># but punct-like separators do not</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ws</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">whitespace</span><span class="p">(</span><span class="n">nrange</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">])</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{ws}{sep}{ws}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ws</span><span class="o">=</span><span class="n">ws</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">field_sep_prep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">sep_with_ws</span><span class="p">(</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">FIELD_SEP_PREPS</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ws_nrange</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">field_sep_sm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">sep_with_ws_right</span><span class="p">(</span>
+            <span class="n">c</span><span class="o">.</span><span class="n">FIELD_SEP_SMS</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ws_nrange</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">job_title</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">random_template_weighted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_job_title_templates</span><span class="p">)</span>
+        <span class="n">sep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">random_element_weighted</span><span class="p">([</span><span class="s2">&quot;, &quot;</span><span class="p">,</span> <span class="s2">&quot; - &quot;</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">job</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">job</span><span class="p">(),</span>
+            <span class="n">level</span><span class="o">=</span><span class="n">rnd</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">POSITION_LEVELS</span><span class="p">),</span>
+            <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">location</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">random_template_weighted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_location_templates</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">city</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">city</span><span class="p">(),</span>
+            <span class="n">state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">state</span><span class="p">(),</span>
+            <span class="n">state_abbr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">state_abbr</span><span class="p">(),</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">text_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nrange</span><span class="o">=</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">prob_capitalize</span><span class="o">=</span><span class="mf">0.9</span><span class="p">):</span>
+        <span class="n">n_chars</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="o">*</span><span class="n">nrange</span><span class="p">)</span>
+        <span class="n">text_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">markov_model</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">n_chars</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">rnd</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">prob_capitalize</span><span class="p">:</span>
+            <span class="n">text_line</span> <span class="o">=</span> <span class="n">text_line</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="o">+</span> <span class="n">text_line</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">return</span> <span class="n">text_line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
+
+
+<span class="n">FAKER</span> <span class="o">=</span> <span class="n">faker</span><span class="o">.</span><span class="n">Faker</span><span class="p">()</span>
+<span class="n">FAKER</span><span class="o">.</span><span class="n">add_provider</span><span class="p">(</span><span class="n">Provider</span><span class="p">)</span>
+
+
+<span class="n">FIELDS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;bullet&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">bullet_point</span><span class="p">,</span> <span class="s2">&quot;field_sep&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;comp&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">company_name</span><span class="p">,</span> <span class="s2">&quot;company&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dt&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">date_approx</span><span class="p">,</span> <span class="s2">&quot;end_date&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;dt_now&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">date_present</span><span class="p">,</span> <span class="s2">&quot;end_date&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;fsep&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">field_sep</span><span class="p">,</span> <span class="s2">&quot;field_sep&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;fsep_dt&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">field_sep_dt</span><span class="p">,</span> <span class="s2">&quot;field_sep&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;fsep_prep&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">field_sep_prep</span><span class="p">,</span> <span class="s2">&quot;field_sep&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;fsep_sm&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">field_sep_sm</span><span class="p">,</span> <span class="s2">&quot;field_sep&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;lb&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">left_bracket</span><span class="p">,</span> <span class="s2">&quot;field_sep&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">location</span><span class="p">,</span> <span class="s2">&quot;location&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;job&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">job_title</span><span class="p">,</span> <span class="s2">&quot;position&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;nl&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">fnc</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">newline</span><span class="p">,</span> <span class="n">nrange</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">]),</span> <span class="s2">&quot;field_sep&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;nls&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">fnc</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">newline</span><span class="p">,</span> <span class="n">nrange</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span> <span class="s2">&quot;field_sep&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;punct_end&quot;</span><span class="p">:</span> <span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;highlight&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;rb&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">right_bracket</span><span class="p">,</span> <span class="s2">&quot;field_sep&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;site&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">website</span><span class="p">,</span> <span class="s2">&quot;website&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;subheader&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">subheader</span><span class="p">,</span> <span class="s2">&quot;other&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;text_line&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">text_line</span><span class="p">,</span> <span class="s2">&quot;highlight&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;text_line_trailing&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">fnc</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">text_line</span><span class="p">,</span> <span class="n">nrange</span><span class="o">=</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="mi">75</span><span class="p">),</span> <span class="n">prob_capitalize</span><span class="o">=</span><span class="mf">0.25</span><span class="p">),</span> <span class="s2">&quot;highlight&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;ws&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">whitespace</span><span class="p">,</span> <span class="s2">&quot;field_sep&quot;</span><span class="p">),</span>
+    <span class="s2">&quot;ws_lg&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">fnc</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span><span class="n">FAKER</span><span class="o">.</span><span class="n">whitespace</span><span class="p">,</span> <span class="n">nrange</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span> <span class="s2">&quot;field_sep&quot;</span><span class="p">),</span>
+<span class="p">}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Dict[str, Tuple[Callable, str]]: Mapping of field key string to a function that generates</span>
+<span class="sd">a random field value and the default field label assigned to the value.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1">######################################</span>
+<span class="c1">## random field template generators ##</span>
+
+<div class="viewcode-block" id="date_group_template"><a class="viewcode-back" href="../../../../api-resume-sections.html#msvdd_bloc.resumes.work.generate.date_group_template">[docs]</a><span class="k">def</span> <span class="nf">date_group_template</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a template for a group of date fields, consisting of an end date,</span>
+<span class="sd">    possibly preceded by a start date.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">templates</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">{dt}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;{dt:start_date} </span><span class="si">{fsep_dt}</span><span class="s2"> {dt|dt_now}&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;</span><span class="si">{lb}</span><span class="s2"> {dt:start_date} </span><span class="si">{fsep_dt}</span><span class="s2"> {dt|dt_now} </span><span class="si">{rb}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">rnd</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="n">templates</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="summary_group_template"><a class="viewcode-back" href="../../../../api-resume-sections.html#msvdd_bloc.resumes.work.generate.summary_group_template">[docs]</a><span class="k">def</span> <span class="nf">summary_group_template</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a template for a group of text lines labeled as a &quot;summary&quot;,</span>
+<span class="sd">    consisting of one or more text lines separated by newlines and optionally</span>
+<span class="sd">    ending with a period.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_lines</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n_lines</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;{text_line:summary} {punct_end:summary:0.33}&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s2">&quot; {nl:item_sep} &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;{text_line:summary}&quot;</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_lines</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="o">+</span>
+            <span class="s2">&quot; {nl:item_sep} {text_line_trailing:summary} {punct_end:summary:0.33}&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="highlights_group_template"><a class="viewcode-back" href="../../../../api-resume-sections.html#msvdd_bloc.resumes.work.generate.highlights_group_template">[docs]</a><span class="k">def</span> <span class="nf">highlights_group_template</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a template for a logical group of bulleted text lines labeled as &quot;highlights&quot;,</span>
+<span class="sd">    consisting of 1 or 2 text lines separated by newlines and optionally</span>
+<span class="sd">    ending with a period.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">templates</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">{bullet}</span><span class="s2"> </span><span class="si">{text_line}</span><span class="s2"> {punct_end::0.25}&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;</span><span class="si">{bullet}</span><span class="s2"> </span><span class="si">{text_line}</span><span class="s2"> {nl:item_sep} </span><span class="si">{text_line_trailing}</span><span class="s2"> {punct_end::0.25}&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot; </span><span class="si">{nl}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="n">template</span>
+        <span class="k">for</span> <span class="n">template</span> <span class="ow">in</span> <span class="n">rnd</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span><span class="n">templates</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.33</span><span class="p">],</span> <span class="n">k</span><span class="o">=</span><span class="n">rnd</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+    <span class="p">)</span></div>
+
+
+<span class="n">_EXPERIENCES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">{comp}</span><span class="s2"> {fsep_sm|nl|ws_lg} </span><span class="si">{job}</span><span class="s2"> </span><span class="si">{nl}</span><span class="s2"> </span><span class="si">{location}</span><span class="s2"> {fsep|ws_lg}&quot;</span> <span class="o">+</span>
+        <span class="n">date_group_template</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="n">highlights_group_template</span><span class="p">()</span>
+    <span class="p">),</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">{job}</span><span class="s2"> {fsep_sm|ws_lg} </span><span class="si">{lb}</span><span class="s2"> </span><span class="si">{comp}</span><span class="s2"> </span><span class="si">{rb}</span><span class="s2"> </span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="n">date_group_template</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;{fsep|ws_lg}&quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;</span><span class="si">{location}</span><span class="s2"> </span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="n">highlights_group_template</span><span class="p">()</span>
+    <span class="p">),</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">{comp}</span><span class="s2"> {fsep|fsep_sm|nl|ws_lg} </span><span class="si">{job}</span><span class="s2"> {fsep|ws_lg}&quot;</span> <span class="o">+</span>
+        <span class="n">date_group_template</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="n">highlights_group_template</span><span class="p">()</span>
+    <span class="p">),</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">{comp}</span><span class="s2"> {fsep_sm|ws_lg} </span><span class="si">{job}</span><span class="s2"> {fsep|nl|ws_lg}&quot;</span> <span class="o">+</span>
+        <span class="n">date_group_template</span><span class="p">()</span>
+    <span class="p">),</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">{comp}</span><span class="s2"> {fsep|ws_lg}&quot;</span> <span class="o">+</span>
+        <span class="n">date_group_template</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="s2">&quot;</span><span class="si">{job}</span><span class="s2"> </span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="n">highlights_group_template</span><span class="p">()</span>
+    <span class="p">),</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">{job}</span><span class="s2"> </span><span class="si">{fsep_prep}</span><span class="s2"> </span><span class="si">{comp}</span><span class="s2"> {fsep|ws_lg}&quot;</span> <span class="o">+</span>
+        <span class="n">date_group_template</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="n">highlights_group_template</span><span class="p">()</span>
+    <span class="p">),</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;{bullet::0.25} </span><span class="si">{comp}</span><span class="s2"> {fsep_sm|ws_lg} </span><span class="si">{location}</span><span class="s2"> </span><span class="si">{nl}</span><span class="s2"> </span><span class="si">{job}</span><span class="s2"> {fsep|fsep_sm|ws_lg}&quot;</span> <span class="o">+</span>
+        <span class="n">date_group_template</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="n">highlights_group_template</span><span class="p">()</span>
+    <span class="p">),</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">{job}</span><span class="s2"> </span><span class="si">{nl}</span><span class="s2"> </span><span class="si">{comp}</span><span class="s2"> </span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="s2">&quot; </span><span class="si">{fsep}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rnd</span><span class="o">.</span><span class="n">sample</span><span class="p">([</span><span class="n">date_group_template</span><span class="p">(),</span> <span class="s2">&quot;</span><span class="si">{location}</span><span class="s2">&quot;</span><span class="p">],</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="n">highlights_group_template</span><span class="p">()</span>
+    <span class="p">),</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{job}</span><span class="s2"> </span><span class="si">{fsep_sm}</span><span class="s2"> </span><span class="si">{comp}</span><span class="s2"> </span><span class="si">{fsep_sm}</span><span class="s2"> </span><span class="si">{location}</span><span class="s2"> </span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">summary_group_template</span><span class="p">(),</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot; </span><span class="si">{fsep}</span><span class="s2"> &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">rnd</span><span class="o">.</span><span class="n">sample</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">{job}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">{comp}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">date_group_template</span><span class="p">()],</span> <span class="mi">3</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="n">rnd</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="n">highlights_group_template</span><span class="p">(),</span> <span class="n">summary_group_template</span><span class="p">()])</span>
+    <span class="p">),</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">{comp}</span><span class="s2"> </span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">highlights_group_template</span><span class="p">(),</span>
+    <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span>
+        <span class="s2">&quot;</span><span class="si">{comp}</span><span class="s2"> {fsep|fsep_sm|ws_lg} </span><span class="si">{location}</span><span class="s2"> </span><span class="si">{nl}</span><span class="s2"> </span><span class="si">{job}</span><span class="s2"> {fsep|ws_lg}&quot;</span> <span class="o">+</span>
+        <span class="n">date_group_template</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">{nl}</span><span class="s2">&quot;</span> <span class="o">+</span>
+        <span class="n">highlights_group_template</span><span class="p">()</span>
+    <span class="p">),</span>
+<span class="p">]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">List[Callable]: Set of functions that generate a single educational experience,</span>
+<span class="sd">in a variety of formats and with a variety of constituent fields.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">_multiple_experiences_template</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate a template for 1–3 work experiences, delimited by newlines and (optionally)</span>
+<span class="sd">    a subheader.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_experiences</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">choices</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">,</span> <span class="mf">0.25</span><span class="p">],</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">experience</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">_EXPERIENCES</span><span class="p">)</span>
+    <span class="n">sep</span> <span class="o">=</span> <span class="n">rnd</span><span class="o">.</span><span class="n">choices</span><span class="p">(</span>
+        <span class="p">[</span><span class="s2">&quot; </span><span class="si">{nls}</span><span class="s2"> {nl::0.5} &quot;</span><span class="p">,</span> <span class="s2">&quot; </span><span class="si">{nl}</span><span class="s2"> {nl::0.5} </span><span class="si">{subheader}</span><span class="s2"> </span><span class="si">{nl}</span><span class="s2"> {nl::0.5} &quot;</span><span class="p">],</span>
+        <span class="n">weights</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">],</span>
+        <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">experience</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_experiences</span><span class="p">))</span>
+
+
+<span class="n">TEMPLATES</span> <span class="o">=</span> <span class="p">[</span><span class="n">_multiple_experiences_template</span><span class="p">]</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">List[Callable]: Set of functions that generate one or multiple work experiences with</span>
+<span class="sd">the same overall formatting.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">msvdd_bloc</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api-reference.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,208 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>MSVDD + Bloc &#8212; msvdd_bloc 0.1.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting Started" href="getting-started.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="msvdd-bloc">
+<h1>MSVDD + Bloc<a class="headerlink" href="#msvdd-bloc" title="Permalink to this headline">¶</a></h1>
+<p>(Microsoft + DataKind AI in Cities Virtual Accelerator - DataDive) + (Bloc)</p>
+<div class="section" id="setup">
+<h2>setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p><strong>Clone this repository</strong> to a directory on your local machine:</p>
+<div class="highlight-guess notranslate"><div class="highlight"><pre><span></span>$ cd /path/to/your/preferred/directory
+$ git clone git@github.com:datakind/msvdd_Bloc.git
+$ cd msvdd_Bloc
+</pre></div>
+</div>
+</li>
+<li><p><strong>Create a virtual environment</strong> to isolate our project’s dependencies from your other projects’. Use whichever tool you prefer (e.g. <code class="docutils literal notranslate"><span class="pre">virtualenv</span></code>, <code class="docutils literal notranslate"><span class="pre">pyenv</span></code>, <code class="docutils literal notranslate"><span class="pre">pipenv</span></code>). Here’s an example using <code class="docutils literal notranslate"><span class="pre">pyenv</span></code>:</p>
+<div class="highlight-guess notranslate"><div class="highlight"><pre><span></span>msvdd_Bloc(master)$ pyenv virtualenv 3.7.4 bloc-env
+msvdd_Bloc(master)$ pyenv shell bloc-env
+</pre></div>
+</div>
+</li>
+<li><p><strong>Install the package</strong> in one of two ways.</p>
+<ul>
+<li><p>To use the <code class="docutils literal notranslate"><span class="pre">msvdd_bloc</span></code> code as-is without further development, installation is simple:</p>
+<div class="highlight-guess notranslate"><div class="highlight"><pre><span></span>(bloc-env) msvdd_Bloc(master)$ pip install .
+</pre></div>
+</div>
+</li>
+<li><p>To further develop the code, install the package in locally-editable (aka develop) mode, plus a few additional dependencies:</p>
+<div class="highlight-guess notranslate"><div class="highlight"><pre><span></span>(bloc-env) msvdd_Bloc(master)$ pip install -e .
+(bloc-env) msvdd_Bloc(master)$ pip install -r requirements-dev.txt
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+<li><p><strong>Create a branch</strong> with a descriptive name for you to hack on, as needed:</p>
+<div class="highlight-guess notranslate"><div class="highlight"><pre><span></span>(bloc-env) msvdd_Bloc(master)$ git pull
+(bloc-env) msvdd_Bloc(master)$ git checkout -b my-example-branch-name
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="documentation">
+<h2>documentation<a class="headerlink" href="#documentation" title="Permalink to this headline">¶</a></h2>
+<p>Stand-alone doc files live under the top-level <code class="docutils literal notranslate"><span class="pre">docs/</span></code> directory and are written in <a class="reference external" href="http://docutils.sourceforge.net/docs/user/rst/quickref.html">reStructured Text format</a>. They are built using <code class="docutils literal notranslate"><span class="pre">sphinx</span></code>:</p>
+<div class="highlight-guess notranslate"><div class="highlight"><pre><span></span>$ cd docs
+$ make html
+</pre></div>
+</div>
+<p>In-code docstrings follow <a class="reference external" href="https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings">Google style</a>. These docstrings are automatically incorporated into the main docs via <code class="docutils literal notranslate"><span class="pre">sphinx.ext.sphinx-autodoc</span></code>. Refer to the <a class="reference external" href="https://www.sphinx-doc.org/en/master/">sphinx site</a> for details.</p>
+</div>
+<div class="section" id="tests">
+<h2>tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h2>
+<p>Test modules live under the top-level <code class="docutils literal notranslate"><span class="pre">tests/</span></code> directory. They are run using <code class="docutils literal notranslate"><span class="pre">pytest</span></code>:</p>
+<div class="highlight-guess notranslate"><div class="highlight"><pre><span></span>$ cd tests
+$ pytest -vv .
+</pre></div>
+</div>
+<p>A coverage report may additionally be generated using <code class="docutils literal notranslate"><span class="pre">pytest-cov</span></code>:</p>
+<div class="highlight-guess notranslate"><div class="highlight"><pre><span></span>$ pytest -vv --cov=msvdd_bloc --cov-report=term-missing .
+</pre></div>
+</div>
+<p>Refer to the <a class="reference external" href="https://docs.pytest.org/en/latest/">pytest site</a> for details.</p>
+</div>
+<div class="section" id="contents">
+<h2>contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#scripts">scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="getting-started.html#msvdd-bloc-lib"><code class="docutils literal notranslate"><span class="pre">msvdd_bloc</span></code> lib</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api-reference.html#module-msvdd_bloc.schemas">top-level</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference.html#schemas">schemas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference.html#file-i-o">file i/o</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference.html#regexes">regexes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference.html#utils">utils</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="api-reference.html#module-msvdd_bloc.resumes.extract">résumés</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="api-reference.html#extract">extract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference.html#munge">munge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference.html#segment">segment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference.html#generate-utils">generate utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference.html#augment-utils">augment utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-reference.html#parse-utils">parse utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-resume-sections.html">résumé sections</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h2>indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">msvdd_bloc</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-reference.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+      <li>Next: <a href="getting-started.html" title="next chapter">Getting Started</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

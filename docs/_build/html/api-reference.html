@@ -1,0 +1,1042 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>API Reference &#8212; msvdd_bloc 0.1.1 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="résumé sections" href="api-resume-sections.html" />
+    <link rel="prev" title="Getting Started" href="getting-started.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="api-reference">
+<span id="id1"></span><h1>API Reference<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-msvdd_bloc.schemas">
+<span id="top-level"></span><h2>top-level<a class="headerlink" href="#module-msvdd_bloc.schemas" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="schemas">
+<h3>schemas<a class="headerlink" href="#schemas" title="Permalink to this headline">¶</a></h3>
+<dl class="class">
+<dt id="msvdd_bloc.schemas.ResumeSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">ResumeSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#ResumeSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.ResumeSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard schema for representing résumés as structured JSON data.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;basics&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;John Doe&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Programmer&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="s2">&quot;john@gmail.com&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;phone&quot;</span><span class="p">:</span> <span class="s2">&quot;(912) 555-4321&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;website&quot;</span><span class="p">:</span> <span class="s2">&quot;http://johndoe.com&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;A summary of John Doe...&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;address&quot;</span><span class="p">:</span> <span class="s2">&quot;2712 Broadway St&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;postalCode&quot;</span><span class="p">:</span> <span class="s2">&quot;CA 94115&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="s2">&quot;San Francisco&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;countryCode&quot;</span><span class="p">:</span> <span class="s2">&quot;US&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="s2">&quot;California&quot;</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;profiles&quot;</span><span class="p">:</span> <span class="p">[{</span>
+            <span class="s2">&quot;network&quot;</span><span class="p">:</span> <span class="s2">&quot;Twitter&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;john&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://twitter.com/john&quot;</span>
+        <span class="p">}]</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;work&quot;</span><span class="p">:</span> <span class="p">[{</span>
+        <span class="s2">&quot;company&quot;</span><span class="p">:</span> <span class="s2">&quot;Company&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;position&quot;</span><span class="p">:</span> <span class="s2">&quot;President&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;website&quot;</span><span class="p">:</span> <span class="s2">&quot;http://company.com&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;startDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2013-01-01&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;endDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2014-01-01&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Description...&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;highlights&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;Started the company&quot;</span>
+        <span class="p">]</span>
+    <span class="p">}],</span>
+    <span class="s2">&quot;volunteer&quot;</span><span class="p">:</span> <span class="p">[{</span>
+        <span class="s2">&quot;organization&quot;</span><span class="p">:</span> <span class="s2">&quot;Organization&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;position&quot;</span><span class="p">:</span> <span class="s2">&quot;Volunteer&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;website&quot;</span><span class="p">:</span> <span class="s2">&quot;http://organization.com/&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;startDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2012-01-01&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;endDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2013-01-01&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Description...&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;highlights&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;Awarded &#39;Volunteer of the Month&#39;&quot;</span>
+        <span class="p">]</span>
+    <span class="p">}],</span>
+    <span class="s2">&quot;education&quot;</span><span class="p">:</span> <span class="p">[{</span>
+        <span class="s2">&quot;institution&quot;</span><span class="p">:</span> <span class="s2">&quot;University&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;area&quot;</span><span class="p">:</span> <span class="s2">&quot;Software Development&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;studyType&quot;</span><span class="p">:</span> <span class="s2">&quot;Bachelor&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;startDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2011-01-01&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;endDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2013-01-01&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;gpa&quot;</span><span class="p">:</span> <span class="s2">&quot;4.0&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;courses&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;DB1101 - Basic SQL&quot;</span>
+        <span class="p">]</span>
+    <span class="p">}],</span>
+    <span class="s2">&quot;awards&quot;</span><span class="p">:</span> <span class="p">[{</span>
+        <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Award&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2014-11-01&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;awarder&quot;</span><span class="p">:</span> <span class="s2">&quot;Company&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;There is no spoon.&quot;</span>
+    <span class="p">}],</span>
+    <span class="s2">&quot;publications&quot;</span><span class="p">:</span> <span class="p">[{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Publication&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;publisher&quot;</span><span class="p">:</span> <span class="s2">&quot;Company&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;releaseDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2014-10-01&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;website&quot;</span><span class="p">:</span> <span class="s2">&quot;http://publication.com&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Description...&quot;</span>
+    <span class="p">}],</span>
+    <span class="s2">&quot;skills&quot;</span><span class="p">:</span> <span class="p">[{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Web Development&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;Master&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;keywords&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;HTML&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;CSS&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Javascript&quot;</span>
+        <span class="p">]</span>
+    <span class="p">}],</span>
+    <span class="s2">&quot;interests&quot;</span><span class="p">:</span> <span class="p">[{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Wildlife&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;keywords&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;Ferrets&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Unicorns&quot;</span>
+        <span class="p">]</span>
+    <span class="p">}],</span>
+    <span class="s2">&quot;references&quot;</span><span class="p">:</span> <span class="p">[{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Jane Doe&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;reference&quot;</span><span class="p">:</span> <span class="s2">&quot;Reference...&quot;</span>
+    <span class="p">}]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Based on <a class="reference external" href="https://jsonresume.org/schema/">https://jsonresume.org/schema/</a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.schemas.ResumeBasicsSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">ResumeBasicsSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#ResumeBasicsSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.ResumeBasicsSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;John Doe&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;label&quot;</span><span class="p">:</span> <span class="s2">&quot;Programmer&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="s2">&quot;john@gmail.com&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;phone&quot;</span><span class="p">:</span> <span class="s2">&quot;(912) 555-4321&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;website&quot;</span><span class="p">:</span> <span class="s2">&quot;http://johndoe.com&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;A summary of John Doe...&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;location&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;address&quot;</span><span class="p">:</span> <span class="s2">&quot;2712 Broadway St&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;postalCode&quot;</span><span class="p">:</span> <span class="s2">&quot;CA 94115&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="s2">&quot;San Francisco&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;countryCode&quot;</span><span class="p">:</span> <span class="s2">&quot;US&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="s2">&quot;California&quot;</span>
+    <span class="p">},</span>
+    <span class="s2">&quot;profiles&quot;</span><span class="p">:</span> <span class="p">[{</span>
+        <span class="s2">&quot;network&quot;</span><span class="p">:</span> <span class="s2">&quot;Twitter&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;john&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://twitter.com/john&quot;</span>
+    <span class="p">}]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.schemas.ResumeBasicsLocationSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">ResumeBasicsLocationSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#ResumeBasicsLocationSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.ResumeBasicsLocationSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;address&quot;</span><span class="p">:</span> <span class="s2">&quot;2712 Broadway St&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;postalCode&quot;</span><span class="p">:</span> <span class="s2">&quot;94115&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;city&quot;</span><span class="p">:</span> <span class="s2">&quot;San Francisco&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;countryCode&quot;</span><span class="p">:</span> <span class="s2">&quot;US&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;region&quot;</span><span class="p">:</span> <span class="s2">&quot;California&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.schemas.ResumeBasicsProfileSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">ResumeBasicsProfileSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#ResumeBasicsProfileSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.ResumeBasicsProfileSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;network&quot;</span><span class="p">:</span> <span class="s2">&quot;Twitter&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="s2">&quot;john&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://twitter.com/john&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.schemas.ResumeWorkSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">ResumeWorkSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#ResumeWorkSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.ResumeWorkSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;company&quot;</span><span class="p">:</span> <span class="s2">&quot;Company&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;position&quot;</span><span class="p">:</span> <span class="s2">&quot;President&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;website&quot;</span><span class="p">:</span> <span class="s2">&quot;http://company.com&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;startDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2013-01-01&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;endDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2014-01-01&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Description...&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;highlights&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;Started the company&quot;</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.schemas.ResumeVolunteerSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">ResumeVolunteerSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#ResumeVolunteerSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.ResumeVolunteerSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;organization&quot;</span><span class="p">:</span> <span class="s2">&quot;Organization&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;position&quot;</span><span class="p">:</span> <span class="s2">&quot;Volunteer&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;website&quot;</span><span class="p">:</span> <span class="s2">&quot;http://organization.com/&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;startDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2012-01-01&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;endDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2013-01-01&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Description...&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;highlights&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;Awarded &#39;Volunteer of the Month&#39;&quot;</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.schemas.ResumeEducationSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">ResumeEducationSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#ResumeEducationSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.ResumeEducationSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;institution&quot;</span><span class="p">:</span> <span class="s2">&quot;University&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;area&quot;</span><span class="p">:</span> <span class="s2">&quot;Software Development&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;studyType&quot;</span><span class="p">:</span> <span class="s2">&quot;Bachelor&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;startDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2011-01-01&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;endDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2013-01-01&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;gpa&quot;</span><span class="p">:</span> <span class="s2">&quot;4.0&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;courses&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;DB1101 - Basic SQL&quot;</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.schemas.ResumeAwardSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">ResumeAwardSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#ResumeAwardSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.ResumeAwardSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Award&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2014-11-01&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;awarder&quot;</span><span class="p">:</span> <span class="s2">&quot;Company&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;There is no spoon.&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.schemas.ResumePublicationSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">ResumePublicationSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#ResumePublicationSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.ResumePublicationSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Publication&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;publisher&quot;</span><span class="p">:</span> <span class="s2">&quot;Company&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;releaseDate&quot;</span><span class="p">:</span> <span class="s2">&quot;2014-10-01&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;website&quot;</span><span class="p">:</span> <span class="s2">&quot;http://publication.com&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;summary&quot;</span><span class="p">:</span> <span class="s2">&quot;Description...&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.schemas.ResumeSkillSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">ResumeSkillSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#ResumeSkillSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.ResumeSkillSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Web Development&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;Master&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;keywords&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;HTML&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CSS&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Javascript&quot;</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.schemas.ResumeInterestSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">ResumeInterestSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#ResumeInterestSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.ResumeInterestSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Wildlife&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;keywords&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="s2">&quot;Ferrets&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Unicorns&quot;</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.schemas.ResumeReferenceSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">ResumeReferenceSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#ResumeReferenceSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.ResumeReferenceSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Jane Doe&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;reference&quot;</span><span class="p">:</span> <span class="s2">&quot;Reference...&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.schemas.JobPostingSchema">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.schemas.</code><code class="sig-name descname">JobPostingSchema</code><span class="sig-paren">(</span><em class="sig-param">*, only: Union[Sequence[str], Set[str]] = None, exclude: Union[Sequence[str], Set[str]] = (), many: bool = False, context: Dict = None, load_only: Union[Sequence[str], Set[str]] = (), dump_only: Union[Sequence[str], Set[str]] = (), partial: Union[bool, Sequence[str], Set[str]] = False, unknown: str = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/schemas.html#JobPostingSchema"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.schemas.JobPostingSchema" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard schema for representing job postings as structured JSON data.</p>
+<p class="rubric">References</p>
+<p>Based on <a class="reference external" href="https://schema.org/JobPosting">https://schema.org/JobPosting</a></p>
+</dd></dl>
+
+</div>
+<span class="target" id="module-msvdd_bloc.fileio"></span><div class="section" id="file-i-o">
+<h3>file i/o<a class="headerlink" href="#file-i-o" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="msvdd_bloc.fileio.get_filepaths">
+<code class="sig-prename descclassname">msvdd_bloc.fileio.</code><code class="sig-name descname">get_filepaths</code><span class="sig-paren">(</span><em class="sig-param">dirpath</em>, <em class="sig-param">suffix=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/fileio.html#get_filepaths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.fileio.get_filepaths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get full paths to all files under <code class="docutils literal notranslate"><span class="pre">dirpath</span></code> with a file type like <code class="docutils literal notranslate"><span class="pre">suffix</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dirpath</strong> (<a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a>) – </p></li>
+<li><p><strong>suffix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><em>Set</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.fileio.save_json">
+<code class="sig-prename descclassname">msvdd_bloc.fileio.</code><code class="sig-name descname">save_json</code><span class="sig-paren">(</span><em class="sig-param">filepath</em>, <em class="sig-param">data</em>, <em class="sig-param">*</em>, <em class="sig-param">lines=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/fileio.html#save_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.fileio.save_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save <code class="docutils literal notranslate"><span class="pre">data</span></code> to disk at <code class="docutils literal notranslate"><span class="pre">filepath</span></code> as a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p></li>
+<li><p><strong>data</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p></li>
+<li><p><strong>lines</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.fileio.load_json">
+<code class="sig-prename descclassname">msvdd_bloc.fileio.</code><code class="sig-name descname">load_json</code><span class="sig-paren">(</span><em class="sig-param">filepath</em>, <em class="sig-param">*</em>, <em class="sig-param">lines=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/fileio.html#load_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.fileio.load_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load JSON data stored to disk at <code class="docutils literal notranslate"><span class="pre">filepath</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p></li>
+<li><p><strong>lines</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p><em>object</em> – Next JSON item</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.fileio.save_text">
+<code class="sig-prename descclassname">msvdd_bloc.fileio.</code><code class="sig-name descname">save_text</code><span class="sig-paren">(</span><em class="sig-param">filepath</em>, <em class="sig-param">data</em>, <em class="sig-param">*</em>, <em class="sig-param">lines=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/fileio.html#save_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.fileio.save_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save <code class="docutils literal notranslate"><span class="pre">data</span></code> to disk at <code class="docutils literal notranslate"><span class="pre">filepath</span></code> as a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p></li>
+<li><p><strong>data</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em>) – </p></li>
+<li><p><strong>lines</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.fileio.load_text">
+<code class="sig-prename descclassname">msvdd_bloc.fileio.</code><code class="sig-name descname">load_text</code><span class="sig-paren">(</span><em class="sig-param">filepath</em>, <em class="sig-param">*</em>, <em class="sig-param">lines=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/fileio.html#load_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.fileio.load_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load text data stored to disk at <code class="docutils literal notranslate"><span class="pre">filepath</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p></li>
+<li><p><strong>lines</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p><em>str</em> – Next (line of) text to read in.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.fileio.save_text_files_to_zip">
+<code class="sig-prename descclassname">msvdd_bloc.fileio.</code><code class="sig-name descname">save_text_files_to_zip</code><span class="sig-paren">(</span><em class="sig-param">filepath</em>, <em class="sig-param">text_files</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/fileio.html#save_text_files_to_zip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.fileio.save_text_files_to_zip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save multiple text files directly to a ZIP archive file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Full path to ZIP archive file on disk.</p></li>
+<li><p><strong>text_files</strong> (<em>Sequence</em><em>[</em><em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em><em>]</em>) – Sequence of (filename, text content) pairs
+to store at <code class="docutils literal notranslate"><span class="pre">filepath</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.fileio.load_text_files_from_zip">
+<code class="sig-prename descclassname">msvdd_bloc.fileio.</code><code class="sig-name descname">load_text_files_from_zip</code><span class="sig-paren">(</span><em class="sig-param">filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/fileio.html#load_text_files_from_zip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.fileio.load_text_files_from_zip" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load multiple text files directly from a ZIP archive file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Full path to ZIP archive file on disk.</p>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p><em>Tuple[str, str]</em> – Next (filename, text content) pair stored at <code class="docutils literal notranslate"><span class="pre">filepath</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<span class="target" id="module-msvdd_bloc.regexes"></span><div class="section" id="regexes">
+<h3>regexes<a class="headerlink" href="#regexes" title="Permalink to this headline">¶</a></h3>
+</div>
+<span class="target" id="module-msvdd_bloc.utils"></span><div class="section" id="utils">
+<h3>utils<a class="headerlink" href="#utils" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="msvdd_bloc.utils.to_collection">
+<code class="sig-prename descclassname">msvdd_bloc.utils.</code><code class="sig-name descname">to_collection</code><span class="sig-paren">(</span><em class="sig-param">val</em>, <em class="sig-param">val_type</em>, <em class="sig-param">col_type</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/utils.html#to_collection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.utils.to_collection" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validate and cast a value or values to a collection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>val</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><em>object</em></a>) – Value or values to validate and cast.</p></li>
+<li><p><strong>val_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.8)"><em>type</em></a>) – Type of each value in collection, e.g. <code class="docutils literal notranslate"><span class="pre">int</span></code> or <code class="docutils literal notranslate"><span class="pre">str</span></code>.</p></li>
+<li><p><strong>col_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#type" title="(in Python v3.8)"><em>type</em></a>) – Type of collection to return, e.g. <code class="docutils literal notranslate"><span class="pre">tuple</span></code> or <code class="docutils literal notranslate"><span class="pre">set</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Collection of type <code class="docutils literal notranslate"><span class="pre">col_type</span></code> with values all of type <code class="docutils literal notranslate"><span class="pre">val_type</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)">object</a></p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.8)"><strong>TypeError</strong></a> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.utils.dedupe_results">
+<code class="sig-prename descclassname">msvdd_bloc.utils.</code><code class="sig-name descname">dedupe_results</code><span class="sig-paren">(</span><em class="sig-param">results</em>, <em class="sig-param">dupe_key</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/utils.html#dedupe_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.utils.dedupe_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter out items in <code class="docutils literal notranslate"><span class="pre">results</span></code> with the same <code class="docutils literal notranslate"><span class="pre">dupe_key</span></code> value, keeping only
+the first instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>results</strong> (<em>(</em><em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><em>dict</em></a><em>]</em><em>)</em>) – </p></li>
+<li><p><strong>dupe_key</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List[dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.utils.chunk_items">
+<code class="sig-prename descclassname">msvdd_bloc.utils.</code><code class="sig-name descname">chunk_items</code><span class="sig-paren">(</span><em class="sig-param">items</em>, <em class="sig-param">chunk_size</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/utils.html#chunk_items"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.utils.chunk_items" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yield successive chunks of items.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>items</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><em>tuple</em></a>) – </p></li>
+<li><p><strong>chunk_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p>list or tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-msvdd_bloc.resumes.extract">
+<span id="resumes"></span><h2>résumés<a class="headerlink" href="#module-msvdd_bloc.resumes.extract" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="extract">
+<h3>extract<a class="headerlink" href="#extract" title="Permalink to this headline">¶</a></h3>
+<p>Extract résumé text from a PDF file, using multiple methods applied in order of confidence.</p>
+<dl class="function">
+<dt id="msvdd_bloc.resumes.extract.extract_text_from_pdf">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.extract.</code><code class="sig-name descname">extract_text_from_pdf</code><span class="sig-paren">(</span><em class="sig-param">filepath</em>, <em class="sig-param">*</em>, <em class="sig-param">min_len=150</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/extract.html#extract_text_from_pdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.extract.extract_text_from_pdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract text from a PDF at <code class="docutils literal notranslate"><span class="pre">filepath</span></code> using the first package
+to get the job done in extracting at least <code class="docutils literal notranslate"><span class="pre">min_len</span></code> chars.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p></li>
+<li><p><strong>min_len</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.extract.extract_text_from_pdf_tika">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.extract.</code><code class="sig-name descname">extract_text_from_pdf_tika</code><span class="sig-paren">(</span><em class="sig-param">filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/extract.html#extract_text_from_pdf_tika"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.extract.extract_text_from_pdf_tika" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract text from a PDF at <code class="docutils literal notranslate"><span class="pre">filepath</span></code> using <code class="docutils literal notranslate"><span class="pre">tika-python</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.extract.extract_text_from_pdf_pdfminer">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.extract.</code><code class="sig-name descname">extract_text_from_pdf_pdfminer</code><span class="sig-paren">(</span><em class="sig-param">filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/extract.html#extract_text_from_pdf_pdfminer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.extract.extract_text_from_pdf_pdfminer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract text from a PDF at <code class="docutils literal notranslate"><span class="pre">filepath</span></code> using <code class="docutils literal notranslate"><span class="pre">yapdfminer</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The external package used here — yapdfminer — has a convoluted provenance.
+It’s a fork of pdfminer3, which is a fork of pdfminer.six, which is a fork
+of pdfminer. Other forks also exist. Many are still used, but not many are
+still maintained.</p>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.extract.extract_text_from_pdf_textract">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.extract.</code><code class="sig-name descname">extract_text_from_pdf_textract</code><span class="sig-paren">(</span><em class="sig-param">filepath</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/extract.html#extract_text_from_pdf_textract"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.extract.extract_text_from_pdf_textract" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract text from a PDF at <code class="docutils literal notranslate"><span class="pre">filepath</span></code> using <code class="docutils literal notranslate"><span class="pre">textract</span></code> + <code class="docutils literal notranslate"><span class="pre">pdftotext</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>filepath</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<span class="target" id="module-msvdd_bloc.resumes.munge"></span><div class="section" id="munge">
+<h3>munge<a class="headerlink" href="#munge" title="Permalink to this headline">¶</a></h3>
+<p>Munge résumé text data: clean and normalize the text itself,
+and split it into content-bearing lines on a configurable delimiter.</p>
+<dl class="function">
+<dt id="msvdd_bloc.resumes.munge.normalize_text">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.munge.</code><code class="sig-name descname">normalize_text</code><span class="sig-paren">(</span><em class="sig-param">text</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/munge.html#normalize_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.munge.normalize_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Correct any encoding / mojibake / unicode weirdness, standardize list bullets, etc.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.munge.get_filtered_text_lines">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.munge.</code><code class="sig-name descname">get_filtered_text_lines</code><span class="sig-paren">(</span><em class="sig-param">text</em>, <em class="sig-param">*</em>, <em class="sig-param">delim=' ?\\n'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/munge.html#get_filtered_text_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.munge.get_filtered_text_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split <code class="docutils literal notranslate"><span class="pre">text</span></code> into lines, filtering out some superfluous lines if context allows.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p></li>
+<li><p><strong>delim</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List[str]</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This should be applied to normalized text – see <a class="reference internal" href="#msvdd_bloc.resumes.munge.normalize_text" title="msvdd_bloc.resumes.munge.normalize_text"><code class="xref py py-func docutils literal notranslate"><span class="pre">normalize_text()</span></code></a>.</p>
+</div>
+</dd></dl>
+
+</div>
+<span class="target" id="module-msvdd_bloc.resumes.segment"></span><div class="section" id="segment">
+<h3>segment<a class="headerlink" href="#segment" title="Permalink to this headline">¶</a></h3>
+<p>Segment résumé text lines into separate sections which (mostly) correspond to
+top-level fields in <code class="xref py py-class docutils literal notranslate"><span class="pre">schemas.ResumeSchema()</span></code>.</p>
+<dl class="data">
+<dt id="msvdd_bloc.resumes.segment.SECTION_HEADERS">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.segment.</code><code class="sig-name descname">SECTION_HEADERS</code><em class="property"> = {'ambiguous': re.compile('^(?P&lt;text&gt;activities (and|&amp;) honors|affiliations|awards, activities,? (and|&amp;) additional skills|campus involvement|certifications|community involvement|involvement|involvement (and|&amp;) achievements|le, re.IGNORECASE), 'awards': re.compile('^(?P&lt;text&gt;achievements|awards|awards (and|&amp;) certifications|awards (and|&amp;) honors|fellowships (and|&amp;) awards|honors|honors (and|&amp;) awards|honors, awards, (and|&amp;) memberships)(?P&lt;end&gt;: |:?$)', re.IGNORECASE), 'basics': re.compile('^(?P&lt;text&gt;about|contacts?|(career|professional) (objective|summary)|(contact|personal) info|objective|summary)(?P&lt;end&gt;:?$)', re.IGNORECASE), 'education': re.compile('^(?P&lt;text&gt;academic qualifications|course ?work|courses completed|education|(recent|related|relevant|undergraduate) courses|(recent|related|relevant) course ?work)(?P&lt;end&gt;:?$)', re.IGNORECASE), 'interests': re.compile('^(?P&lt;text&gt;activities|activities (and|&amp;) student groups|clubs|extracurriculars?|extracurricular activities|fellowships (and|&amp;) clubs|(github|other|programming|recent|side|technical) projects|interests, re.IGNORECASE), 'publications': re.compile('^(?P&lt;text&gt;publications)(?P&lt;end&gt;:?$)', re.IGNORECASE), 'references': re.compile('^(?P&lt;text&gt;references)(?P&lt;end&gt;:?$)', re.IGNORECASE), 'skills': re.compile('^(?P&lt;text&gt;languages|languages? (and|&amp;) technologies|programming languages|skills|skills (and|&amp;) expertise|(relevant|soft|special|technical|technological) skills(et)?|technical strengths|tools)(?P&lt;end, re.IGNORECASE), 'volunteer': re.compile('^(?P&lt;text&gt;community service|volunteer experiences?|volunteering)(?P&lt;end&gt;:?$)', re.IGNORECASE), 'work': re.compile('^(?P&lt;text&gt;(additional|leadership|professional|relevant|work) experiences?|employment|experiences?|leadership|leadership (and|&amp;) service|professional development|work (and|&amp;) (research|technical) expe, re.IGNORECASE)}</em><a class="headerlink" href="#msvdd_bloc.resumes.segment.SECTION_HEADERS" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mapping of section name to compiled regex pattern
+that matches header lines indicating the start of the corresponding section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>Dict[str, <code class="xref py py-class docutils literal notranslate"><span class="pre">re.Pattern</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.segment.get_section_lines">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.segment.</code><code class="sig-name descname">get_section_lines</code><span class="sig-paren">(</span><em class="sig-param">lines</em>, <em class="sig-param">keep_subheaders=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/segment.html#get_section_lines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.segment.get_section_lines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse a sequence of text lines from a résumé into a mapping of section name
+to corresponding lines.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>List</strong><strong>[</strong><strong>str</strong><strong>]</strong> – Cleaned and filtered résumé text lines, as output by
+<code class="xref py py-func docutils literal notranslate"><span class="pre">resumes.munge.get_filtered_text_lines()</span></code>.</p></li>
+<li><p><strong>keep_subheaders</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a>) – If True, don’t remove header text when a section header
+matches while <em>already</em> adding lines for the same section. In this situation,
+the header is probably a “sub-header”, and its text may be meaningful.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dict[str, List[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<span class="target" id="module-msvdd_bloc.resumes.generate_utils"></span><div class="section" id="generate-utils">
+<h3>generate utils<a class="headerlink" href="#generate-utils" title="Permalink to this headline">¶</a></h3>
+<p>Functionality for generating fake examples of labeled tokens for training a parser
+in a résumé section-agnostic manner. Section subpackages use and build upon these utils
+in their respective <code class="docutils literal notranslate"><span class="pre">generate.py</span></code> modules.</p>
+<dl class="class">
+<dt id="msvdd_bloc.resumes.generate_utils.ResumeProvider">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.resumes.generate_utils.</code><code class="sig-name descname">ResumeProvider</code><span class="sig-paren">(</span><em class="sig-param">generator</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/generate_utils.html#ResumeProvider"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.generate_utils.ResumeProvider" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class for providing randomized field values in a résumé, regardless of section.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.resumes.generate_utils.MarkovModel">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.resumes.generate_utils.</code><code class="sig-name descname">MarkovModel</code><span class="sig-paren">(</span><em class="sig-param">state_len=4</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/generate_utils.html#MarkovModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.generate_utils.MarkovModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class to generate fake text using a Markov model trained on data. It’s not fancy,
+but it’s a big improvement over totally-random “lorem ipsum”!</p>
+<dl class="method">
+<dt id="msvdd_bloc.resumes.generate_utils.MarkovModel.fit">
+<code class="sig-name descname">fit</code><span class="sig-paren">(</span><em class="sig-param">text</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/generate_utils.html#MarkovModel.fit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.generate_utils.MarkovModel.fit" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>text</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The instantiated Markov model, trained.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#msvdd_bloc.resumes.generate_utils.MarkovModel" title="msvdd_bloc.resumes.generate_utils.MarkovModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">MarkovModel</span></code></a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="msvdd_bloc.resumes.generate_utils.MarkovModel.generate">
+<code class="sig-name descname">generate</code><span class="sig-paren">(</span><em class="sig-param">n</em>, <em class="sig-param">state=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/generate_utils.html#MarkovModel.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.generate_utils.MarkovModel.generate" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Number of characters to generate.</p></li>
+<li><p><strong>state</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – Initial state from which to start generating characters.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.generate_utils.generate_labeled_tokens">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.generate_utils.</code><code class="sig-name descname">generate_labeled_tokens</code><span class="sig-paren">(</span><em class="sig-param">templates</em>, <em class="sig-param">fields</em>, <em class="sig-param">*</em>, <em class="sig-param">n=1</em>, <em class="sig-param">fixed_val_field_keys=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/generate_utils.html#generate_labeled_tokens"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.generate_utils.generate_labeled_tokens" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate one or many fake examples by combining fields arranged as in <code class="docutils literal notranslate"><span class="pre">templates</span></code>
+with values and default labels specified by <code class="docutils literal notranslate"><span class="pre">fields</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>templates</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>] or </em><em>List</em><em>[</em><em>Callable</em><em>]</em>) – </p></li>
+<li><p><strong>fields</strong> (<em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>Tuple</em><em>[</em><em>Callable</em><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>section</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p></li>
+<li><p><strong>n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – </p></li>
+<li><p><strong>fixed_val_field_keys</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><em>Set</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields</dt>
+<dd class="field-even"><p>List[Tuple[str, str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<span class="target" id="module-msvdd_bloc.resumes.augment_utils"></span><div class="section" id="augment-utils">
+<h3>augment utils<a class="headerlink" href="#augment-utils" title="Permalink to this headline">¶</a></h3>
+<p>Functionality for modifying sequences of labeled tokens for data augmentation purposes
+in a résumé section-agnostic manner. Section subpackages use and build upon these utils
+in their respective <code class="docutils literal notranslate"><span class="pre">augment.py</span></code> modules.</p>
+<dl class="class">
+<dt id="msvdd_bloc.resumes.augment_utils.Augmenter">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.resumes.augment_utils.</code><code class="sig-name descname">Augmenter</code><span class="sig-paren">(</span><em class="sig-param">transforms</em>, <em class="sig-param">*</em>, <em class="sig-param">num=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/augment_utils.html#Augmenter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.augment_utils.Augmenter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly apply one or many data-augmentation transform functions to labeled tokens
+to produce new sequences with additional variety and/or noise in the data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>transforms</strong> (<em>Sequence</em><em>[</em><em>Callable</em><em>]</em>) – <p>Ordered sequence of callables that must take
+List[Tuple[str, str]] as their first positional argument and return a new
+List[Tuple[str, str]].</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Although the particular transforms applied may vary per call,
+they are applied <em>in order</em> as listed here.</p>
+</div>
+</p></li>
+<li><p><strong>num</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em> or </em><em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em>]</em>) – If int, number of transforms to randomly select
+from <code class="docutils literal notranslate"><span class="pre">transforms</span></code> each time <a class="reference internal" href="#msvdd_bloc.resumes.augment_utils.Augmenter.apply" title="msvdd_bloc.resumes.augment_utils.Augmenter.apply"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Augmenter.apply()</span></code></a> is called. If float,
+probability that any given transform will be selected. If List[float],
+probability that the corresponding transform in <code class="docutils literal notranslate"><span class="pre">transforms</span></code> will be
+selected (these must be the same length). If None (default), num is set to
+<code class="docutils literal notranslate"><span class="pre">len(transforms)</span></code>, which means that all transforms are always applied.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="method">
+<dt id="msvdd_bloc.resumes.augment_utils.Augmenter.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param">labeled_tokens</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/augment_utils.html#Augmenter.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.augment_utils.Augmenter.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sequentially apply some subset of augmentation transforms to <code class="docutils literal notranslate"><span class="pre">labeled_tokens</span></code>,
+returning a new, modified sequence of labeled tokens.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>labeled_tokens</strong> (<em>List</em><em>[</em><em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em><em>]</em>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List[Tuple[str, str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.augment_utils.change_case_token_text">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.augment_utils.</code><code class="sig-name descname">change_case_token_text</code><span class="sig-paren">(</span><em class="sig-param">labeled_tokens</em>, <em class="sig-param">*</em>, <em class="sig-param">case='upper'</em>, <em class="sig-param">target_labels=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/augment_utils.html#change_case_token_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.augment_utils.change_case_token_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change token text to <code class="docutils literal notranslate"><span class="pre">case</span></code> case for those whose label is in <code class="docutils literal notranslate"><span class="pre">target_labels</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>labeled_tokens</strong> (<em>List</em><em>[</em><em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>case</strong> (<em>{&quot;upper&quot;</em><em>, </em><em>&quot;title&quot;</em><em>, </em><em>&quot;lower&quot;}</em>) – </p></li>
+<li><p><strong>target_labels</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><em>Set</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List[Tuple[str, str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.augment_utils.delete_token">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.augment_utils.</code><code class="sig-name descname">delete_token</code><span class="sig-paren">(</span><em class="sig-param">labeled_tokens</em>, <em class="sig-param">*</em>, <em class="sig-param">prob=0.01</em>, <em class="sig-param">target_labels=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/augment_utils.html#delete_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.augment_utils.delete_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly delete any given token with a probability of <code class="docutils literal notranslate"><span class="pre">prob</span></code> for those whose
+label is in <code class="docutils literal notranslate"><span class="pre">target_labels</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>labeled_tokens</strong> (<em>List</em><em>[</em><em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>prob</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – </p></li>
+<li><p><strong>target_labels</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em> or </em><em>Set</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List[Tuple[str, str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.augment_utils.insert_whitespace_token">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.augment_utils.</code><code class="sig-name descname">insert_whitespace_token</code><span class="sig-paren">(</span><em class="sig-param">labeled_tokens</em>, <em class="sig-param">*</em>, <em class="sig-param">prob=0.01</em>, <em class="sig-param">nrange=(1</em>, <em class="sig-param">2)</em>, <em class="sig-param">field_labels=('field_sep'</em>, <em class="sig-param">'item_sep')</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/augment_utils.html#insert_whitespace_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.augment_utils.insert_whitespace_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Randomly insert a whitespace token between any given two tokens with a probability
+of <code class="docutils literal notranslate"><span class="pre">prob</span></code>, provided neither token is already whitespace.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>labeled_tokens</strong> (<em>List</em><em>[</em><em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>prob</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a>) – </p></li>
+<li><p><strong>ngrange</strong> (<em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>]</em>) – </p></li>
+<li><p><strong>field_labels</strong> (<em>Tuple</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>]</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List[Tuple[str, str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<span class="target" id="module-msvdd_bloc.resumes.parse_utils"></span><div class="section" id="parse-utils">
+<h3>parse utils<a class="headerlink" href="#parse-utils" title="Permalink to this headline">¶</a></h3>
+<p>Functionality for tokenizing, featurizing, tagging, padding sequences, and loading taggers
+in a résumé section-agnostic manner. Section subpackages use and build upon these utils
+in their respective <code class="docutils literal notranslate"><span class="pre">parse.py</span></code> modules.</p>
+<dl class="attribute">
+<dt id="msvdd_bloc.resumes.parse_utils.load_tagger">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.parse_utils.</code><code class="sig-name descname">load_tagger</code><a class="reference internal" href="_modules/msvdd_bloc/resumes/parse_utils.html#load_tagger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.parse_utils.load_tagger" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fpath</strong> (str or <a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">pathlib.Path</span></code></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">pycrfsuite.Tagger</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.parse_utils.tokenize">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.parse_utils.</code><code class="sig-name descname">tokenize</code><span class="sig-paren">(</span><em class="sig-param">line</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/parse_utils.html#tokenize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.parse_utils.tokenize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split <code class="docutils literal notranslate"><span class="pre">line</span></code> into a sequence of spaCy tokens to be featurized.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>line</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>] or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List[<code class="xref py py-class docutils literal notranslate"><span class="pre">spacy.tokens.Token</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.parse_utils.get_token_features_base">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.parse_utils.</code><code class="sig-name descname">get_token_features_base</code><span class="sig-paren">(</span><em class="sig-param">token</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/parse_utils.html#get_token_features_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.parse_utils.get_token_features_base" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get base per-token features, independent of other tokens within its sequence.
+Specific sections should add to / remove from these features, as needed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>token</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">spacy.tokens.Token</span></code>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dict[str, obj]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.parse_utils.pad_tokens_features">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.parse_utils.</code><code class="sig-name descname">pad_tokens_features</code><span class="sig-paren">(</span><em class="sig-param">tokens_features</em>, <em class="sig-param">*</em>, <em class="sig-param">n_left=1</em>, <em class="sig-param">n_right=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/parse_utils.html#pad_tokens_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.parse_utils.pad_tokens_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pad list of tokens’ features on the left and/or right with a configurable number of
+dummy feature dicts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokens_features</strong> (<em>List</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>obj</em><em>]</em><em>]</em>) – </p></li>
+<li><p><strong>n_left</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Number of dummy feature dicts to prepend.</p></li>
+<li><p><strong>n_right</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a>) – Number of dummy feature dicts to append.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List[Dict[str, obj]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="msvdd_bloc.resumes.parse_utils.tag">
+<code class="sig-prename descclassname">msvdd_bloc.resumes.parse_utils.</code><code class="sig-name descname">tag</code><span class="sig-paren">(</span><em class="sig-param">tokens</em>, <em class="sig-param">features</em>, <em class="sig-param">*</em>, <em class="sig-param">tagger</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/parse_utils.html#tag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.parse_utils.tag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tag each token in <code class="docutils literal notranslate"><span class="pre">tokens</span></code> with a section-specific label based on its features.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>tokens</strong> (List[<code class="xref py py-class docutils literal notranslate"><span class="pre">spacy.tokens.Token</span></code>]) – As output by <a class="reference internal" href="#msvdd_bloc.resumes.parse_utils.tokenize" title="msvdd_bloc.resumes.parse_utils.tokenize"><code class="xref py py-func docutils literal notranslate"><span class="pre">tokenize()</span></code></a>.</p></li>
+<li><p><strong>features</strong> (<em>List</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>obj</em><em>]</em><em>]</em>) – As output by a section-specific <code class="docutils literal notranslate"><span class="pre">featurize()</span></code>.</p></li>
+<li><p><strong>tagger</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">pycrfsuite.Tagger</span></code>) – Trained, section-specific CRF tagger.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Ordered sequence of
+(token, tag) pairs, aka “labeled tokens”.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[Tuple[<code class="xref py py-class docutils literal notranslate"><span class="pre">spacy.tokens.Token</span></code>, str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.resumes.parse_utils.PhoneNumberMerger">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.resumes.parse_utils.</code><code class="sig-name descname">PhoneNumberMerger</code><span class="sig-paren">(</span><em class="sig-param">nlp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/parse_utils.html#PhoneNumberMerger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.parse_utils.PhoneNumberMerger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Custom spaCy pipeline component that merges contiguous tokens matching
+typical phone number patterns into a single token.</p>
+</dd></dl>
+
+</div>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api-resume-sections.html">résumé sections</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api-resume-sections.html#basics">basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-resume-sections.html#education">education</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-resume-sections.html#skills">skills</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-resume-sections.html#work">work</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api-resume-sections.html#module-msvdd_bloc.resumes.basics">API Reference</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">msvdd_bloc</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-msvdd_bloc.schemas">top-level</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#schemas">schemas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#file-i-o">file i/o</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#regexes">regexes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#utils">utils</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-msvdd_bloc.resumes.extract">résumés</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#extract">extract</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#munge">munge</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#segment">segment</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#generate-utils">generate utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#augment-utils">augment utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parse-utils">parse utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="api-resume-sections.html">résumé sections</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="getting-started.html" title="previous chapter">Getting Started</a></li>
+      <li>Next: <a href="api-resume-sections.html" title="next chapter">résumé sections</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/api-reference.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

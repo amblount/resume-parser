@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>msvdd_bloc.resumes.work.parse &#8212; msvdd_bloc 0.1.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for msvdd_bloc.resumes.work.parse</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+
+<span class="kn">from</span> <span class="nn">toolz</span> <span class="k">import</span> <span class="n">itertoolz</span>
+
+<span class="kn">from</span> <span class="nn">msvdd_bloc</span> <span class="k">import</span> <span class="n">regexes</span>
+<span class="kn">from</span> <span class="nn">msvdd_bloc.resumes</span> <span class="k">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">msvdd_bloc.resumes</span> <span class="k">import</span> <span class="n">parse_utils</span>
+<span class="kn">from</span> <span class="nn">msvdd_bloc.resumes</span> <span class="k">import</span> <span class="n">work</span>
+
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="n">FIELD_SEP_TEXTS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">sep</span> <span class="k">for</span> <span class="n">sep</span> <span class="ow">in</span> <span class="n">itertoolz</span><span class="o">.</span><span class="n">concatv</span><span class="p">(</span>
+        <span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">FIELD_SEPS</span><span class="p">,</span>
+        <span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">FIELD_SEP_DTS</span><span class="p">,</span>
+        <span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">FIELD_SEP_SMS</span><span class="p">,</span>
+        <span class="n">constants</span><span class="o">.</span><span class="n">LEFT_BRACKETS</span><span class="p">,</span>
+        <span class="n">constants</span><span class="o">.</span><span class="n">RIGHT_BRACKETS</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="p">}</span>
+<span class="n">COMPANY_TEXTS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">COMPANY_TYPES</span> <span class="o">+</span> <span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">COMPANY_MODIFIERS</span><span class="p">)</span>
+<span class="n">POSITION_TEXTS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">POSITION_LEVELS</span> <span class="o">+</span> <span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">POSITION_TYPES</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="parse_lines"><a class="viewcode-back" href="../../../../api-resume-sections.html#msvdd_bloc.resumes.work.parse.parse_lines">[docs]</a><span class="k">def</span> <span class="nf">parse_lines</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">tagger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse a sequence of text lines belonging to the &quot;work&quot; section of a résumé</span>
+<span class="sd">    to produce structured data in the form of :class:`schemas.ResumeWorkSchema`</span>
+<span class="sd">    using a trained Conditional Random Field (CRF) tagger.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lines (List[str])</span>
+<span class="sd">        tagger (:class:`pycrfsuite.Tagger`)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[Dict[str, obj]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">tagger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tagger</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">load_tagger</span><span class="p">(</span><span class="n">work</span><span class="o">.</span><span class="n">FPATH_TAGGER</span><span class="p">)</span>
+
+    <span class="n">tokens</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">featurize</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+    <span class="n">labeled_tokens</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">tagger</span><span class="o">=</span><span class="n">tagger</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">_parse_labeled_tokens</span><span class="p">(</span><span class="n">labeled_tokens</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span></div>
+
+
+<span class="k">def</span> <span class="nf">_parse_labeled_tokens</span><span class="p">(</span><span class="n">labeled_tokens</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        labeled_tokens (List[Tuple[:class:`spacy.tokens.Token`, str]])</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[Dict[str, obj]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">one_per_result_labels</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;position&quot;</span><span class="p">,</span> <span class="s2">&quot;company&quot;</span><span class="p">,</span> <span class="s2">&quot;start_date&quot;</span><span class="p">,</span> <span class="s2">&quot;end_date&quot;</span><span class="p">}</span>
+    <span class="n">excluded_labels</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;field_sep&quot;</span><span class="p">,</span> <span class="s2">&quot;item_sep&quot;</span><span class="p">,</span> <span class="s2">&quot;location&quot;</span><span class="p">,</span> <span class="s2">&quot;other&quot;</span><span class="p">}</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">result_highlights</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">tls</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">labeled_tokens</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">excluded_labels</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">field_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tls</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;highlight&quot;</span><span class="p">:</span>
+            <span class="n">result_highlights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">field_text</span><span class="p">)</span>
+        <span class="c1"># key assumption: results can only have one of certain fields</span>
+        <span class="c1"># and the appearance of another such field indicates a new result</span>
+        <span class="k">elif</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">one_per_result_labels</span> <span class="ow">and</span> <span class="n">result</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">label</span><span class="p">):</span>
+            <span class="c1"># add current result to results list</span>
+            <span class="k">if</span> <span class="n">result_highlights</span><span class="p">:</span>
+                <span class="n">result</span><span class="p">[</span><span class="s2">&quot;highlights&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result_highlights</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+            <span class="c1"># start a new result</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="p">{</span><span class="n">label</span><span class="p">:</span> <span class="n">field_text</span><span class="p">}</span>
+            <span class="n">result_highlights</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">field_text</span>
+    <span class="c1"># add leftover result to the list</span>
+    <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">result_highlights</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">[</span><span class="s2">&quot;highlights&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result_highlights</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span>
+
+
+<div class="viewcode-block" id="featurize"><a class="viewcode-back" href="../../../../api-resume-sections.html#msvdd_bloc.resumes.work.parse.featurize">[docs]</a><span class="k">def</span> <span class="nf">featurize</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract features from individual tokens as well as those that are dependent on</span>
+<span class="sd">    the sequence thereof.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tokens (List[:class:`spacy.tokens.Token`])</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[Dict[str, obj]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tokens_features</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_token_features</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_features</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">tokens_features</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;_singleton&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">tokens_features</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">feature_sequence</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">tokens_features</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">pad_tokens_features</span><span class="p">(</span>
+            <span class="n">tokens_features</span><span class="p">,</span> <span class="n">n_left</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">n_right</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">follows_bullet</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">idx_last_newline</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">tf_windows</span> <span class="o">=</span> <span class="n">itertoolz</span><span class="o">.</span><span class="n">sliding_window</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">tokens_features</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ppprev_tf</span><span class="p">,</span> <span class="n">pprev_tf</span><span class="p">,</span> <span class="n">prev_tf</span><span class="p">,</span> <span class="n">curr_tf</span><span class="p">,</span> <span class="n">next_tf</span><span class="p">,</span> <span class="n">nnext_tf</span> <span class="ow">in</span> <span class="n">tf_windows</span><span class="p">:</span>
+            <span class="n">tf</span> <span class="o">=</span> <span class="n">curr_tf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;ppprev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ppprev_tf</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;pprev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pprev_tf</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;prev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev_tf</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;next&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_tf</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;nnext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nnext_tf</span>
+            <span class="c1"># NOTE: add features here that depend upon tokens elsewhere in the sequence</span>
+            <span class="c1"># e.g. whether or not a particular word appeared earlier in the sequence</span>
+            <span class="n">tok_idx</span> <span class="o">=</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">char</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]):</span>
+                <span class="n">idx_last_newline</span> <span class="o">=</span> <span class="n">tok_idx</span>
+                <span class="n">follows_bullet</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;n_toks_since_newline&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tok_idx</span> <span class="o">-</span> <span class="n">idx_last_newline</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;follows_bullet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">follows_bullet</span>
+            <span class="c1"># is this token a bullet? i.e. &quot;- &quot; token starting a new line</span>
+            <span class="k">if</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span> <span class="ow">and</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;n_toks_since_newline&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">follows_bullet</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">feature_sequence</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">feature_sequence</span></div>
+
+
+<div class="viewcode-block" id="get_token_features"><a class="viewcode-back" href="../../../../api-resume-sections.html#msvdd_bloc.resumes.work.parse.get_token_features">[docs]</a><span class="k">def</span> <span class="nf">get_token_features</span><span class="p">(</span><span class="n">token</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get per-token features, independent of other tokens within its sequence.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        token (:class:`spacy.tokens.Token`)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict[str, obj]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">text</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">get_token_features_base</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+    <span class="n">features</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;is_field_sep_text&quot;</span><span class="p">:</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">FIELD_SEP_TEXTS</span><span class="p">,</span>
+            <span class="s2">&quot;is_company_text&quot;</span><span class="p">:</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">COMPANY_TEXTS</span><span class="p">,</span>
+            <span class="s2">&quot;is_position_text&quot;</span><span class="p">:</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">POSITION_TEXTS</span><span class="p">,</span>
+            <span class="s2">&quot;like_month_name&quot;</span><span class="p">:</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_MONTH</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s2">&quot;like_year&quot;</span><span class="p">:</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_YEAR</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">features</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">msvdd_bloc</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api-reference.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

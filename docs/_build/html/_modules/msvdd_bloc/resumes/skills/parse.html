@@ -1,0 +1,420 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>msvdd_bloc.resumes.skills.parse &#8212; msvdd_bloc 0.1.1 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for msvdd_bloc.resumes.skills.parse</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">from</span> <span class="nn">toolz</span> <span class="k">import</span> <span class="n">itertoolz</span>
+
+<span class="kn">from</span> <span class="nn">msvdd_bloc.resumes</span> <span class="k">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">msvdd_bloc.resumes</span> <span class="k">import</span> <span class="n">parse_utils</span>
+<span class="kn">from</span> <span class="nn">msvdd_bloc.resumes</span> <span class="k">import</span> <span class="n">skills</span>
+
+
+<span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1">#######################</span>
+<span class="c1">## CRF-BASED PARSING ##</span>
+<span class="c1">#######################</span>
+
+<span class="n">GROUP_SEP_TEXTS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+    <span class="n">skills</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">GROUP_SEPS_WITH_WS</span> <span class="o">+</span>
+    <span class="n">skills</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">GROUP_SEPS_WITH_WS_RIGHT</span>
+<span class="p">)</span>
+<span class="n">ITEM_SEP_TEXTS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">constants</span><span class="o">.</span><span class="n">ANDS</span> <span class="o">+</span> <span class="n">skills</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">ITEM_SEPS</span><span class="p">)</span>
+<span class="c1"># HACK: we generally don&#39;t want features that depend on belonging to a set</span>
+<span class="c1"># of manually-curated words; but this is a somewhat special case,</span>
+<span class="c1"># and it improves performance on those fields, so... :shrug:</span>
+<span class="n">LEVEL_TEXTS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">skills</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">LEVELS</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="parse_lines"><a class="viewcode-back" href="../../../../api-resume-sections.html#msvdd_bloc.resumes.skills.parse.parse_lines">[docs]</a><span class="k">def</span> <span class="nf">parse_lines</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">tagger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse a sequence of text lines belonging to the &quot;skills&quot; section of a résumé</span>
+<span class="sd">    to produce structured data in the form of :class:`schemas.ResumeSkillSchema`</span>
+<span class="sd">    using a trained Conditional Random Field (CRF) tagger.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lines (List[str])</span>
+<span class="sd">        tagger (:class:`pycrfsuite.Tagger`)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[Dict[str, obj]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">tagger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">tagger</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">load_tagger</span><span class="p">(</span><span class="n">skills</span><span class="o">.</span><span class="n">FPATH_TAGGER</span><span class="p">)</span>
+
+    <span class="n">tokens</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">featurize</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+    <span class="n">labeled_tokens</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">tagger</span><span class="o">=</span><span class="n">tagger</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">_parse_labeled_tokens</span><span class="p">(</span><span class="n">labeled_tokens</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+
+<span class="k">def</span> <span class="nf">_parse_labeled_tokens</span><span class="p">(</span><span class="n">labeled_tokens</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Args:</span>
+<span class="sd">        labeled_tokens (List[Tuple[:class:`spacy.tokens.Token`, str]])</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[Dict[str, obj]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">skills_data</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">_is_line_group_sep</span><span class="p">(</span><span class="n">tok_label</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Groups of related skills don&#39;t necessarily stick to a single line; only split</span>
+<span class="sd">        them if there&#39;s a newline labeled specifically as a field separator, rather than</span>
+<span class="sd">        an item separator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">tok_label</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;field_sep&quot;</span> <span class="ow">and</span>
+            <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^\n+$&quot;</span><span class="p">,</span> <span class="n">tok_label</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="p">)</span>
+
+    <span class="n">grped_tok_labels</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">labeled_tokens</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">_is_line_group_sep</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">tok_labels</span> <span class="ow">in</span> <span class="n">grped_tok_labels</span><span class="p">:</span>
+        <span class="c1"># skip newline field separators</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">tok_labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tok_labels</span><span class="p">)</span>
+
+        <span class="c1"># get rid of leading / trailing field_seps and item_seps</span>
+        <span class="k">if</span> <span class="n">tok_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;item_sep&quot;</span><span class="p">,</span> <span class="s2">&quot;field_sep&quot;</span><span class="p">):</span>
+            <span class="n">tok_labels</span> <span class="o">=</span> <span class="n">tok_labels</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="n">tok_labels</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;item_sep&quot;</span><span class="p">:</span>
+            <span class="n">tok_labels</span> <span class="o">=</span> <span class="n">tok_labels</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># get rid of all &quot;other&quot; tokens</span>
+        <span class="n">tok_labels</span> <span class="o">=</span> <span class="p">[(</span><span class="n">tok</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tok_labels</span> <span class="k">if</span> <span class="n">label</span> <span class="o">!=</span> <span class="s2">&quot;other&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">tok_labels</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="n">labels_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">label</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tok_labels</span><span class="p">)</span>
+
+        <span class="c1"># junk lines, with key content probably split onto the next line</span>
+        <span class="c1"># nbd, next line&#39;s skills will probably get parsed just fine</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(level)+(field_sep)*?$&quot;</span><span class="p">,</span> <span class="n">labels_str</span><span class="p">)</span> <span class="ow">or</span>
+            <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(name)+(field_sep)+$&quot;</span><span class="p">,</span> <span class="n">labels_str</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">pass</span>
+        <span class="c1"># space-delimited list of names (or keywords)</span>
+        <span class="c1"># note: this is a parser error -- they shouldn&#39;t be keywords -- but we can correct it</span>
+        <span class="c1"># note: this is an ambiguous way to list skills; we assume each token is separate</span>
+        <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(name|keyword)+$&quot;</span><span class="p">,</span> <span class="n">labels_str</span><span class="p">):</span>
+            <span class="n">skills_data</span><span class="o">.</span><span class="n">extend</span><span class="p">({</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">tok</span><span class="o">.</span><span class="n">text</span><span class="p">}</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tok_labels</span><span class="p">)</span>
+        <span class="c1"># name separated from a level</span>
+        <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(name)+(field_sep)+(level)+(field_sep)*?$&quot;</span><span class="p">,</span> <span class="n">labels_str</span><span class="p">):</span>
+            <span class="n">skills_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tok_labels</span> <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tok_labels</span> <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;level&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+            <span class="p">})</span>
+        <span class="c1"># char-delimited list of names (or keywords)</span>
+        <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(name)+((item_sep)+(name|keyword)+)+$&quot;</span><span class="p">,</span> <span class="n">labels_str</span><span class="p">):</span>
+            <span class="n">skills_data</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tls</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()}</span>
+                <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">tls</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">tok_labels</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="o">!=</span> <span class="s2">&quot;item_sep&quot;</span>
+            <span class="p">])</span>
+        <span class="c1"># char-delimited list of names with (optional) levels</span>
+        <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^((name)+((field_sep)+(level)+(field_sep)+)?(item_sep)*?)+$&quot;</span><span class="p">,</span> <span class="n">labels_str</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">is_item_sep</span><span class="p">,</span> <span class="n">tls</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">tok_labels</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">tl</span><span class="p">:</span> <span class="n">tl</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;item_sep&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_item_sep</span><span class="p">:</span>
+                    <span class="n">tls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tls</span><span class="p">)</span>
+                    <span class="n">skills_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tls</span> <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;name&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                        <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tls</span> <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;level&quot;</span><span class="p">),</span>
+                    <span class="p">})</span>
+        <span class="c1"># name explicitly separated from list of keywords (or names)</span>
+        <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(name)+(field_sep)+(keyword)+((item_sep)+(keyword|name)+)*?$&quot;</span><span class="p">,</span> <span class="n">labels_str</span><span class="p">):</span>
+            <span class="n">field_sep_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">label</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tok_labels</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;field_sep&quot;</span><span class="p">)</span>
+            <span class="n">skills_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tok_labels</span><span class="p">[:</span><span class="n">field_sep_idx</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span>
+                <span class="s2">&quot;keywords&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tls</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">tls</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">tok_labels</span><span class="p">[</span><span class="n">field_sep_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">key</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">label</span> <span class="o">!=</span> <span class="s2">&quot;item_sep&quot;</span>
+                <span class="p">],</span>
+            <span class="p">})</span>
+        <span class="c1"># level explicitly separated from list of names/keywords</span>
+        <span class="c1"># note: tagging keywords after level + field_sep is an error</span>
+        <span class="c1"># but we can catch it and fix it post-parse</span>
+        <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(level)+(field_sep)+(name|keyword)+((item_sep)+(name|keyword)+)*?$&quot;</span><span class="p">,</span> <span class="n">labels_str</span><span class="p">):</span>
+            <span class="n">field_sep_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">label</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tok_labels</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;field_sep&quot;</span><span class="p">)</span>
+            <span class="n">level</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span>
+                <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tok_labels</span><span class="p">[:</span><span class="n">field_sep_idx</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;level&quot;</span>  <span class="c1"># TODO: is this if statement necessary?</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">skills_data</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="p">{</span><span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="n">level</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tls</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()}</span>
+                <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">tls</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">tok_labels</span><span class="p">[</span><span class="n">field_sep_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">key</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="o">!=</span> <span class="s2">&quot;item_sep&quot;</span>
+            <span class="p">])</span>
+        <span class="c1"># level implicitly separated from list of names/keywords</span>
+        <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(level)+(name)+((item_sep)+(name|keyword)+)*?$&quot;</span><span class="p">,</span> <span class="n">labels_str</span><span class="p">):</span>
+            <span class="n">name_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">label</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tok_labels</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;name&quot;</span><span class="p">)</span>
+            <span class="n">level</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span>
+                <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tok_labels</span><span class="p">[:</span><span class="n">name_idx</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;level&quot;</span>  <span class="c1"># TODO: is this if statement necessary?</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="n">skills_data</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span>
+                <span class="p">{</span><span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="n">level</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">tls</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()}</span>
+                <span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">tls</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">tok_labels</span><span class="p">[</span><span class="n">name_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">key</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="o">!=</span> <span class="s2">&quot;item_sep&quot;</span>
+            <span class="p">])</span>
+        <span class="c1"># name explicitly separated from one or more names/keywords with levels</span>
+        <span class="c1"># note: this isn&#39;t permitted by our resume schema, so we&#39;ll drop the leading name</span>
+        <span class="c1"># and convert the keywords into their own names</span>
+        <span class="k">elif</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^(name)+(field_sep)+((name|keyword)+((field_sep)+(level)+(field_sep)*?)?(item_sep)*?)+$&quot;</span><span class="p">,</span> <span class="n">labels_str</span><span class="p">):</span>
+            <span class="n">field_sep_idx</span> <span class="o">=</span> <span class="p">[</span><span class="n">label</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tok_labels</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s2">&quot;field_sep&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">is_item_sep</span><span class="p">,</span> <span class="n">tls</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">tok_labels</span><span class="p">[</span><span class="n">field_sep_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">tl</span><span class="p">:</span> <span class="n">tl</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;item_sep&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">is_item_sep</span><span class="p">:</span>
+                    <span class="n">tls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">tls</span><span class="p">)</span>
+                    <span class="n">level</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                        <span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tls</span> <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="s2">&quot;level&quot;</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="n">labels</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;keyword&quot;</span><span class="p">}</span>
+                    <span class="n">item</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                            <span class="n">tok</span><span class="o">.</span><span class="n">text_with_ws</span> <span class="k">for</span> <span class="n">tok</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">tls</span> <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">labels</span>
+                        <span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="p">}</span>
+                    <span class="k">if</span> <span class="n">level</span><span class="p">:</span>
+                        <span class="n">item</span><span class="p">[</span><span class="s2">&quot;level&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">level</span>
+                    <span class="n">skills_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">LOGGER</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;unable to parse skills from labeled tokens: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tok_labels</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">skills_data</span>
+
+
+<div class="viewcode-block" id="featurize"><a class="viewcode-back" href="../../../../api-resume-sections.html#msvdd_bloc.resumes.skills.parse.featurize">[docs]</a><span class="k">def</span> <span class="nf">featurize</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract features from individual tokens as well as those that are dependent on</span>
+<span class="sd">    the sequence thereof.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        tokens (List[:class:`spacy.tokens.Token`])</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[Dict[str, obj]]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">tokens_features</span> <span class="o">=</span> <span class="p">[</span><span class="n">get_token_features</span><span class="p">(</span><span class="n">token</span><span class="p">)</span> <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens_features</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">tokens_features</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s2">&quot;_singleton&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">tokens_features</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">feature_sequence</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">tokens_features</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">pad_tokens_features</span><span class="p">(</span>
+            <span class="n">tokens_features</span><span class="p">,</span> <span class="n">n_left</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">n_right</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">idx_last_newline</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">tf_windows</span> <span class="o">=</span> <span class="n">itertoolz</span><span class="o">.</span><span class="n">sliding_window</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">tokens_features</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">pprev_tf</span><span class="p">,</span> <span class="n">prev_tf</span><span class="p">,</span> <span class="n">curr_tf</span><span class="p">,</span> <span class="n">next_tf</span><span class="p">,</span> <span class="n">nnext_tf</span> <span class="ow">in</span> <span class="n">tf_windows</span><span class="p">:</span>
+            <span class="n">tf</span> <span class="o">=</span> <span class="n">curr_tf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;pprev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pprev_tf</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;prev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev_tf</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;next&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_tf</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;nnext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nnext_tf</span>
+            <span class="c1"># NOTE: add features here that depend upon tokens elsewhere in the sequence</span>
+            <span class="c1"># e.g. whether or not a particular word appeared earlier in the sequence</span>
+            <span class="n">tok_idx</span> <span class="o">=</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">char</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]):</span>
+                <span class="n">idx_last_newline</span> <span class="o">=</span> <span class="n">tok_idx</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;n_toks_since_newline&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tok_idx</span> <span class="o">-</span> <span class="n">idx_last_newline</span>
+            <span class="c1"># bullets have is_group_sep_text, but they aren&#39;t group separators</span>
+            <span class="c1"># at least not in the sense we want here; so, +2 to the previous newline idx</span>
+            <span class="c1"># ensures that bullets are not counted in this feature</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">_tf</span><span class="p">[</span><span class="s2">&quot;is_group_sep_text&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">_tf</span> <span class="ow">in</span> <span class="n">feature_sequence</span><span class="p">[</span><span class="n">idx_last_newline</span> <span class="o">+</span> <span class="mi">2</span> <span class="p">:</span> <span class="n">tok_idx</span><span class="p">]):</span>
+                <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;follows_group_sep&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;follows_group_sep&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">feature_sequence</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">feature_sequence</span></div>
+
+
+<div class="viewcode-block" id="get_token_features"><a class="viewcode-back" href="../../../../api-resume-sections.html#msvdd_bloc.resumes.skills.parse.get_token_features">[docs]</a><span class="k">def</span> <span class="nf">get_token_features</span><span class="p">(</span><span class="n">token</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get per-token features, independent of other tokens within its sequence.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        token (:class:`spacy.tokens.Token`)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Dict[str, obj]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">text</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">get_token_features_base</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+    <span class="n">features</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;is_group_sep_text&quot;</span><span class="p">:</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">GROUP_SEP_TEXTS</span><span class="p">,</span>
+            <span class="s2">&quot;is_item_sep_text&quot;</span><span class="p">:</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">ITEM_SEP_TEXTS</span><span class="p">,</span>
+            <span class="s2">&quot;is_level_text&quot;</span><span class="p">:</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">LEVEL_TEXTS</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">features</span></div>
+
+
+<span class="c1">#########################</span>
+<span class="c1">## RULES-BASED PARSING ##</span>
+<span class="c1">#########################</span>
+
+<span class="n">RE_SKILL_NAME_DELIM</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(?:: +| +[-–] +)&quot;</span><span class="p">)</span>
+<span class="n">RE_SKILL_KEYWORD_DELIM</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[,;] +(?:(?:and|&amp;) +)?&quot;</span><span class="p">)</span>
+<span class="n">RE_SKILL_LEVEL</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+    <span class="sa">r</span><span class="s2">&quot;\(?(?P&lt;level&gt;advanced|intermediate|beginner|basic|proficient|exposed)\)? ?(in )?&quot;</span><span class="p">,</span>
+    <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">UNICODE</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">RE_SKILL_CLEAN</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[.,;]$&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="parse_skills_section_alt"><a class="viewcode-back" href="../../../../api-resume-sections.html#msvdd_bloc.resumes.skills.parse.parse_skills_section_alt">[docs]</a><span class="k">def</span> <span class="nf">parse_skills_section_alt</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse a sequence of text lines belonging to the &quot;skills&quot; section of a résumé</span>
+<span class="sd">    to produce structured data in the form of :class:`schemas.ResumeSkillSchema`</span>
+<span class="sd">    using logical rules based on regular expressions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        lines (List[str])</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List[Dict[str, str]]</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        This function is not as flexible as :func:`parse_skills_section()`,</span>
+<span class="sd">        but its errors are probably more consistent and easier to understand.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">all_skills</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">lstrip</span><span class="p">(</span><span class="s2">&quot;- &quot;</span><span class="p">)</span>
+        <span class="n">split_line</span> <span class="o">=</span> <span class="n">RE_SKILL_NAME_DELIM</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_line</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">names</span> <span class="o">=</span> <span class="n">RE_SKILL_KEYWORD_DELIM</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">names</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">skills</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">names</span><span class="p">:</span>
+                <span class="n">match</span> <span class="o">=</span> <span class="n">RE_SKILL_LEVEL</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                    <span class="n">skill</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">RE_SKILL_CLEAN</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">RE_SKILL_LEVEL</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()),</span>
+                        <span class="s2">&quot;level&quot;</span><span class="p">:</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s2">&quot;level&quot;</span><span class="p">),</span>
+                    <span class="p">}</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">skill</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">RE_SKILL_CLEAN</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">())}</span>
+                <span class="n">skills</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">skill</span><span class="p">)</span>
+            <span class="n">all_skills</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">skills</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_line</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">name</span><span class="p">,</span> <span class="n">keywords</span> <span class="o">=</span> <span class="n">split_line</span>
+            <span class="n">keywords_split</span> <span class="o">=</span> <span class="n">RE_SKILL_KEYWORD_DELIM</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">keywords</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keywords_split</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">keywords_split</span> <span class="o">=</span> <span class="n">keywords</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">skill</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">RE_SKILL_CLEAN</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">()),</span>
+                <span class="s2">&quot;keywords&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">RE_SKILL_CLEAN</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">kw</span><span class="p">)</span> <span class="k">for</span> <span class="n">kw</span> <span class="ow">in</span> <span class="n">keywords_split</span><span class="p">]</span>
+            <span class="p">}</span>
+            <span class="n">all_skills</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">skill</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">all_skills</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../../index.html">msvdd_bloc</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api-reference.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

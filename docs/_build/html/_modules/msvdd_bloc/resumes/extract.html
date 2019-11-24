@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>msvdd_bloc.resumes.extract &#8212; msvdd_bloc 0.1.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for msvdd_bloc.resumes.extract</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">extract</span>
+<span class="sd">-------</span>
+
+<span class="sd">Extract résumé text from a PDF file, using multiple methods applied in order of confidence.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">io</span>
+
+<span class="kn">import</span> <span class="nn">pdfminer.converter</span>
+<span class="kn">import</span> <span class="nn">pdfminer.layout</span>
+<span class="kn">import</span> <span class="nn">pdfminer.pdfinterp</span>
+<span class="kn">import</span> <span class="nn">pdfminer.pdfpage</span>
+<span class="kn">from</span> <span class="nn">tika</span> <span class="k">import</span> <span class="n">parser</span> <span class="k">as</span> <span class="n">tika_parser</span>
+
+
+<div class="viewcode-block" id="extract_text_from_pdf"><a class="viewcode-back" href="../../../api-reference.html#msvdd_bloc.resumes.extract.extract_text_from_pdf">[docs]</a><span class="k">def</span> <span class="nf">extract_text_from_pdf</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_len</span><span class="o">=</span><span class="mi">150</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract text from a PDF at ``filepath`` using the first package</span>
+<span class="sd">    to get the job done in extracting at least ``min_len`` chars.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepath (str)</span>
+<span class="sd">        min_len (int)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">funcs</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">extract_text_from_pdf_tika</span><span class="p">,</span>
+        <span class="n">extract_text_from_pdf_pdfminer</span><span class="p">,</span>
+        <span class="n">extract_text_from_pdf_textract</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">funcs</span><span class="p">:</span>
+        <span class="n">_text</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_text</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">min_len</span><span class="p">:</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">_text</span>
+            <span class="k">break</span>
+    <span class="k">return</span> <span class="n">text</span></div>
+
+
+<div class="viewcode-block" id="extract_text_from_pdf_tika"><a class="viewcode-back" href="../../../api-reference.html#msvdd_bloc.resumes.extract.extract_text_from_pdf_tika">[docs]</a><span class="k">def</span> <span class="nf">extract_text_from_pdf_tika</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract text from a PDF at ``filepath`` using ``tika-python``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepath (str)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">tika_parser</span><span class="o">.</span><span class="n">from_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;content&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="extract_text_from_pdf_pdfminer"><a class="viewcode-back" href="../../../api-reference.html#msvdd_bloc.resumes.extract.extract_text_from_pdf_pdfminer">[docs]</a><span class="k">def</span> <span class="nf">extract_text_from_pdf_pdfminer</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract text from a PDF at ``filepath`` using ``yapdfminer``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepath (str)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str</span>
+
+<span class="sd">    Note:</span>
+<span class="sd">        The external package used here — yapdfminer — has a convoluted provenance.</span>
+<span class="sd">        It&#39;s a fork of pdfminer3, which is a fork of pdfminer.six, which is a fork</span>
+<span class="sd">        of pdfminer. Other forks also exist. Many are still used, but not many are</span>
+<span class="sd">        still maintained.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">laparams</span> <span class="o">=</span> <span class="n">pdfminer</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">LAParams</span><span class="p">(</span>
+        <span class="n">line_overlap</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">char_margin</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+        <span class="n">word_margin</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+        <span class="n">line_margin</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">boxes_flow</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+        <span class="n">all_texts</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">retstr</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+    <span class="n">rsrcmgr</span> <span class="o">=</span> <span class="n">pdfminer</span><span class="o">.</span><span class="n">pdfinterp</span><span class="o">.</span><span class="n">PDFResourceManager</span><span class="p">()</span>
+    <span class="n">device</span> <span class="o">=</span> <span class="n">pdfminer</span><span class="o">.</span><span class="n">converter</span><span class="o">.</span><span class="n">TextConverter</span><span class="p">(</span>
+        <span class="n">rsrcmgr</span><span class="p">,</span> <span class="n">retstr</span><span class="p">,</span> <span class="n">codec</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">,</span> <span class="n">laparams</span><span class="o">=</span><span class="n">laparams</span><span class="p">)</span>
+    <span class="n">interpreter</span> <span class="o">=</span> <span class="n">pdfminer</span><span class="o">.</span><span class="n">pdfinterp</span><span class="o">.</span><span class="n">PDFPageInterpreter</span><span class="p">(</span><span class="n">rsrcmgr</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+    <span class="n">fp</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;rb&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">pdfminer</span><span class="o">.</span><span class="n">pdfpage</span><span class="o">.</span><span class="n">PDFPage</span><span class="o">.</span><span class="n">get_pages</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="nb">set</span><span class="p">(),</span> <span class="n">maxpages</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">caching</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">check_extractable</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">interpreter</span><span class="o">.</span><span class="n">process_page</span><span class="p">(</span><span class="n">page</span><span class="p">)</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">retstr</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+    <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">device</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">retstr</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="extract_text_from_pdf_textract"><a class="viewcode-back" href="../../../api-reference.html#msvdd_bloc.resumes.extract.extract_text_from_pdf_textract">[docs]</a><span class="k">def</span> <span class="nf">extract_text_from_pdf_textract</span><span class="p">(</span><span class="n">filepath</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract text from a PDF at ``filepath`` using ``textract`` + ``pdftotext``.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepath (str)</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># hiding the import so folks don&#39;t have to worry about installing it</span>
+    <span class="c1"># https://textract.readthedocs.io/en/stable/installation.html</span>
+    <span class="kn">import</span> <span class="nn">textract</span>
+
+    <span class="k">return</span> <span class="n">textract</span><span class="o">.</span><span class="n">process</span><span class="p">(</span>
+        <span class="n">filepath</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;pdftotext&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">msvdd_bloc</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-reference.html">API Reference</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../../index.html">Documentation overview</a><ul>
+  <li><a href="../../index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
