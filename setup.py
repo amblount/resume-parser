@@ -43,8 +43,10 @@ setuptools.setup(
         "requests>=2.20.0",
         "spacy>=2.1,<2.2",
         "textacy>=0.9.0",
+        "tika>=1.19",
         "toolz>=0.10.0",
         "usaddress>=0.5.10",
         "watermark>=1.8.0",
+        "yapdfminer>=1.2.0",
     ],
 )

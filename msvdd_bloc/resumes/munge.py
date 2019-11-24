@@ -33,6 +33,7 @@ def normalize_text(text):
     # normalize whitespace
     norm_text = norm_text.replace("\u200b", "")
     norm_text = regexes.RE_NONBREAKING_SPACE.sub(" ", norm_text).strip()
+    norm_text = regexes.RE_MANY_SPACES.sub("    ", norm_text)
     norm_text = regexes.RE_BREAKING_SPACE.sub(r"\n", norm_text)
     return norm_text
 

@@ -17,7 +17,6 @@ LABELS = (
     "level",
     "field_sep",
     "item_sep",
-    "bullet",
     "other",
 )
 """

@@ -1,3 +1,5 @@
+import functools as fnc
+
 import pytest
 
 from msvdd_bloc.resumes import augment_utils
@@ -93,7 +95,7 @@ class TestTransforms:
     def test_delete_token_targeted(self, labeled_tokens):
         for target_label in ["institution", "field_label"]:
             aug_lts = augment_utils.delete_token(
-                labeled_tokens, prob=0.5, target_labels=target_label)
+                labeled_tokens, prob=0.75, target_labels=target_label)
             assert (
                 sum(1 for tok, label in aug_lts if label == target_label) <
                 sum(1 for tok, label in labeled_tokens if label == target_label)
@@ -114,3 +116,47 @@ class TestTransforms:
             sum(1 for tok, _ in aug_lts if tok.isspace()) >
             sum(1 for tok, _ in labeled_tokens if tok.isspace())
         )
+
+
+class TestAugmenter:
+
+    def test_init(self):
+        valid_inputs = [
+            ([augment_utils.delete_token],),
+            ([fnc.partial(augment_utils.delete_token, prob=0.1)],),
+            ([augment_utils.delete_token, augment_utils.insert_whitespace_token], {"num": None}),
+            ([augment_utils.delete_token, augment_utils.insert_whitespace_token], {"num": 1}),
+            ([augment_utils.delete_token, augment_utils.insert_whitespace_token], {"num": 0.5}),
+            ([augment_utils.delete_token, augment_utils.insert_whitespace_token], {"num": [1.0, 0.5]}),
+        ]
+        for valid_input in valid_inputs:
+            kwargs = valid_input[1] if len(valid_input) > 1 else {}
+            result = augment_utils.Augmenter(valid_input[0], **kwargs)
+            assert isinstance(result, augment_utils.Augmenter)
+
+    def test_init_errors(self):
+        invalid_inputs = [
+            ([], {"num": 1}),
+            (augment_utils.delete_token,),
+            (["delete_token", "insert_whitespace_token"],),
+            ([augment_utils.delete_token], {"num": 2}),
+            ([augment_utils.delete_token], {"num": [1.0, 0.5]}),
+            ([augment_utils.delete_token, augment_utils.insert_whitespace_token], {"num": [1.0]}),
+        ]
+        for invalid_input in invalid_inputs:
+            kwargs = invalid_input[1] if len(invalid_input) > 1 else {}
+            with pytest.raises((ValueError, TypeError)):
+                augment_utils.Augmenter(invalid_input[0], **kwargs)
+
+    def test_apply(self, labeled_tokens):
+        for num in [None, 3, 1.0]:
+            augmenter = augment_utils.Augmenter(
+                [
+                    augment_utils.delete_token,
+                    augment_utils.insert_whitespace_token,
+                    augment_utils.change_case_token_text,
+                ],
+                num=num,
+            )
+            aug_labeled_tokens = augmenter.apply(labeled_tokens)
+            assert labeled_tokens != aug_labeled_tokens

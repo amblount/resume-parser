@@ -4,35 +4,48 @@ import random as rnd
 import faker
 
 from msvdd_bloc.resumes.basics import constants as c
+from msvdd_bloc.resumes import generate_utils
 
+###################################
+## random field value generators ##
 
-class Provider(faker.providers.BaseProvider):
+class Provider(generate_utils.ResumeProvider):
     """Class for providing randomly-generated field values."""
 
+    _markov_model = None
+
+    @property
+    def markov_model(self):
+        """
+        :class:`generate_utils.MarkovModel`: Markov model used to generate text in
+        :meth:`Provider.text_lines()` and :meth:`Provider.text_lines_trailing()`.
+        It's trained and assigned at the instance- rather than class-level to avoid
+        having to train the model every time this module is imported. It's fast, but
+        not *that* fast.
+        """
+        if self._markov_model is None:
+            self._markov_model = generate_utils.MarkovModel(state_len=4).fit(c.TEXT_SAMPLES)
+        return self._markov_model
+
     _address_city_state_templates = (
-        "{city}, {state_abbr}",
-        "{city}, {state}",
+        ("{city}, {state_abbr}", 1.0),
+        ("{city}, {state}", 0.1),
     )
     _address_city_state_zip_templates = (
-        "{city}, {state_abbr} {postcode}",
-        "{city}, {state} {postcode}",
+        ("{city}, {state_abbr} {postcode}", 1.0),
+        ("{city}, {state} {postcode}", 0.1),
     )
     _user_name_templates = (
-        "{user_name}",
-        "@{user_name}",
+        ("{user_name}", 1.0),
+        ("@{user_name}", 0.33),
     )
     _website_profile_templates = (
         "{scheme}linkedin.com/in/{slug}",
         "{scheme}github.com/{user}",
     )
 
-    def address_inline(self):
-        sep = rnd.choice([", ", " "])
-        return self.generator.address().replace("\n", sep)
-
     def address_city_state(self):
-        template = rnd.choices(
-            self._address_city_state_templates, weights=[0.9, 0.1], k=1)[0]
+        template = self.generator.random_template_weighted(self._address_city_state_templates)
         return template.format(
             city=self.generator.city(),
             state=self.generator.state(),
@@ -40,8 +53,7 @@ class Provider(faker.providers.BaseProvider):
         )
 
     def address_city_state_zip(self):
-        template = rnd.choices(
-            self._address_city_state_zip_templates, weights=[0.9, 0.1], k=1)[0]
+        template = self.generator.random_template_weighted(self._address_city_state_zip_templates)
         return template.format(
             city=self.generator.city(),
             state=self.generator.state(),
@@ -50,42 +62,46 @@ class Provider(faker.providers.BaseProvider):
         )
 
     def field_sep(self):
-        return "{ws}{sep}{ws}".format(
-            ws=" " * rnd.randint(1, 4),
-            sep=rnd.choices(
-                c.FIELD_SEPS,
-                weights=[1.0, 0.5, 0.5, 0.25, 0.1, 0.05, 0.05, 0.05, 0.05],
-                k=1,
-            )[0],
+        return self.generator.sep_with_ws(
+            c.FIELD_SEPS,
+            weights=[1.0, 0.5, 0.5, 0.25, 0.1, 0.05, 0.05, 0.05, 0.05],
+            ws_nrange=(1, 5),
         )
 
     def item_sep(self):
-        return "{sep}{ws}".format(
-            sep=rnd.choices(c.ITEM_SEPS, weights=[1.0, 0.2], k=1)[0],
-            ws=" " * rnd.randint(1, 2),
-        )
-
-    def _label_field(self, label_values, label_weights):
-        return "{label}{ws}{sep}".format(
-            label=rnd.choices(label_values , weights=label_weights, k=1)[0],
-            ws="" if rnd.random() < 0.9 else " ",
-            sep=rnd.choices(c.FIELD_LABEL_SEPS, weights=[1.0, 0.2], k=1)[0] if rnd.random() < 0.9 else "",
+        return self.generator.sep_with_ws_right(
+            c.ITEM_SEPS, weights=[1.0, 0.2], ws_nrange=(1, 3),
         )
 
     def label_addr(self):
-        return self._label_field(c.FIELD_LABEL_ADDRS, [1.0, 0.1])
+        return self.generator.field_label(
+            c.FIELD_LABEL_ADDRS, c.FIELD_LABEL_SEPS,
+            label_weights=[1.0, 0.1], sep_weights=[1.0, 0.2],
+        )
 
     def label_email(self):
-        return self._label_field(c.FIELD_LABEL_EMAILS, [1.0, 0.5])
+        return self.generator.field_label(
+            c.FIELD_LABEL_EMAILS, c.FIELD_LABEL_SEPS,
+            label_weights=[1.0, 0.5], sep_weights=[1.0, 0.2],
+        )
 
     def label_phone(self):
-        return self._label_field(c.FIELD_LABEL_PHONES, None)
+        return self.generator.field_label(
+            c.FIELD_LABEL_PHONES, c.FIELD_LABEL_SEPS,
+            label_weights=None, sep_weights=[1.0, 0.2],
+        )
 
     def label_profile(self):
-        return self._label_field(c.FIELD_LABEL_PROFILES, None)
+        return self.generator.field_label(
+            c.FIELD_LABEL_PROFILES, c.FIELD_LABEL_SEPS,
+            label_weights=None, sep_weights=[1.0, 0.2],
+        )
 
-    def newline(self):
-        return "\n" if rnd.random() < 0.8 else "\n\n"
+    def label_summary(self):
+        return self.generator.field_label(
+            c.FIELD_LABEL_SUMMARIES, c.FIELD_LABEL_SEPS,
+            label_weights=None, sep_weights=[1.0, 0.2],
+        )
 
     def phone(self):
         if rnd.random() < 0.25:
@@ -99,15 +115,16 @@ class Provider(faker.providers.BaseProvider):
         else:
             return self.generator.catch_phrase()
 
-    def user_name_rand_at(self):
-        template = rnd.choices(self._user_name_templates, weights=[1.0, 0.33], k=1)[0]
-        return template.format(user_name=self.generator.user_name())
+    def text_line(self, nrange=(70, 110), prob_capitalize=0.5):
+        n_chars = rnd.randrange(*nrange)
+        text_line = self.markov_model.generate(n_chars)
+        if rnd.random() < prob_capitalize:
+            text_line = text_line[0].capitalize() + text_line[1:]
+        return text_line.strip()
 
-    def website(self):
-        if rnd.random() < 0.5:
-            return self.generator.url()
-        else:
-            return self.generator.domain_name(levels=rnd.randint(1, 2))
+    def user_name_rand_at(self):
+        template = self.generator.random_template_weighted(self._user_name_templates)
+        return template.format(user_name=self.generator.user_name())
 
     def website_profile(self):
         template = rnd.choice(self._website_profile_templates)
@@ -116,9 +133,6 @@ class Provider(faker.providers.BaseProvider):
             slug=self.generator.slug(value=self.generator.name()),
             user=self.generator.user_name(),
         )
-
-    def whitespace(self):
-        return " " * rnd.randint(1, 4)
 
 
 FAKER = faker.Faker()
@@ -130,6 +144,7 @@ FIELDS = {
     "addr_city_state": (FAKER.address_city_state, "location"),
     "addr_city_state_zip": (FAKER.address_city_state_zip, "location"),
     "addr_street": (FAKER.street_address, "location"),
+    "bullet": (FAKER.bullet_point, "summary"),
     "email": (FAKER.email, "email"),
     "fsep": (FAKER.field_sep, "field_sep"),
     "isep": (FAKER.item_sep, "item_sep"),
@@ -138,11 +153,16 @@ FIELDS = {
     "label_email": (FAKER.label_email, "field_label"),
     "label_phone": (FAKER.label_phone, "field_label"),
     "label_profile": (FAKER.label_profile, "field_label"),
+    "label_summary": (FAKER.label_summary, "field_label"),
     "name": (FAKER.name, "name"),
-    "nl": (FAKER.newline, "field_sep"),
+    "nl": (fnc.partial(FAKER.newline, nrange=(1, 3), weights=[1.0, 0.1]), "field_sep"),
+    "nls": (fnc.partial(FAKER.newline, nrange=(1, 3), weights=[0.1, 1.0]), "field_sep"),
     "phone": (FAKER.phone, "phone"),
     "profile": (FAKER.website_profile, "website"),  # TODO: improve this?
-    "sent": (fnc.partial(FAKER.sentence, nb_words=10, variable_nb_words=True), "other"),
+    "punct_end": (lambda: ".", "summary"),
+    "subheader": (FAKER.subheader, "field_label"),
+    "text_line": (FAKER.text_line, "summary"),
+    "text_line_trailing": (fnc.partial(FAKER.text_line, nrange=(20, 70), prob_capitalize=0.25), "summary"),
     "user_name": (FAKER.user_name_rand_at, "profile"),
     "website": (FAKER.website, "website"),
     "ws": (FAKER.whitespace, "field_sep"),
@@ -152,11 +172,10 @@ Dict[str, Tuple[Callable, str]]: Mapping of field key string to a function that 
 a random field value and the default field label assigned to the value.
 """
 
-############################
-## random line generators ##
-############################
+######################################
+## random field template generators ##
 
-def generate_line_fields_shuffle(*, field_keys, sep_key, n):
+def fields_shuffled_template(*, field_keys, sep_key, n):
     """
     Args:
         field_keys (List[str])
@@ -166,14 +185,14 @@ def generate_line_fields_shuffle(*, field_keys, sep_key, n):
     Returns:
         str
     """
-    sep = " {{{key}}} ".format(key=sep_key)
+    sep = " {{{sep_key}}} ".format(sep_key=sep_key)
     return sep.join(
         "{{{key}}}".format(key=key)
         for key in rnd.sample(field_keys, min(n, len(field_keys)))
     )
 
 
-def generate_line_fields_labeled_shuffle(*, field_keys, sep_key, n):
+def fields_labeled_shuffled_template(*, field_keys, sep_key, n):
     """
     Args:
         field_keys (List[str])
@@ -183,97 +202,145 @@ def generate_line_fields_labeled_shuffle(*, field_keys, sep_key, n):
     Returns:
         str
     """
-    sep = " {{{key}}} ".format(key=sep_key)
+    sep = " {{{sep_key}}} ".format(sep_key=sep_key)
     return sep.join(
         "{{label_{key}}} {{ws}} {{{key}}}".format(key=key)
         for key in rnd.sample(field_keys, min(n, len(field_keys)))
     )
 
 
+def summary_block_template():
+    """
+    Generate a template for a group of text lines labeled as a "summary", consisting of
+    one or more text lines separated by newlines and optionally ending with a period.
+    """
+    lead_template = (
+        rnd.choice(
+            ["{label_summary}", "{subheader:field_label} {nl}"]
+        ) if rnd.random() < 0.5 else ""
+    )
+    n_lines = rnd.randrange(1, 5)
+    if n_lines == 1:
+        return lead_template + "{subheader::0.25} {text_line} {punct_end:summary:0.5}"
+    else:
+        return (
+            lead_template +
+            " {nl:item_sep} ".join("{text_line}" for _ in range(n_lines - 1)) +
+            " {nl:item_sep} {text_line_trailing} {punct_end:summary:0.5}"
+        )
+
+
+def summary_list_template():
+    """
+    Generate a template for a group of text lines labeled as a "summary", consisting of
+    one or more text lines separated by newlines and optionally ending with a period,
+    each starting with a bullet.
+    """
+    lead_template = "{subheader:field_label} {nl}" if rnd.random() < 0.5 else ""
+    templates = (
+        "{bullet:summary} {text_line} {punct_end::0.25}",
+        "{bullet:summary} {text_line} {nl:item_sep} {text_line_trailing} {punct_end::0.25}",
+    )
+    return (
+        lead_template +
+        " {nl:item_sep} ".join(
+            template
+            for template in rnd.choices(templates, weights=[1.0, 0.33], k=rnd.randrange(2, 5))
+        )
+    )
+
+
+def _template_from_items(*items, sep_key="nl", probs=None):
+    """
+    Args:
+        items (List[str])
+        sep_key (str)
+        probs (List[Float])
+
+    Returns:
+        str
+    """
+    if probs is not None and len(probs) != len(items):
+        raise ValueError(
+            "`probs` must be the same length as `items` ({} != {})".format(
+                len(probs), len(items)
+            )
+        )
+    sep = " {{{sep_key}}} ".format(sep_key=sep_key)
+    if probs is None:
+        return sep.join(item for item in items if item)
+    else:
+        return sep.join(item for item, prob in zip(items, probs) if rnd.random() < prob)
+
+
 TEMPLATES = [
-    lambda: " {nl} ".join(
-        [
-            "{name}",
-            "{label::0.05}",
-            generate_line_fields_shuffle(
-                field_keys=["addr|addr_city_state|addr_city_state_zip", "email", "phone", "user_name", "website", "profile"],
-                sep_key="fsep",
-                n=rnd.randint(1, 5),
-            ),
-            "{sent::0.05}",
-        ]
+    lambda: _template_from_items(
+        "{name}",
+        "{label}" if rnd.random() < 0.05 else None,
+        fields_shuffled_template(
+            field_keys=["addr|addr_city_state|addr_city_state_zip", "email", "phone", "profile", "user_name", "website"],
+            sep_key=rnd.choice(["fsep", "nl", "ws"]),
+            n=rnd.randrange(1, 6),
+        ),
+        sep_key="nl",
+    ) + (
+        "" if rnd.random() > 0.025 else
+        "{nls}" + rnd.choice([summary_block_template, summary_list_template])()
     ),
-    lambda: " {nl} ".join(
-        [
-            "{name}",
-            "{label::0.05}",
-            generate_line_fields_shuffle(
-                field_keys=["addr|addr_city_state|addr_city_state_zip", "email", "phone", "profile", "user_name", "website"],
-                sep_key="nl",
-                n=rnd.randint(1, 5),
-            ),
-        ]
+    lambda: _template_from_items(
+        "{name}",
+        "{label}" if rnd.random() < 0.05 else None,
+        fields_shuffled_template(
+            field_keys=["addr|addr_city_state|addr_city_state_zip", "phone"],
+            sep_key="fsep",
+            n=2,
+        ),
+        fields_shuffled_template(
+            field_keys=["email", "user_name", "website", "profile"],
+            sep_key="fsep",
+            n=rnd.randrange(2, 5),
+        ),
+        sep_key="nl",
+    ) + (
+        "" if rnd.random() > 0.025 else
+        "{nls}" + rnd.choice([summary_block_template, summary_list_template])()
     ),
-    lambda: " {nl} ".join(
-        [
-            "{name}",
-            "{label::0.05}",
-            generate_line_fields_shuffle(
-                field_keys=["addr|addr_city_state|addr_city_state_zip", "email", "phone", "profile", "user_name", "website"],
-                sep_key="ws",
-                n=rnd.randint(1, 5),
-            ),
-            "{sent::0.05}",
-        ]
+    lambda: _template_from_items(
+        "{addr|addr_city_state|addr_city_state_zip}",
+        "{name}",
+        fields_shuffled_template(
+            field_keys=["email", "profile", "user_name", "website"],
+            sep_key="fsep|nl",
+            n=rnd.randrange(2, 5),
+        ),
+        rnd.choice([summary_block_template, summary_list_template])() if rnd.random() < 0.025 else None,
+        sep_key="nl",
     ),
-    lambda: " {nl} ".join(
-        [
-            "{name}",
-            "{label::0.05}",
-            generate_line_fields_shuffle(
-                field_keys=["addr|addr_city_state|addr_city_state_zip", "phone"],
-                sep_key="fsep",
-                n=2,
-            ),
-            generate_line_fields_shuffle(
-                field_keys=["email", "user_name", "website", "profile"],
-                sep_key="fsep",
-                n=rnd.randint(2, 4),
-            ),
-        ]
+    lambda: _template_from_items(
+        "{name}",
+        "{label}" if rnd.random() < 0.05 else None,
+        fields_labeled_shuffled_template(
+            field_keys=["addr", "email", "phone", "profile"],
+            sep_key="fsep",
+            n=rnd.randrange(2, 5),
+        ),
+        sep_key="nl",
+    ) + (
+        "" if rnd.random() > 0.025 else
+        "{nls}" + rnd.choice([summary_block_template, summary_list_template])()
     ),
-    lambda: " {nl} ".join(
-        [
-            "{addr|addr_city_state|addr_city_state_zip}",
-            "{name}",
-            generate_line_fields_shuffle(
-                field_keys=["email", "profile", "user_name", "website"],
-                sep_key="fsep|nl",
-                n=rnd.randint(2, 4),
-            ),
-        ]
-    ),
-    lambda: " {nl} ".join(
-        [
-            "{name}",
-            "{label::0.05}",
-            generate_line_fields_labeled_shuffle(
-                field_keys=["addr", "email", "phone", "profile"],
-                sep_key="fsep",
-                n=rnd.randint(2, 4),
-            ),
-            "{sent::0.05}",
-        ]
-    ),
-    lambda: " {nl|fsep} ".join(
-        [
-            "{name}",
-            "{addr_street} {fsep:item_sep} {addr_city_state_zip}",
-            generate_line_fields_shuffle(
-                field_keys=["email", "phone", "profile", "website"],
-                sep_key="fsep",
-                n=rnd.randint(2, 4),
-            ),
-        ]
+    lambda: _template_from_items(
+        "{name}",
+        "{addr_street} {fsep:item_sep} {addr_city_state_zip}",
+        fields_shuffled_template(
+            field_keys=["email", "phone", "profile", "website"],
+            sep_key="fsep",
+            n=rnd.randrange(2, 5),
+        ),
+        sep_key="nl|fsep",
     ),
 ]
+"""
+List[Callable]: Collection of functions that generate randomized "basics" résumé sections
+when passed with :obj:`FIELDS` into :func:`msvdd_bloc.resumes.generate_utils.generate_labeled_tokens()`.
+"""

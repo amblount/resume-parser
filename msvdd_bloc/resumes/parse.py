@@ -8,15 +8,18 @@ import marshmallow as ma
 
 from msvdd_bloc import schemas
 from msvdd_bloc.resumes import munge, segment
-from msvdd_bloc.resumes import basics, education, skills
+from msvdd_bloc.resumes import basics, education, skills, work
 
 
 LOGGER = logging.getLogger(__name__)
 _RESUME_SCHEMA = schemas.ResumeSchema()
 
 
-def parse(text):
+def parse_text(text):
     """
+    Parse raw extracted résumé ``text`` into structured data conforming to the schema
+    specified in :class:`schemas.ResumeSchema()`.
+
     Args:
         text (str)
 
@@ -28,6 +31,11 @@ def parse(text):
     norm_text = munge.normalize_text(text)
     text_lines = munge.get_filtered_text_lines(norm_text)
     section_lines = segment.get_section_lines(text_lines)
+
+    # if we don't get any sections besides the default, something's gone wrong
+    if set(section_lines.keys()) == {"start"}:
+        LOGGER.warning("unable to parse résumé text\n%s ...", text[:500])
+        return data
 
     # basics section
     basics_lines = section_lines.get("start", []) + section_lines.get("basics", [])
@@ -47,6 +55,11 @@ def parse(text):
     skills_lines = section_lines.get("skills", [])
     skills_data = skills.parse.parse_lines(skills_lines)
     data["skills"] = skills_data
+
+    # work
+    work_lines = section_lines.get("work", [])
+    work_data = work.parse.parse_lines(work_lines)
+    data["work"] = work_data
 
     # TODO: figure out what we want to do here
     # option 1: validate and warn, but return data as-is

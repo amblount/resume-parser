@@ -15,18 +15,11 @@ SECTION_HEADERS = {
         r"^(?P<text>"
         "about|"
         "contacts?|"
-        "(contact|personal) info"
-        ")(?P<end>:?$)",
-        flags=re.IGNORECASE,
-    ),
-    # "summary" section becomes a field in "basics" section
-    "summary": re.compile(
-        r"^(?P<text>"
-        "career objective|"
-        "(career|professional) summary|"
+        "(career|professional) (objective|summary)|"
+        "(contact|personal) info|"
         "objective|"
         "summary"
-        ")(?P<end>: |:?$)",
+        ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
     "work": re.compile(
@@ -41,16 +34,6 @@ SECTION_HEADERS = {
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
-    "volunteer": re.compile(
-        r"^(?P<text>"
-        "community service|"
-        "volunteer experiences?|"
-        "volunteering"
-        ")(?P<end>:?$)",
-        flags=re.IGNORECASE,
-    ),
-    # let's combine education + courses, because it *makes sense*
-    # however, the parser struggles more with this setup
     "education": re.compile(
         r"^(?P<text>"
         "academic qualifications|"
@@ -62,16 +45,53 @@ SECTION_HEADERS = {
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
+    "skills": re.compile(
+        r"^(?P<text>"
+        "languages|"
+        "languages? (and|&) technologies|"
+        "programming languages|"
+        "skills|"
+        "skills (and|&) expertise|"
+        "(relevant|soft|special|technical|technological) skills(et)?|"
+        "technical strengths|"
+        "tools"
+        # ")(?P<end>:?$)",
+        ")(?P<end>: |:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "volunteer": re.compile(
+        r"^(?P<text>"
+        "community service|"
+        "volunteer experiences?|"
+        "volunteering"
+        ")(?P<end>:?$)",
+        flags=re.IGNORECASE,
+    ),
     "awards": re.compile(
         r"^(?P<text>"
         "achievements|"
         "awards|"
         "awards (and|&) certifications|"
+        "awards (and|&) honors|"
         "fellowships (and|&) awards|"
         "honors|"
         "honors (and|&) awards|"
         "honors, awards, (and|&) memberships"
         ")(?P<end>: |:?$)",
+        flags=re.IGNORECASE,
+    ),
+    "interests": re.compile(
+        r"^(?P<text>"
+        "activities|"
+        "activities (and|&) student groups|"
+        "clubs|"
+        "extracurriculars?|"
+        "extracurricular activities|"
+        "fellowships (and|&) clubs|"
+        "(github|other|programming|recent|side|technical) projects|"
+        "interests|"
+        "projects"
+        ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
     "publications": re.compile(
@@ -80,35 +100,9 @@ SECTION_HEADERS = {
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
-    "skills": re.compile(
+    "references": re.compile(
         r"^(?P<text>"
-        "languages? (and|&) technologies|"
-        "programming languages|"
-        "skills|"
-        "skills (and|&) expertise|"
-        "(relevant|soft|special|technical|technological) skills(et)?|"
-        "technical strengths|"
-        "tools"
-        ")(?P<end>:?$)",
-        flags=re.IGNORECASE,
-    ),
-    "languages": re.compile(
-        r"^(?P<text>"
-        "languages"
-        ")(?P<end>:?$)",
-        flags=re.IGNORECASE,
-    ),
-    "interests": re.compile(
-        r"^(?P<text>"
-        "activities|"
-        "activities (and|&) student groups|"
-        "clubs|"
-        "extracurriculars|"
-        "extracurricular activities|"
-        "fellowships (and|&) clubs|"
-        "(github|other|programming|recent|side|technical) projects|"
-        "interests|"
-        "projects"
+        "references"
         ")(?P<end>:?$)",
         flags=re.IGNORECASE,
     ),
@@ -122,11 +116,11 @@ SECTION_HEADERS = {
         "community involvement|"
         "involvement|"
         "involvement (and|&) achievements|"
-        "leadership (and|&) activities|"
-        "leadership (and|&) affiliations|"
+        "leadership (and|&) (activities|affiliations|volunteering)|"
         "miscellaneous|"
         "organizations|"
         "organizations (and|&) awards|"
+        "professional associations (and|&) activities|"
         "programs (and|&) affiliations|"
         "skills (and|&) activities|"
         "skills (and|&) interests|"
@@ -173,7 +167,7 @@ def get_section_lines(lines, keep_subheaders=True):
             if match:
                 prev_section, curr_section = curr_section, section
                 # if header is a "sub-header", don't skip its text content
-                if prev_section == curr_section and keep_subheaders is True:
+                if keep_subheaders is True and prev_section == curr_section:
                     section_lines[curr_section].append(line)
                 # if header is the start of a line with more content
                 # append only the post-header content
@@ -187,4 +181,4 @@ def get_section_lines(lines, keep_subheaders=True):
         # no new match, so add line to current section
         else:
             section_lines[curr_section].append(line)
-    return section_lines
+    return dict(section_lines)

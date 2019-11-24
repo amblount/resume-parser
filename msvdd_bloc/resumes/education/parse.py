@@ -25,6 +25,10 @@ FIELD_SEP_TEXTS = {
     )
 }
 ITEM_SEP_TEXTS = set(education.constants.FIELD_SEP_SMS)
+INSTITUTION_TEXTS = {
+    "University", "College", "Institute", "Department", "Dept.",
+    "High", "School", "Academy",
+}
 
 
 def parse_lines(lines, tagger=None):
@@ -46,8 +50,8 @@ def parse_lines(lines, tagger=None):
     tokens = parse_utils.tokenize("\n".join(lines).strip())
     features = featurize(tokens)
     labeled_tokens = parse_utils.tag(tokens, features, tagger=tagger)
-    datas = _parse_labeled_tokens(labeled_tokens)
-    return datas
+    results = _parse_labeled_tokens(labeled_tokens)
+    return results
 
 
 def _parse_labeled_tokens(labeled_tokens):
@@ -58,33 +62,35 @@ def _parse_labeled_tokens(labeled_tokens):
     Returns:
         List[Dict[str, obj]]
     """
+    one_per_result_labels = {"institution", "study_type", "end_date"}
     excluded_labels = {"other", "field_sep", "item_sep", "field_label", "bullet"}
-    datas = []
-    data = {}
-    courses = []
+    results = []
+    result = {}
+    result_courses = []
     for label, tls in itertools.groupby(labeled_tokens, key=operator.itemgetter(1)):
         if label in excluded_labels:
             continue
         field_text = "".join(tok.text_with_ws for tok, _ in tls).strip()
         if label == "course":
-            courses.append(field_text)
-        # big assumption: only one institution per educational experience
-        # and the appearance of a new one indicates another item
-        elif label == "institution" and "institution" in data:
-            if courses:
-                data["courses"] = courses
-            datas.append(data)
-            # start a new educational experience
-            data = {label: field_text}
-            courses = []
+            result_courses.append(field_text)
+        # key assumption: results can only have one of certain fields
+        # and the appearance of another such field indicates a new result
+        elif label in one_per_result_labels and result.get(label):
+            # add current result to results list
+            if result_courses:
+                result["courses"] = result_courses
+            results.append(result)
+            # start a new result
+            result = {label: field_text}
+            result_courses = []
         else:
-            data[label] = field_text
-    # add any remaining education experience to the list
-    if data:
-        if courses:
-            data["courses"] = courses
-        datas.append(data)
-    return datas
+            result[label] = field_text
+    # add leftover result to the list
+    if result:
+        if result_courses:
+            result["courses"] = result_courses
+        results.append(result)
+    return results
 
 
 def featurize(tokens):
@@ -105,11 +111,12 @@ def featurize(tokens):
     else:
         feature_sequence = []
         tokens_features = parse_utils.pad_tokens_features(
-            tokens_features, n_left=2, n_right=2)
+            tokens_features, n_left=3, n_right=2)
         idx_last_newline = 0
-        tf_windows = itertoolz.sliding_window(5, tokens_features)
-        for pprev_tf, prev_tf, curr_tf, next_tf, nnext_tf in tf_windows:
+        tf_windows = itertoolz.sliding_window(6, tokens_features)
+        for ppprev_tf, pprev_tf, prev_tf, curr_tf, next_tf, nnext_tf in tf_windows:
             tf = curr_tf.copy()
+            tf["ppprev"] = ppprev_tf
             tf["pprev"] = pprev_tf
             tf["prev"] = prev_tf
             tf["next"] = next_tf
@@ -139,6 +146,7 @@ def get_token_features(token):
         {
             "is_field_sep_text": text in FIELD_SEP_TEXTS,
             "is_item_sep_text": text in ITEM_SEP_TEXTS,
+            "is_institution_text": text in INSTITUTION_TEXTS,
             "like_month_name": regexes.RE_MONTH.match(text) is not None,
             "like_year": regexes.RE_YEAR.match(text) is not None,
         }
