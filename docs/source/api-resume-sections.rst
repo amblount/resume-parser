@@ -50,6 +50,22 @@ skills
    parse.get_token_features
 
 
+work
+------
+
+.. currentmodule:: msvdd_bloc.resumes.work
+
+.. autosummary::
+   LABELS
+   generate.FIELDS
+   generate.TEMPLATES
+   generate.Provider
+   augment.AUGMENTER
+   parse.parse_lines
+   parse.featurize
+   parse.get_token_features
+
+
 API Reference
 -------------
 
@@ -82,3 +98,13 @@ API Reference
 .. automodule:: msvdd_bloc.resumes.skills.parse
 
 .. automodule:: msvdd_bloc.resumes.skills.constants
+
+.. automodule:: msvdd_bloc.resumes.work
+
+.. automodule:: msvdd_bloc.resumes.work.generate
+
+.. automodule:: msvdd_bloc.resumes.work.augment
+
+.. automodule:: msvdd_bloc.resumes.work.parse
+
+.. automodule:: msvdd_bloc.resumes.work.constants
