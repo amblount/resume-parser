@@ -1,20 +1,18 @@
-GROUP_SEPS = (":", "-", "–")
+GROUP_SEPS_WITH_WS = ("-", "–")
+GROUP_SEPS_WITH_WS_RIGHT = (":",)
 ITEM_SEPS = (",", ";")
-ITEM_SEP_ANDS = ("and", "&")
 LEVEL_PREPS = ("in", "with", "to", "of")
-LEFT_BRACKETS = ("(", "[")
-RIGHT_BRACKETS = (")", "]")
 
 LEVELS = (
     "advanced", "intermediate", "beginner",
     "experienced", "proficient", "exposed", "exposure",
-    "basic", "familiar", "fluent", "native",
+    "basic", "familiar", "fluent", "native", "conversational",
 )
 GROUP_NAMES = (
-    "Programming Languages", "Languages", "Programming",
+    "Programming Languages", "Languages", "Programming", "Computer Programming",
     "Web Frameworks", "Web Frameworks/Tools", "Tools",
     "Frameworks and Tools", "Tools & Frameworks", "Frameworks & Tools",
-    "Software", "Databases", "Technologies",
+    "Software Development Tools", "Software", "Databases", "Technologies",
     "Technical Skills", "Domain Knowledge",
     "Interests", "Hobbies",
 )
@@ -72,38 +70,38 @@ SOFTWARE = (
     "JIRA", "Trello", "Asana",
 )
 HUMAN_LANGUAGES = (
- "Abkhazian", "Afar", "Afrikaans", "Akan", "Albanian", "Amharic", "Arabic",
- "Aragonese", "Armenian", "Assamese", "Avaric", "Avestan", "Aymara", "Azerbaijani",
- "Bambara", "Bashkir", "Basque", "Belarusian", "Bengali", "Bihari",
- "Bislama", "Bosnian", "Breton", "Bulgarian", "Burmese", "Catalan, Valencian",
- "Chamorro", "Chechen", "Chichewa", "Chewa", "Nyanja", "Chinese", "Chuvash", "Cornish",
- "Corsican", "Cree", "Croatian", "Czech", "Danish", "Divehi", "Dhivehi", "Maldivian",
- "Dutch, Flemish", "Dzongkha", "English", "Esperanto", "Estonian", "Ewe", "Faroese",
- "Fijian", "Finnish", "French", "Fulah", "Galician", "Georgian", "German",
- "Greek", "Guarani", "Gujarati", "Haitian", "Haitian Creole", "Hausa",
- "Hebrew", "Herero", "Hindi", "Hiri Motu", "Hungarian", "Interlingua", "Indonesian",
- "Interlingue", "Irish", "Igbo", "Inupiaq", "Ido", "Icelandic",
- "Italian", "Inuktitut", "Japanese", "Javanese", "Kalaallisut", "Greenlandic",
- "Kannada", "Kanuri", "Kashmiri", "Kazakh", "Central Khmer", "Kikuyu", "Gikuyu",
- "Kinyarwanda", "Kirghiz", "Kyrgyz", "Komi", "Kongo", "Korean", "Kurdish",
- "Kuanyama", "Kwanyama", "Latin", "Luxembourgish", "Letzeburgesch", "Ganda",
- "Limburgan", "Limburger", "Limburgish", "Lingala", "Lao", "Lithuanian", "Luba-Katanga",
- "Latvian", "Manx", "Macedonian", "Malagasy", "Malay", "Malayalam", "Maltese",
- "Maori", "Marathi", "Marshallese", "Mongolian", "Nauru", "Navajo", "Navaho",
- "North Ndebele", "Nepali", "Ndonga", "Norwegian Bokmål", "Norwegian Nynorsk",
- "Norwegian", "Sichuan Yi", "Nuosu", "South Ndebele", "Occitan", "Ojibwa",
- "Church Slavic", "Old Slavonic", "Church Slavonic", "Old Bulgarian", "Old Church Slavonic",
- "Oromo", "Oriya", "Ossetian", "Ossetic", "Punjabi", "Panjabi", "Pali", "Persian",
- "Polish", "Pashto", "Pushto", "Portuguese", "Quechua", "Romansh", "Rundi",
- "Romanian", "Moldavian", "Moldovan", "Russian", "Sanskrit", "Sardinian", "Sindhi",
- "Northern Sami", "Samoan", "Sango", "Serbian", "Gaelic", "Scottish Gaelic", "Shona",
- "Sinhala", "Sinhalese", "Slovak", "Slovenian", "Somali", "Southern Sotho",
- "Spanish", "Castilian", "Sundanese", "Swahili", "Swati", "Swedish", "Tamil", "Telugu",
- "Tajik", "Thai", "Tigrinya", "Tibetan", "Turkmen", "Tagalog", "Tswana",
- "Tonga", "Turkish", "Tsonga", "Tatar", "Twi", "Tahitian",
- "Uighur", "Uyghur", "Ukrainian", "Urdu", "Uzbek", "Venda", "Vietnamese", "Volapük",
- "Walloon", "Welsh", "Wolof", "Western Frisian", "Xhosa", "Yiddish", "Yoruba",
- "Zhuang", "Chuang", "Zulu",
+    "Abkhazian", "Afar", "Afrikaans", "Akan", "Albanian", "Amharic", "Arabic",
+    "Aragonese", "Armenian", "Assamese", "Avaric", "Avestan", "Aymara", "Azerbaijani",
+    "Bambara", "Bashkir", "Basque", "Belarusian", "Bengali", "Bihari",
+    "Bislama", "Bosnian", "Breton", "Bulgarian", "Burmese", "Catalan, Valencian",
+    "Chamorro", "Chechen", "Chichewa", "Chewa", "Nyanja", "Chinese", "Chuvash", "Cornish",
+    "Corsican", "Cree", "Croatian", "Czech", "Danish", "Divehi", "Dhivehi", "Maldivian",
+    "Dutch, Flemish", "Dzongkha", "English", "Esperanto", "Estonian", "Ewe", "Faroese",
+    "Fijian", "Finnish", "French", "Fulah", "Galician", "Georgian", "German",
+    "Greek", "Guarani", "Gujarati", "Haitian", "Haitian Creole", "Hausa",
+    "Hebrew", "Herero", "Hindi", "Hiri Motu", "Hungarian", "Interlingua", "Indonesian",
+    "Interlingue", "Irish", "Igbo", "Inupiaq", "Ido", "Icelandic",
+    "Italian", "Inuktitut", "Japanese", "Javanese", "Kalaallisut", "Greenlandic",
+    "Kannada", "Kanuri", "Kashmiri", "Kazakh", "Central Khmer", "Kikuyu", "Gikuyu",
+    "Kinyarwanda", "Kirghiz", "Kyrgyz", "Komi", "Kongo", "Korean", "Kurdish",
+    "Kuanyama", "Kwanyama", "Latin", "Luxembourgish", "Letzeburgesch", "Ganda",
+    "Limburgan", "Limburger", "Limburgish", "Lingala", "Lao", "Lithuanian", "Luba-Katanga",
+    "Latvian", "Manx", "Macedonian", "Malagasy", "Malay", "Malayalam", "Maltese",
+    "Maori", "Marathi", "Marshallese", "Mongolian", "Nauru", "Navajo", "Navaho",
+    "North Ndebele", "Nepali", "Ndonga", "Norwegian Bokmål", "Norwegian Nynorsk",
+    "Norwegian", "Sichuan Yi", "Nuosu", "South Ndebele", "Occitan", "Ojibwa",
+    "Church Slavic", "Old Slavonic", "Church Slavonic", "Old Bulgarian", "Old Church Slavonic",
+    "Oromo", "Oriya", "Ossetian", "Ossetic", "Punjabi", "Panjabi", "Pali", "Persian",
+    "Polish", "Pashto", "Pushto", "Portuguese", "Quechua", "Romansh", "Rundi",
+    "Romanian", "Moldavian", "Moldovan", "Russian", "Sanskrit", "Sardinian", "Sindhi",
+    "Northern Sami", "Samoan", "Sango", "Serbian", "Gaelic", "Scottish Gaelic", "Shona",
+    "Sinhala", "Sinhalese", "Slovak", "Slovenian", "Somali", "Southern Sotho",
+    "Spanish", "Castilian", "Sundanese", "Swahili", "Swati", "Swedish", "Tamil", "Telugu",
+    "Tajik", "Thai", "Tigrinya", "Tibetan", "Turkmen", "Tagalog", "Tswana",
+    "Tonga", "Turkish", "Tsonga", "Tatar", "Twi", "Tahitian",
+    "Uighur", "Uyghur", "Ukrainian", "Urdu", "Uzbek", "Venda", "Vietnamese", "Volapük",
+    "Walloon", "Welsh", "Wolof", "Western Frisian", "Xhosa", "Yiddish", "Yoruba",
+    "Zhuang", "Chuang", "Zulu",
 )
 """
 Tuple[str]: Set of human languages using the ISO standard.
