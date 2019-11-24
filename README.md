@@ -49,6 +49,15 @@ $ cd docs
 $ make html
 ```
 
+As needed, commit the latest version of the built HTML docs to the project's `master` branch:
+
+```
+$ git commit -am "Update built HTML docs"
+$ git push origin master
+```
+
+These files are automatically published through GitHub Pages, and are accessible via web browser at https://datakind.github.io/msvdd_Bloc.
+
 In-code docstrings follow [Google style](https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings). These docstrings are automatically incorporated into the main docs via `sphinx.ext.sphinx-autodoc`. Refer to the [sphinx site](https://www.sphinx-doc.org/en/master/) for details.
 
 
