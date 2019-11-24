@@ -1,4 +1,4 @@
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __description__ = "fetch, munge, and parse résumés and job postings"
 __url__ = "https://github.com/datakind/msvdd_Bloc"
 __maintainer__ = "Burton DeWilde"
