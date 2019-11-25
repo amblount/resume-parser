@@ -130,7 +130,7 @@ def get_line_token_idxs(tokens_features):
 
     Args:
         tokens_features (List[Dict[str, obj]]: Sequence of featurized tokens, as produced
-        by :func:`get_token_features_base()`.
+            by :func:`get_token_features_base()`.
 
     Yields:
         Tuple[int, int]

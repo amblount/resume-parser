@@ -113,9 +113,14 @@ class Provider(generate_utils.ResumeProvider):
         return self.generator.sep_with_ws(c.FIELD_SEPS, weights=None, ws_nrange=(1, 4))
 
     def field_sep_dt(self):
-        return self.generator.sep_with_ws(
-            c.FIELD_SEP_DTS, weights=[1.0, 0.5, 0.1], ws_nrange=(1, 3),
-        )
+        sep = self.generator.random_element_weighted(c.FIELD_SEP_DTS, [1.0, 0.5, 0.1])
+        # word-like separators need at least 1 space
+        if sep.isalpha():
+            ws = self.generator.whitespace(nrange=(1, 3), weights=[1.0, 0.25])
+        # but punct-like separators do not
+        else:
+            ws = self.generator.whitespace(nrange=(0, 3), weights=[0.1, 1.0, 0.25])
+        return "{ws}{sep}{ws}".format(ws=ws, sep=sep)
 
     def field_sep_prep(self):
         return self.generator.sep_with_ws(
