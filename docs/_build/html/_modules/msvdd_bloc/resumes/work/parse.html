@@ -54,8 +54,14 @@
         <span class="n">constants</span><span class="o">.</span><span class="n">RIGHT_BRACKETS</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="p">}</span>
-<span class="n">COMPANY_TEXTS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">COMPANY_TYPES</span> <span class="o">+</span> <span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">COMPANY_MODIFIERS</span><span class="p">)</span>
-<span class="n">POSITION_TEXTS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">POSITION_LEVELS</span> <span class="o">+</span> <span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">POSITION_TYPES</span><span class="p">)</span>
+<span class="n">COMPANY_TEXTS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">COMPANY_TYPES</span> <span class="o">+</span> <span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">COMPANY_MODIFIERS</span>
+<span class="p">)</span>
+<span class="n">POSITION_TEXTS</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">POSITION_LEVELS</span> <span class="o">+</span> <span class="n">work</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">POSITION_TYPES</span>
+<span class="p">)</span>
 
 
 <div class="viewcode-block" id="parse_lines"><a class="viewcode-back" href="../../../../api-resume-sections.html#msvdd_bloc.resumes.work.parse.parse_lines">[docs]</a><span class="k">def</span> <span class="nf">parse_lines</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">tagger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -137,29 +143,42 @@
         <span class="k">return</span> <span class="n">tokens_features</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">feature_sequence</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">tokens_features</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">pad_tokens_features</span><span class="p">(</span>
-            <span class="n">tokens_features</span><span class="p">,</span> <span class="n">n_left</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">n_right</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">line_idx_windows</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">get_line_token_idxs</span><span class="p">(</span><span class="n">tokens_features</span><span class="p">)</span>
+        <span class="n">prev_line_idx</span><span class="p">,</span> <span class="n">next_line_idx</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">line_idx_windows</span><span class="p">)</span>
         <span class="n">follows_bullet</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">idx_last_newline</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">tf_windows</span> <span class="o">=</span> <span class="n">itertoolz</span><span class="o">.</span><span class="n">sliding_window</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="n">tokens_features</span><span class="p">)</span>
+        <span class="n">n_pad_l</span><span class="p">,</span> <span class="n">n_pad_r</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span>
+        <span class="n">tokens_features</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">pad_tokens_features</span><span class="p">(</span>
+            <span class="n">tokens_features</span><span class="p">,</span> <span class="n">n_left</span><span class="o">=</span><span class="n">n_pad_l</span><span class="p">,</span> <span class="n">n_right</span><span class="o">=</span><span class="n">n_pad_r</span><span class="p">)</span>
+        <span class="n">tf_windows</span> <span class="o">=</span> <span class="n">itertoolz</span><span class="o">.</span><span class="n">sliding_window</span><span class="p">(</span><span class="n">n_pad_l</span> <span class="o">+</span> <span class="n">n_pad_r</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tokens_features</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">ppprev_tf</span><span class="p">,</span> <span class="n">pprev_tf</span><span class="p">,</span> <span class="n">prev_tf</span><span class="p">,</span> <span class="n">curr_tf</span><span class="p">,</span> <span class="n">next_tf</span><span class="p">,</span> <span class="n">nnext_tf</span> <span class="ow">in</span> <span class="n">tf_windows</span><span class="p">:</span>
             <span class="n">tf</span> <span class="o">=</span> <span class="n">curr_tf</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="c1"># add features from surrounding tokens, for context</span>
             <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;ppprev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ppprev_tf</span>
             <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;pprev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pprev_tf</span>
             <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;prev&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev_tf</span>
             <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;next&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_tf</span>
             <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;nnext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nnext_tf</span>
-            <span class="c1"># NOTE: add features here that depend upon tokens elsewhere in the sequence</span>
-            <span class="c1"># e.g. whether or not a particular word appeared earlier in the sequence</span>
+            <span class="c1"># add features dependent on this token&#39;s position within the sequence</span>
+            <span class="c1"># and its relationship to other tokens</span>
             <span class="n">tok_idx</span> <span class="o">=</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">char</span> <span class="o">==</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]):</span>
-                <span class="n">idx_last_newline</span> <span class="o">=</span> <span class="n">tok_idx</span>
+            <span class="n">line_tfs</span> <span class="o">=</span> <span class="n">tokens_features</span><span class="p">[</span><span class="n">prev_line_idx</span> <span class="o">+</span> <span class="n">n_pad_l</span> <span class="p">:</span> <span class="n">next_line_idx</span> <span class="o">+</span> <span class="n">n_pad_l</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;is_newline&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">prev_line_idx</span><span class="p">,</span> <span class="n">next_line_idx</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">line_idx_windows</span><span class="p">)</span>
                 <span class="n">follows_bullet</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;n_toks_since_newline&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tok_idx</span> <span class="o">-</span> <span class="n">idx_last_newline</span>
+            <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;tok_line_idx&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tok_idx</span> <span class="o">-</span> <span class="n">prev_line_idx</span>
             <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;follows_bullet&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">follows_bullet</span>
             <span class="c1"># is this token a bullet? i.e. &quot;- &quot; token starting a new line</span>
-            <span class="k">if</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span> <span class="ow">and</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;n_toks_since_newline&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;shape&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span> <span class="ow">and</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;tok_line_idx&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">follows_bullet</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;like_year&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">year</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">curr_tf</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">curr_tf</span><span class="p">[</span><span class="s2">&quot;suffix&quot;</span><span class="p">])</span>
+                <span class="n">other_years</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="nb">int</span><span class="p">(</span><span class="n">_tf</span><span class="p">[</span><span class="s2">&quot;prefix&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">_tf</span><span class="p">[</span><span class="s2">&quot;suffix&quot;</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">_tf</span> <span class="ow">in</span> <span class="n">line_tfs</span>
+                    <span class="k">if</span> <span class="n">_tf</span><span class="p">[</span><span class="s2">&quot;like_year&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">and</span> <span class="n">_tf</span><span class="p">[</span><span class="s2">&quot;idx&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">tok_idx</span>
+                <span class="p">]</span>
+                <span class="k">if</span> <span class="n">other_years</span><span class="p">:</span>
+                    <span class="n">tf</span><span class="p">[</span><span class="s2">&quot;is_max_line_year&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">year</span> <span class="o">&gt;</span> <span class="n">oyr</span> <span class="k">for</span> <span class="n">oyr</span> <span class="ow">in</span> <span class="n">other_years</span><span class="p">)</span>
             <span class="n">feature_sequence</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">feature_sequence</span></div>
 
@@ -179,8 +198,8 @@
     <span class="n">features</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
         <span class="p">{</span>
             <span class="s2">&quot;is_field_sep_text&quot;</span><span class="p">:</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">FIELD_SEP_TEXTS</span><span class="p">,</span>
-            <span class="s2">&quot;is_company_text&quot;</span><span class="p">:</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">COMPANY_TEXTS</span><span class="p">,</span>
-            <span class="s2">&quot;is_position_text&quot;</span><span class="p">:</span> <span class="n">text</span> <span class="ow">in</span> <span class="n">POSITION_TEXTS</span><span class="p">,</span>
+            <span class="s2">&quot;is_company_text&quot;</span><span class="p">:</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">COMPANY_TEXTS</span><span class="p">,</span>
+            <span class="s2">&quot;is_position_text&quot;</span><span class="p">:</span> <span class="n">text</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">POSITION_TEXTS</span><span class="p">,</span>
             <span class="s2">&quot;like_month_name&quot;</span><span class="p">:</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_MONTH</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s2">&quot;like_year&quot;</span><span class="p">:</span> <span class="n">regexes</span><span class="o">.</span><span class="n">RE_YEAR</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span>
         <span class="p">}</span>

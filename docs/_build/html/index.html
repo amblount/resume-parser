@@ -80,6 +80,12 @@ msvdd_Bloc(master)$ pyenv shell bloc-env
 $ make html
 </pre></div>
 </div>
+<p>As needed, commit the latest version of the built HTML docs to the project’s <code class="docutils literal notranslate"><span class="pre">master</span></code> branch:</p>
+<div class="highlight-guess notranslate"><div class="highlight"><pre><span></span>$ git commit -am &quot;Update built HTML docs&quot;
+$ git push origin master
+</pre></div>
+</div>
+<p>These files are automatically published through GitHub Pages, and are accessible via web browser at <a class="reference external" href="https://datakind.github.io/msvdd_Bloc">https://datakind.github.io/msvdd_Bloc</a>.</p>
 <p>In-code docstrings follow <a class="reference external" href="https://google.github.io/styleguide/pyguide.html#38-comments-and-docstrings">Google style</a>. These docstrings are automatically incorporated into the main docs via <code class="docutils literal notranslate"><span class="pre">sphinx.ext.sphinx-autodoc</span></code>. Refer to the <a class="reference external" href="https://www.sphinx-doc.org/en/master/">sphinx site</a> for details.</p>
 </div>
 <div class="section" id="tests">
