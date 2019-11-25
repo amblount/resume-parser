@@ -154,8 +154,8 @@ def date_group_template():
     possibly preceded by a start date.
     """
     templates = (
-        "{dt}",
         "{dt:start_date} {fsep_dt} {dt|dt_now}",
+        "{dt}",
         "{lb} {dt:start_date} {fsep_dt} {dt|dt_now} {rb}",
     )
     return rnd.choices(templates, weights=[1.0, 0.5, 0.1], k=1)[0]

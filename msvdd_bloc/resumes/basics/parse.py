@@ -108,27 +108,31 @@ def featurize(tokens):
         return tokens_features
     else:
         feature_sequence = []
-        tokens_features = parse_utils.pad_tokens_features(
-            tokens_features, n_left=3, n_right=2)
-        idx_last_newline = 0
+        line_idx_windows = parse_utils.get_line_token_idxs(tokens_features)
+        prev_line_idx, next_line_idx = next(line_idx_windows)
         follows_bullet = False
-        tf_windows = itertoolz.sliding_window(6, tokens_features)
+        n_pad_l, n_pad_r = 3, 2
+        tokens_features = parse_utils.pad_tokens_features(
+            tokens_features, n_left=n_pad_l, n_right=n_pad_r)
+        tf_windows = itertoolz.sliding_window(n_pad_l + n_pad_r + 1, tokens_features)
         for ppprev_tf, pprev_tf, prev_tf, tf, next_tf, nnext_tf in tf_windows:
             tf = tf.copy()
+            # add features from surrounding tokens, for context
             tf["ppprev"] = ppprev_tf
             tf["pprev"] = pprev_tf
             tf["prev"] = prev_tf
             tf["next"] = next_tf
             tf["nnext"] = nnext_tf
-            # NOTE: add features here that depend upon tokens elsewhere in the sequence
-            # e.g. whether or not a particular word appeared earlier in the sequence
-            if all(char == "\n" for char in tf["shape"]):
-                idx_last_newline = tf["idx"]
+            # add features dependent on this token's position within the sequence
+            # and its relationship to other tokens
+            tok_idx = tf["idx"]
+            if tf["is_newline"] and tf["idx"] > 0:
+                prev_line_idx, next_line_idx = next(line_idx_windows)
                 follows_bullet = False
-            tf["n_toks_since_newline"] = tf["idx"] - idx_last_newline
+            tf["tok_line_idx"] = tok_idx - prev_line_idx
             tf["follows_bullet"] = follows_bullet
             # is this token a bullet? i.e. "- " token starting a new line
-            if tf["shape"] == "-" and tf["n_toks_since_newline"] == 1:
+            if tf["shape"] == "-" and tf["tok_line_idx"] == 1:
                 follows_bullet = True
             feature_sequence.append(tf)
         return feature_sequence
