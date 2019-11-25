@@ -309,9 +309,9 @@ def date_group_template():
     possibly preceded by a label and/or a start date.
     """
     templates = (
+        "{label_dt::0.1} {dt:start_date} {fsep_dt} {dt|dt_now}",
         "{label_dt::0.4} {dt}",
-        "{label_dt::0.1} {dt:start_dt} {fsep_dt} {dt|dt_now}",
-        "{lb} {dt:start_dt} {fsep_dt} {dt|dt_now} {rb}",
+        "{lb} {dt:start_date} {fsep_dt} {dt|dt_now} {rb}",
     )
     return rnd.choices(templates, weights=[1.0, 0.5, 0.1], k=1)[0]
 
