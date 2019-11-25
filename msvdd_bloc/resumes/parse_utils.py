@@ -14,6 +14,7 @@ import sys
 
 import pycrfsuite
 import spacy
+from toolz import itertoolz
 from spacy.tokens import Doc
 
 
@@ -95,6 +96,7 @@ def get_token_features_base(token):
         "like_email": token.like_email,
         "is_stop": token.is_stop,
         "is_alnum": text.isalnum(),
+        "is_newline": all(char == "\n" for char in text),
         "is_partial_digit": any(c.isdigit() for c in text) and not all(c.isdigit() for c in text),
         "is_partial_punct": any(c in _PUNCT_CHARS for c in text) and not all(c in _PUNCT_CHARS for c in text),
     }
@@ -118,6 +120,31 @@ def pad_tokens_features(tokens_features, *, n_left=1, n_right=1):
         + tokens_features
         + [{"_end": True} for _ in range(n_right)]
     )
+
+
+def get_line_token_idxs(tokens_features):
+    """
+    Get the [start, stop) indexes for all lines in ``tokens_features``,
+    such that ``tokens_features[start : stop]`` corresponds to one line
+    of featurized tokens.
+
+    Args:
+        tokens_features (List[Dict[str, obj]]: Sequence of featurized tokens, as produced
+        by :func:`get_token_features_base()`.
+
+    Yields:
+        Tuple[int, int]
+    """
+    idxs_newlines = [tf["idx"] for tf in tokens_features if tf["is_newline"]]
+    if not idxs_newlines:
+        yield (0, len(tokens_features))
+    else:
+        if idxs_newlines[0] != 0:
+            idxs_newlines.insert(0, 0)
+        if idxs_newlines[-1] != len(tokens_features):
+            idxs_newlines.append(len(tokens_features))
+        for idx1, idx2 in itertoolz.sliding_window(2, idxs_newlines):
+            yield (idx1, idx2)
 
 
 def tag(tokens, features, *, tagger):
