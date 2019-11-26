@@ -16,8 +16,7 @@ import pathlib
 import re
 import sys
 
-import msvdd_bloc
-from msvdd_bloc.resumes import parse_utils
+from msvdd_bloc import fileio, tokenize
 
 
 logging.basicConfig(
@@ -43,7 +42,7 @@ def main():
 
     fpath_training_data = module.FPATH_TRAINING_DATA
     if fpath_training_data.is_file():
-        labeled_lines = list(msvdd_bloc.fileio.load_json(
+        labeled_lines = list(fileio.load_json(
             fpath_training_data, lines=True))
         seen_tokenized_lines = {
             tuple(tok_text for tok_text, _ in line)
@@ -59,13 +58,13 @@ def main():
     labels = args.labels or module.LABELS
     print_help(labels)
 
-    unlabeled_lines = list(msvdd_bloc.fileio.load_text(
+    unlabeled_lines = list(fileio.load_text(
         args.unlabeled_data.resolve(), lines=True))
     n = len(unlabeled_lines)
     for i, line in enumerate(unlabeled_lines):
         tokens = tuple(
             tok if isinstance(tok, str) else tok.text
-            for tok in parse_utils.tokenize(line)
+            for tok in tokenize.tokenize(line)
         )
         if not tokens:
             LOGGER.debug("line \"%s\" doesn't have any tokens; skipping...", line)
@@ -84,7 +83,7 @@ def main():
         labeled_lines.append(labeled_line)
 
     if len(labeled_lines) > n_labeled_lines:
-        msvdd_bloc.fileio.save_json(fpath_training_data, labeled_lines, lines=True)
+        fileio.save_json(fpath_training_data, labeled_lines, lines=True)
         LOGGER.info(
             "saved %s labeled lines to %s",
             len(labeled_lines), fpath_training_data,

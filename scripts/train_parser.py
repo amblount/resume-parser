@@ -23,8 +23,7 @@ import sys
 
 import pycrfsuite
 
-import msvdd_bloc
-from msvdd_bloc.resumes import parse_utils
+from msvdd_bloc import fileio, tokenize
 
 
 logging.basicConfig(
@@ -46,7 +45,7 @@ def main():
 
     if args.params_filepath:
         params = next(
-            msvdd_bloc.fileio.load_json(args.params_filepath.resolve(), lines=False)
+            fileio.load_json(args.params_filepath.resolve(), lines=False)
         )
     else:
         params = {}
@@ -56,11 +55,11 @@ def main():
     module = importlib.import_module(args.module_name)
 
     all_feature_label_pairs = []
-    labeled_lines = msvdd_bloc.fileio.load_json(module.FPATH_TRAINING_DATA, lines=True)
+    labeled_lines = fileio.load_json(module.FPATH_TRAINING_DATA, lines=True)
     for labeled_line in labeled_lines:
         labels = [label for _, label in labeled_line]
         token_strs = [token for token, _ in labeled_line]
-        tokens = parse_utils.tokenize(token_strs)
+        tokens = tokenize.tokenize(token_strs)
         features = module.parse.featurize(tokens)
         all_feature_label_pairs.append((features, labels))
 
