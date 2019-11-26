@@ -13,10 +13,9 @@ import re
 
 import faker
 
-from msvdd_bloc import regexes
+from msvdd_bloc import regexes, tokenize
 from msvdd_bloc import utils
 from msvdd_bloc.resumes import constants as c
-from msvdd_bloc.resumes.parse_utils import TOKENIZER
 
 
 LOGGER = logging.getLogger(__name__)
@@ -227,6 +226,6 @@ def generate_labeled_tokens(templates, fields, *, n=1, fixed_val_field_keys=None
         tok_labels = [
             (tok.text, label)
             for val, label in zip(field_vals, field_labels)
-            for tok in TOKENIZER(val)
+            for tok in tokenize.tokenize(val)
         ]
         yield tok_labels

@@ -4,7 +4,7 @@ import operator
 
 from toolz import itertoolz
 
-from msvdd_bloc import regexes
+from msvdd_bloc import regexes, tokenize
 from msvdd_bloc.resumes import constants
 from msvdd_bloc.resumes import parse_utils
 from msvdd_bloc.resumes import work
@@ -47,7 +47,7 @@ def parse_lines(lines, tagger=None):
     if tagger is None:
         tagger = parse_utils.load_tagger(work.FPATH_TAGGER)
 
-    tokens = parse_utils.tokenize("\n".join(lines).strip())
+    tokens = tokenize.tokenize("\n".join(lines).strip())
     features = featurize(tokens)
     labeled_tokens = parse_utils.tag(tokens, features, tagger=tagger)
     results = _parse_labeled_tokens(labeled_tokens)

@@ -6,7 +6,7 @@ import probablepeople
 import usaddress
 from toolz import itertoolz
 
-from msvdd_bloc import regexes
+from msvdd_bloc import regexes, tokenize
 from msvdd_bloc.resumes import basics
 from msvdd_bloc.resumes import parse_utils
 
@@ -37,7 +37,7 @@ def parse_lines(lines, tagger=None):
     if tagger is None:
         tagger = parse_utils.load_tagger(basics.FPATH_TAGGER)
 
-    tokens = parse_utils.tokenize("\n".join(lines).strip())
+    tokens = tokenize.tokenize("\n".join(lines).strip())
     features = featurize(tokens)
     labeled_tokens = parse_utils.tag(tokens, features, tagger=tagger)
     data = _parse_labeled_tokens(labeled_tokens)
