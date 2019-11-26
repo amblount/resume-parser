@@ -82,3 +82,12 @@ scripts
   consistently structured but section-specific subpackages for tailoring functionality
   to the particular needs of a section. For full details, check out :ref:`api-reference`
   and :ref:`api-reference-resumes`.
+
+notebooks
+`````````
+
+Be sure to check out the interactive guide in `notebooks/getting-started.ipynb`.
+It explains and demonstrates the above concepts in a way that's equal parts "show"
+and "tell". There are also a bunch of other notebooks in there from DataDive participants,
+but they're mostly scratch work and not particularly helpful in understanding the code
+as it exists after so much subsequent development.
