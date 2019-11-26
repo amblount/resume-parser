@@ -2,6 +2,7 @@ import pycrfsuite
 import pytest
 from spacy.tokens import Token
 
+from msvdd_bloc import tokenize
 from msvdd_bloc.resumes import basics, education, skills
 from msvdd_bloc.resumes import parse_utils
 
@@ -16,30 +17,6 @@ class TestLoadTagger:
     def test_bad_path(self, tmp_path):
         with pytest.raises(IOError):
             parse_utils.load_tagger(tmp_path.joinpath("foo.crfsuite"))
-
-
-class TestTokenize:
-
-    def test_line_str(self):
-        line = "This is an example line."
-        exp_texts = ["This", "is", "an", "example", "line", "."]
-        tokens = parse_utils.tokenize(line)
-        assert tokens
-        assert (
-            isinstance(tokens, list) and
-            all(isinstance(tok, Token) for tok in tokens)
-        )
-        assert [tok.text for tok in tokens] == exp_texts
-
-    def test_line_list(self):
-        line = ["This", "is", "an", "example", "line", "."]
-        tokens = parse_utils.tokenize(line)
-        assert tokens
-        assert (
-            isinstance(tokens, list) and
-            all(isinstance(tok, Token) for tok in tokens)
-        )
-        assert [tok.text for tok in tokens] == line
 
 
 class TestPadTokensFeatures:
@@ -65,7 +42,7 @@ class TestPadTokensFeatures:
 class TestGetTokenFeaturesBase:
 
     def test_token(self):
-        token = parse_utils.tokenize(["test"])[0]
+        token = tokenize.tokenize(["test"])[0]
         obs_features = parse_utils.get_token_features_base(token)
         exp_features = {
             "idx": 0,
@@ -89,13 +66,14 @@ class TestGetTokenFeaturesBase:
             "like_email": False,
             "is_stop": False,
             "is_alnum": True,
+            "is_newline": False,
             "is_partial_digit": False,
             "is_partial_punct": False,
         }
         assert obs_features == exp_features
 
     def test_token_title_alnum(self):
-        token = parse_utils.tokenize(["Test0"])[0]
+        token = tokenize.tokenize(["Test0"])[0]
         obs_features = parse_utils.get_token_features_base(token)
         exp_features = {
             "idx": 0,
@@ -119,13 +97,14 @@ class TestGetTokenFeaturesBase:
             "like_email": False,
             "is_stop": False,
             "is_alnum": True,
+            "is_newline": False,
             "is_partial_digit": True,
             "is_partial_punct": False,
         }
         assert obs_features == exp_features
 
     def test_token_upper_with_punct(self):
-        token = parse_utils.tokenize(["VICE-VERSA"])[0]
+        token = tokenize.tokenize(["VICE-VERSA"])[0]
         obs_features = parse_utils.get_token_features_base(token)
         exp_features = {
             "idx": 0,
@@ -149,13 +128,14 @@ class TestGetTokenFeaturesBase:
             "like_email": False,
             "is_stop": False,
             "is_alnum": False,
+            "is_newline": False,
             "is_partial_digit": False,
             "is_partial_punct": True,
         }
         assert obs_features == exp_features
 
     def test_token_number(self):
-        token = parse_utils.tokenize(["1.0"])[0]
+        token = tokenize.tokenize(["1.0"])[0]
         obs_features = parse_utils.get_token_features_base(token)
         exp_features = {
             "idx": 0,
@@ -179,13 +159,14 @@ class TestGetTokenFeaturesBase:
             "like_email": False,
             "is_stop": False,
             "is_alnum": False,
+            "is_newline": False,
             "is_partial_digit": True,
             "is_partial_punct": True,
         }
         assert obs_features == exp_features
 
     def test_token_email(self):
-        token = parse_utils.tokenize(["foo@bar.com"])[0]
+        token = tokenize.tokenize(["foo@bar.com"])[0]
         obs_features = parse_utils.get_token_features_base(token)
         exp_features = {
             "idx": 0,
@@ -209,6 +190,7 @@ class TestGetTokenFeaturesBase:
             "like_email": True,
             "is_stop": False,
             "is_alnum": False,
+            "is_newline": False,
             "is_partial_digit": False,
             "is_partial_punct": True,
         }
