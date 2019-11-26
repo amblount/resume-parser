@@ -46,9 +46,7 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 
 <span class="kn">import</span> <span class="nn">pycrfsuite</span>
-<span class="kn">import</span> <span class="nn">spacy</span>
 <span class="kn">from</span> <span class="nn">toolz</span> <span class="k">import</span> <span class="n">itertoolz</span>
-<span class="kn">from</span> <span class="nn">spacy.tokens</span> <span class="k">import</span> <span class="n">Doc</span>
 
 
 <span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -75,24 +73,6 @@
             <span class="n">fpath</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">raise</span></div>
-
-
-<div class="viewcode-block" id="tokenize"><a class="viewcode-back" href="../../../api-reference.html#msvdd_bloc.resumes.parse_utils.tokenize">[docs]</a><span class="k">def</span> <span class="nf">tokenize</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Split ``line`` into a sequence of spaCy tokens to be featurized.</span>
-
-<span class="sd">    Args:</span>
-<span class="sd">        line (List[str] or str)</span>
-
-<span class="sd">    Returns:</span>
-<span class="sd">        List[:class:`spacy.tokens.Token`]</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">tok</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">TOKENIZER</span><span class="p">(</span><span class="n">line</span><span class="p">)]</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">tok</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">Doc</span><span class="p">(</span><span class="n">TOKENIZER</span><span class="o">.</span><span class="n">vocab</span><span class="p">,</span> <span class="n">words</span><span class="o">=</span><span class="n">line</span><span class="p">)]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;`line` must be a str or List[str], not </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">line</span><span class="p">)))</span></div>
 
 
 <div class="viewcode-block" id="get_token_features_base"><a class="viewcode-back" href="../../../api-reference.html#msvdd_bloc.resumes.parse_utils.get_token_features_base">[docs]</a><span class="k">def</span> <span class="nf">get_token_features_base</span><span class="p">(</span><span class="n">token</span><span class="p">):</span>
@@ -185,7 +165,7 @@
 <span class="sd">    Tag each token in ``tokens`` with a section-specific label based on its features.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">        tokens (List[:class:`spacy.tokens.Token`]): As output by :func:`tokenize()`.</span>
+<span class="sd">        tokens (List[:class:`spacy.tokens.Token`]): A tokenized line of text.</span>
 <span class="sd">        features (List[Dict[str, obj]]): As output by a section-specific ``featurize()``.</span>
 <span class="sd">        tagger (:class:`pycrfsuite.Tagger`): Trained, section-specific CRF tagger.</span>
 
@@ -195,40 +175,6 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">tags</span> <span class="o">=</span> <span class="n">tagger</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
     <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">tags</span><span class="p">))</span></div>
-
-
-<div class="viewcode-block" id="PhoneNumberMerger"><a class="viewcode-back" href="../../../api-reference.html#msvdd_bloc.resumes.parse_utils.PhoneNumberMerger">[docs]</a><span class="k">class</span> <span class="nc">PhoneNumberMerger</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Custom spaCy pipeline component that merges contiguous tokens matching</span>
-<span class="sd">    typical phone number patterns into a single token.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nlp</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span> <span class="o">=</span> <span class="n">spacy</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">Matcher</span><span class="p">(</span><span class="n">nlp</span><span class="o">.</span><span class="n">vocab</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="o">.</span><span class="n">add</span><span class="p">(</span>
-            <span class="s2">&quot;phone&quot;</span><span class="p">,</span>
-            <span class="kc">None</span><span class="p">,</span>
-            <span class="p">[{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;dddd&quot;</span><span class="p">}],</span>
-            <span class="p">[{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;OP&quot;</span><span class="p">:</span> <span class="s2">&quot;?&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;dddd&quot;</span><span class="p">}],</span>
-            <span class="p">[{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;OP&quot;</span><span class="p">:</span> <span class="s2">&quot;?&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;.&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;dddd&quot;</span><span class="p">}],</span>
-            <span class="p">[{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;(&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;)&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;dddd&quot;</span><span class="p">}],</span>
-            <span class="p">[{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;(&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;)&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;REGEX&quot;</span><span class="p">:</span> <span class="s2">&quot;[.-]&quot;</span><span class="p">}},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;dddd&quot;</span><span class="p">}],</span>
-            <span class="p">[{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;+d&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;(&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;)&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;dddd&quot;</span><span class="p">}],</span>
-            <span class="p">[{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="s2">&quot;(&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;ddd)ddd&quot;</span><span class="p">},</span> <span class="p">{</span><span class="s2">&quot;TEXT&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;REGEX&quot;</span><span class="p">:</span> <span class="s2">&quot;[.-]&quot;</span><span class="p">}},</span> <span class="p">{</span><span class="s2">&quot;SHAPE&quot;</span><span class="p">:</span> <span class="s2">&quot;dddd&quot;</span><span class="p">}],</span>
-        <span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
-        <span class="n">matches</span> <span class="o">=</span> <span class="n">spacy</span><span class="o">.</span><span class="n">util</span><span class="o">.</span><span class="n">filter_spans</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">doc</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">matcher</span><span class="p">(</span><span class="n">doc</span><span class="p">)]</span>
-        <span class="p">)</span>
-        <span class="k">with</span> <span class="n">doc</span><span class="o">.</span><span class="n">retokenize</span><span class="p">()</span> <span class="k">as</span> <span class="n">retokenizer</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
-                <span class="n">retokenizer</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">match</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">doc</span></div>
-
-
-<span class="n">TOKENIZER</span> <span class="o">=</span> <span class="n">spacy</span><span class="o">.</span><span class="n">blank</span><span class="p">(</span><span class="s2">&quot;en&quot;</span><span class="p">)</span>
-<span class="n">TOKENIZER</span><span class="o">.</span><span class="n">add_pipe</span><span class="p">(</span><span class="n">PhoneNumberMerger</span><span class="p">(</span><span class="n">TOKENIZER</span><span class="p">),</span> <span class="n">last</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 
           </div>

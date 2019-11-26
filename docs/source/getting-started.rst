@@ -64,6 +64,7 @@ scripts
     validating fields with a high degree of consistent structured
   - ``schemas.py``: schemas for defining and validating structured data representations
     of résumés and job postings
+  - ``tokenize.py``: functionality for splitting text strings into constituent tokens
   - ``utils.py``: general-purpose utility functions, used as needed throughout the code
 
 - ``job_postings/``: Basic functionality for fetching and munging job postings data.

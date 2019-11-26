@@ -46,10 +46,8 @@
 
 <span class="kn">import</span> <span class="nn">faker</span>
 
-<span class="kn">from</span> <span class="nn">msvdd_bloc</span> <span class="k">import</span> <span class="n">regexes</span>
-<span class="kn">from</span> <span class="nn">msvdd_bloc</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">msvdd_bloc</span> <span class="k">import</span> <span class="n">regexes</span><span class="p">,</span> <span class="n">tokenize</span><span class="p">,</span> <span class="n">utils</span>
 <span class="kn">from</span> <span class="nn">msvdd_bloc.resumes</span> <span class="k">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">c</span>
-<span class="kn">from</span> <span class="nn">msvdd_bloc.resumes.parse_utils</span> <span class="k">import</span> <span class="n">TOKENIZER</span>
 
 
 <span class="n">LOGGER</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
@@ -260,7 +258,7 @@
         <span class="n">tok_labels</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">(</span><span class="n">tok</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">label</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">val</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">field_vals</span><span class="p">,</span> <span class="n">field_labels</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">TOKENIZER</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">tokenize</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
         <span class="p">]</span>
         <span class="k">yield</span> <span class="n">tok_labels</span></div>
 </pre></div>

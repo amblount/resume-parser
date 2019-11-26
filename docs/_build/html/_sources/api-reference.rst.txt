@@ -10,6 +10,8 @@ top-level
 
 .. automodule:: msvdd_bloc.fileio
 
+.. automodule:: msvdd_bloc.tokenize
+
 .. automodule:: msvdd_bloc.regexes
 
 .. automodule:: msvdd_bloc.utils

@@ -38,6 +38,7 @@
 
 <span class="kn">from</span> <span class="nn">toolz</span> <span class="k">import</span> <span class="n">itertoolz</span>
 
+<span class="kn">from</span> <span class="nn">msvdd_bloc</span> <span class="k">import</span> <span class="n">tokenize</span>
 <span class="kn">from</span> <span class="nn">msvdd_bloc.resumes</span> <span class="k">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">msvdd_bloc.resumes</span> <span class="k">import</span> <span class="n">parse_utils</span>
 <span class="kn">from</span> <span class="nn">msvdd_bloc.resumes</span> <span class="k">import</span> <span class="n">skills</span>
@@ -76,7 +77,7 @@
     <span class="k">if</span> <span class="n">tagger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">tagger</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">load_tagger</span><span class="p">(</span><span class="n">skills</span><span class="o">.</span><span class="n">FPATH_TAGGER</span><span class="p">)</span>
 
-    <span class="n">tokens</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="n">tokenize</span><span class="o">.</span><span class="n">tokenize</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
     <span class="n">features</span> <span class="o">=</span> <span class="n">featurize</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
     <span class="n">labeled_tokens</span> <span class="o">=</span> <span class="n">parse_utils</span><span class="o">.</span><span class="n">tag</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="n">features</span><span class="p">,</span> <span class="n">tagger</span><span class="o">=</span><span class="n">tagger</span><span class="p">)</span>
     <span class="n">data</span> <span class="o">=</span> <span class="n">_parse_labeled_tokens</span><span class="p">(</span><span class="n">labeled_tokens</span><span class="p">)</span>

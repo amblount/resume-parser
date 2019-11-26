@@ -445,6 +445,40 @@ to store at <code class="docutils literal notranslate"><span class="pre">filepat
 </dd></dl>
 
 </div>
+<span class="target" id="module-msvdd_bloc.tokenize"></span><div class="section" id="tokenize">
+<h3>tokenize<a class="headerlink" href="#tokenize" title="Permalink to this headline">¶</a></h3>
+<p>Segment text into its constituent tokens using spaCy.</p>
+<dl class="function">
+<dt id="msvdd_bloc.tokenize.tokenize">
+<code class="sig-prename descclassname">msvdd_bloc.tokenize.</code><code class="sig-name descname">tokenize</code><span class="sig-paren">(</span><em class="sig-param">line</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/tokenize.html#tokenize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.tokenize.tokenize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Split <code class="docutils literal notranslate"><span class="pre">line</span></code> into a sequence of spaCy tokens, to be featurized.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>line</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>] or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – If str, text to be split into tokens. If List[str],
+it’s assumed that <code class="docutils literal notranslate"><span class="pre">line</span></code> was already tokenized at some point,
+so each str element is transformed into a token.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>List[<code class="xref py py-class docutils literal notranslate"><span class="pre">spacy.tokens.Token</span></code>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.tokenize.PhoneNumberMerger">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.tokenize.</code><code class="sig-name descname">PhoneNumberMerger</code><span class="sig-paren">(</span><em class="sig-param">nlp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/tokenize.html#PhoneNumberMerger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.tokenize.PhoneNumberMerger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Custom spaCy pipeline component that merges contiguous tokens matching
+typical phone number patterns into a single token.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="msvdd_bloc.tokenize.DateRangeSplitter">
+<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.tokenize.</code><code class="sig-name descname">DateRangeSplitter</code><span class="sig-paren">(</span><em class="sig-param">nlp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/tokenize.html#DateRangeSplitter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.tokenize.DateRangeSplitter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Custom spaCy pipeline component that splits tokens matching a date range like
+YYYY–YYYY into separate tokens, which sneaks through the default tokenization rules.</p>
+</dd></dl>
+
+</div>
 <span class="target" id="module-msvdd_bloc.regexes"></span><div class="section" id="regexes">
 <h3>regexes<a class="headerlink" href="#regexes" title="Permalink to this headline">¶</a></h3>
 </div>
@@ -859,20 +893,6 @@ in their respective <code class="docutils literal notranslate"><span class="pre"
 </dd></dl>
 
 <dl class="function">
-<dt id="msvdd_bloc.resumes.parse_utils.tokenize">
-<code class="sig-prename descclassname">msvdd_bloc.resumes.parse_utils.</code><code class="sig-name descname">tokenize</code><span class="sig-paren">(</span><em class="sig-param">line</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/parse_utils.html#tokenize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.parse_utils.tokenize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Split <code class="docutils literal notranslate"><span class="pre">line</span></code> into a sequence of spaCy tokens to be featurized.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>line</strong> (<em>List</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>] or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – </p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>List[<code class="xref py py-class docutils literal notranslate"><span class="pre">spacy.tokens.Token</span></code>]</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="function">
 <dt id="msvdd_bloc.resumes.parse_utils.get_token_features_base">
 <code class="sig-prename descclassname">msvdd_bloc.resumes.parse_utils.</code><code class="sig-name descname">get_token_features_base</code><span class="sig-paren">(</span><em class="sig-param">token</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/parse_utils.html#get_token_features_base"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.parse_utils.get_token_features_base" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get base per-token features, independent of other tokens within its sequence.
@@ -930,7 +950,7 @@ by <a class="reference internal" href="#msvdd_bloc.resumes.parse_utils.get_token
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>tokens</strong> (List[<code class="xref py py-class docutils literal notranslate"><span class="pre">spacy.tokens.Token</span></code>]) – As output by <a class="reference internal" href="#msvdd_bloc.resumes.parse_utils.tokenize" title="msvdd_bloc.resumes.parse_utils.tokenize"><code class="xref py py-func docutils literal notranslate"><span class="pre">tokenize()</span></code></a>.</p></li>
+<li><p><strong>tokens</strong> (List[<code class="xref py py-class docutils literal notranslate"><span class="pre">spacy.tokens.Token</span></code>]) – A tokenized line of text.</p></li>
 <li><p><strong>features</strong> (<em>List</em><em>[</em><em>Dict</em><em>[</em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>obj</em><em>]</em><em>]</em>) – As output by a section-specific <code class="docutils literal notranslate"><span class="pre">featurize()</span></code>.</p></li>
 <li><p><strong>tagger</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">pycrfsuite.Tagger</span></code>) – Trained, section-specific CRF tagger.</p></li>
 </ul>
@@ -943,13 +963,6 @@ by <a class="reference internal" href="#msvdd_bloc.resumes.parse_utils.get_token
 <dd class="field-odd"><p>List[Tuple[<code class="xref py py-class docutils literal notranslate"><span class="pre">spacy.tokens.Token</span></code>, str]]</p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="class">
-<dt id="msvdd_bloc.resumes.parse_utils.PhoneNumberMerger">
-<em class="property">class </em><code class="sig-prename descclassname">msvdd_bloc.resumes.parse_utils.</code><code class="sig-name descname">PhoneNumberMerger</code><span class="sig-paren">(</span><em class="sig-param">nlp</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/msvdd_bloc/resumes/parse_utils.html#PhoneNumberMerger"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#msvdd_bloc.resumes.parse_utils.PhoneNumberMerger" title="Permalink to this definition">¶</a></dt>
-<dd><p>Custom spaCy pipeline component that merges contiguous tokens matching
-typical phone number patterns into a single token.</p>
 </dd></dl>
 
 </div>
@@ -991,6 +1004,7 @@ typical phone number patterns into a single token.</p>
 <li class="toctree-l2"><a class="reference internal" href="#module-msvdd_bloc.schemas">top-level</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#schemas">schemas</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#file-i-o">file i/o</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tokenize">tokenize</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#regexes">regexes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#utils">utils</a></li>
 </ul>
