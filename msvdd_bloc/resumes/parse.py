@@ -40,15 +40,16 @@ def parse_text(text):
     # basics section
     basics_lines = section_lines.get("start", []) + section_lines.get("basics", [])
     basics_data = basics.parse.parse_lines(basics_lines)
-    if section_lines.get("summary"):
-        basics_data["summary"] = "\n".join(section_lines["summary"]).strip()
+    # NOTE: uncomment if summary section is split out from main basics lines
+    # if section_lines.get("summary"):
+    #     basics_data["summary"] = "\n".join(section_lines["summary"]).strip()
     data["basics"] = basics_data
 
     # education
     education_lines = section_lines.get("education", [])
     education_data = education.parse.parse_lines(education_lines)
     data["education"] = education_data
-    # NOTE: uncomment if courses not directly included in main education lines
+    # NOTE: uncomment if courses subsection is split out from main education lines
     # courses_lines = section_lines.get("courses", [])
 
     # skills

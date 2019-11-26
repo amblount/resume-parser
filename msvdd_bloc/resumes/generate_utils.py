@@ -13,8 +13,7 @@ import re
 
 import faker
 
-from msvdd_bloc import regexes, tokenize
-from msvdd_bloc import utils
+from msvdd_bloc import regexes, tokenize, utils
 from msvdd_bloc.resumes import constants as c
 
 
