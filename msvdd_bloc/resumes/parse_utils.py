@@ -13,9 +13,7 @@ import string
 import sys
 
 import pycrfsuite
-import spacy
 from toolz import itertoolz
-from spacy.tokens import Doc
 
 
 LOGGER = logging.getLogger(__name__)
@@ -42,24 +40,6 @@ def load_tagger(fpath):
             fpath,
         )
         raise
-
-
-def tokenize(line):
-    """
-    Split ``line`` into a sequence of spaCy tokens to be featurized.
-
-    Args:
-        line (List[str] or str)
-
-    Returns:
-        List[:class:`spacy.tokens.Token`]
-    """
-    if isinstance(line, str):
-        return [tok for tok in TOKENIZER(line)]
-    elif isinstance(line, (list, tuple)):
-        return [tok for tok in Doc(TOKENIZER.vocab, words=line)]
-    else:
-        raise TypeError("`line` must be a str or List[str], not {}".format(type(line)))
 
 
 def get_token_features_base(token):
@@ -152,7 +132,7 @@ def tag(tokens, features, *, tagger):
     Tag each token in ``tokens`` with a section-specific label based on its features.
 
     Args:
-        tokens (List[:class:`spacy.tokens.Token`]): As output by :func:`tokenize()`.
+        tokens (List[:class:`spacy.tokens.Token`]): A tokenized line of text.
         features (List[Dict[str, obj]]): As output by a section-specific ``featurize()``.
         tagger (:class:`pycrfsuite.Tagger`): Trained, section-specific CRF tagger.
 
@@ -162,37 +142,3 @@ def tag(tokens, features, *, tagger):
     """
     tags = tagger.tag(features)
     return list(zip(tokens, tags))
-
-
-class PhoneNumberMerger:
-    """
-    Custom spaCy pipeline component that merges contiguous tokens matching
-    typical phone number patterns into a single token.
-    """
-
-    def __init__(self, nlp):
-        self.matcher = spacy.matcher.Matcher(nlp.vocab)
-        self.matcher.add(
-            "phone",
-            None,
-            [{"SHAPE": "ddd"}, {"SHAPE": "ddd"}, {"SHAPE": "dddd"}],
-            [{"SHAPE": "ddd"}, {"TEXT": "-", "OP": "?"}, {"SHAPE": "ddd"}, {"TEXT": "-"}, {"SHAPE": "dddd"}],
-            [{"SHAPE": "ddd"}, {"TEXT": ".", "OP": "?"}, {"SHAPE": "ddd"}, {"TEXT": "."}, {"SHAPE": "dddd"}],
-            [{"TEXT": "("}, {"SHAPE": "ddd"}, {"TEXT": ")"}, {"SHAPE": "ddd"}, {"TEXT": "-"}, {"SHAPE": "dddd"}],
-            [{"TEXT": "("}, {"SHAPE": "ddd"}, {"TEXT": ")"}, {"SHAPE": "ddd"}, {"TEXT": {"REGEX": "[.-]"}}, {"SHAPE": "dddd"}],
-            [{"SHAPE": "+d"}, {"TEXT": "("}, {"SHAPE": "ddd"}, {"TEXT": ")"}, {"SHAPE": "ddd"}, {"TEXT": "-"}, {"SHAPE": "dddd"}],
-            [{"TEXT": "("}, {"SHAPE": "ddd)ddd"}, {"TEXT": {"REGEX": "[.-]"}}, {"SHAPE": "dddd"}],
-        )
-
-    def __call__(self, doc):
-        matches = spacy.util.filter_spans(
-            [doc[start:end] for _, start, end in self.matcher(doc)]
-        )
-        with doc.retokenize() as retokenizer:
-            for match in matches:
-                retokenizer.merge(match)
-        return doc
-
-
-TOKENIZER = spacy.blank("en")
-TOKENIZER.add_pipe(PhoneNumberMerger(TOKENIZER), last=True)
