@@ -41,7 +41,6 @@ MarkupSafe==1.1.1
 marshmallow==3.3.0
 matplotlib==3.1.2
 mccabe==0.6.1
-msvdd-bloc==0.1.1
 murmurhash==1.0.2
 networkx==2.4
 numpy==1.18.0
@@ -93,4 +92,4 @@ watermark==2.0.2
 wcwidth==0.1.7
 Werkzeug==0.16.0
 wrapt==1.11.2
-yapdfminer==1.2.2
+
