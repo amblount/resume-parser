@@ -32,3 +32,4 @@ data/postings/*
 data/external/*
 data/processed/*
 bloc-env
+docs/_build
