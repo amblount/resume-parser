@@ -9,8 +9,8 @@ from . import generate
 from . import parse
 
 
-FPATH_TRAINING_DATA = _MDIR.joinpath("resumes", "resume-basics-training-data.jsonl")
-FPATH_TAGGER = _MDIR.joinpath("resumes", "resume-basics-tagger.crfsuite")
+FPATH_TRAINING_DATA = _MDIR.joinpath("msvdd_bloc", "resumes", "resume-basics-training-data.jsonl")
+FPATH_TAGGER = _MDIR.joinpath("msvdd_bloc", "resumes", "resume-basics-tagger.crfsuite")
 LABELS = (
     "name",
     "label",
