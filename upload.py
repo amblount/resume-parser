@@ -36,8 +36,9 @@ def upload_file():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            processFile(os.path.join(app.config['UPLOAD_FOLDER'], filename), filename)
-            redirect("/", code=302)
+            json_resume = processFile(os.path.join(app.config['UPLOAD_FOLDER'], filename), filename)
+            # redirect("/", code=302)
+            return json_resume
 
     return render_template('index.html')
 
