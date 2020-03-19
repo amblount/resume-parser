@@ -55,8 +55,8 @@ def processFile(path, filename):
         json.dump(resume_data, json_file)
         output_stream = app.config['DOWNLOAD_FOLDER'] + filename 
         json_file.write(output_stream)
-    # return jsonify(resume_data)
-    redirect('/uploads')
+    return jsonify(resume_data)
+    # redirect('/uploads')
 
 if __name__ == '__main__':
     app.run(threaded=True, port=5000)
