@@ -59,4 +59,4 @@ def processFile(path, filename):
     # redirect('/uploads')
 
 if __name__ == '__main__':
-    app.run(threaded=True, port=5000)
+    app.run(threaded=True, port=os.getenv('PORT', 5000), host=os.getenv('HOST', '0.0.0.0'))
