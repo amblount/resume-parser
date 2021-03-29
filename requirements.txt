@@ -58,7 +58,7 @@ ptyprocess==0.6.0
 pyasn1==0.4.8
 pycryptodome==3.9.4
 pyemd==0.5.1
-Pygments==2.5.2
+Pygments==2.7.4
 pylint==2.4.4
 pyparsing==2.4.6
 PyPDF2==1.26.0
